@@ -442,28 +442,6 @@ def write_regex_support(f, characters, categories_names, scripts_names):
     """.format(script[1]))
 
 
-    def write_switch(i, words):
-        words   = list(filter(lambda w : len(w) > i, words))
-        if len(words) == 0:
-            return
-        letters = list(set([w[i] for w in words]))
-        letters.sort()
-        f.write("switch(n[{}]) {{:".format(i))
-        for l in letters:
-            f.write("case '{}' :{{".format(l))
-            matching  = list(filter(lambda w : w[i]==l, words))
-            print(i, l, matching)
-            for m in matching:
-                if len(m) == i + 1:
-                    f.write("if (n_s == {}) return __binary_prop::{};".format(i+1, m))
-                if len(matching) > 1:
-                    write_switch(i + 1, matching)
-            f.write("} break;")
-        f.write("default : return 0 ; }")
-
-    write_switch(0, known)
-
-
 
 
 def emit_binary_data(f, name, characters, pred):
