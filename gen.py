@@ -11,6 +11,7 @@ from intbitset import intbitset
 DIR = os.path.dirname(os.path.realpath(__file__))
 UNICODE_DATA = os.path.join(DIR, "ucd", "ucd.nounihan.flat.xml")
 PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
+BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
 
 def cp_code(cp):
     try:
@@ -43,6 +44,16 @@ class ucd_cp(object):
         self.xidcontinue = char.get("XIDC") == 'Y'
         self.pattern_ws = char.get("Pat_WS") == 'Y'
         self.pattern_syntax = char.get("Pat_Syn") == 'Y'
+        self.nv = None if char.get("nv") == 'NaN' else char.get("nv").split("/")
+        self.omath = char.get("OMath") == 'Y'
+        self.qmark = char.get("QMark") == 'Y'
+        self.dash  = char.get("Dash") == 'Y'
+        self.sentence_terminal = char.get("STerm") == 'Y'
+        self.terminal_punctuation = char.get("Term") == 'Y'
+        self.deprecated = char.get("Dep") == 'Y'
+        self.diatric = char.get("Dia") == 'Y'
+        self.extender = char.get("Ext") == 'Y'
+
 
 def write_string_array(f, array_name, strings_with_idx):
     dct = dict(strings_with_idx)
@@ -266,8 +277,9 @@ def emit_trie_or_table(f, name, data):
     tsize = 0xFFFFFFFF
     size  = asize
 
-    rsize, rdata = construct_range_data(data)
-    tsize, tdata = construct_bool_trie_data(data)
+    if len(data):
+        rsize, rdata = construct_range_data(data)
+        tsize, tdata = construct_bool_trie_data(data)
 
     if rsize < size:
         t = 'r'
@@ -351,6 +363,109 @@ def write_age_data(characters, f):
     f.write("__age_data_t{0x110000, age::unassigned} };\n")
     print(size)
 
+def write_numeric_data(characters, f):
+    f.write("""
+    struct __numeric_data_t {
+        char32_t c: 24;
+        uint8_t p : 8;
+        int16_t n : 16;
+        int16_t d : 16;
+    };
+""")
+    f.write("static constexpr std::array __numeric_data = { ")
+    for cp in characters:
+        if cp.nv:
+            n = int(cp.nv[0])
+            p = 0
+            d = cp.nv[1] if len(cp.nv) == 2 else '1'
+            while n != 0 and float(n / 10).is_integer():
+                p = p + 1
+                n = int(n / 10)
+            f.write("__numeric_data_t{{ {}, {}, {}, {} }},".format(to_hex(cp.cp, 6), p, n, d))
+
+
+
+    f.write("__numeric_data_t{0x110000, 0, 0} };\n")
+
+def write_regex_support(f, characters, categories_names, scripts_names):
+    lines = [line.rstrip('\n') for line in open(BINARY_PROPS_FILE, 'r')]
+    values = [["any"], ["ascii"], ["assigned"]]
+    known  = set()
+
+    for line in lines:
+        values.append([n.strip().lower().replace(" ", "_").replace("-", "_") for n in line.split(";")])
+    for cat in categories_names:
+        values.append(cat)
+    for script in scripts_names:
+        values.append(script)
+    values.sort(key = lambda x: x[0])
+
+    f.write("enum class __binary_prop {")
+    for v in values:
+        if not v[0] in known:
+            f.write("{} ,".format(v[0]))
+            known.add(v[0])
+            for alias in v[1:]:
+                if not alias in known:
+                    f.write("{} = {} ,".format(alias, v[0]))
+                    known.add(alias)
+    f.write("__max };\n")
+
+    f.write("""
+        template<uni::__binary_prop p>
+        constexpr bool get_binary_prop(char32_t) = delete;
+        //Forward declared - defined in unicode.h
+        constexpr script cp_script(char32_t cp);
+    """)
+
+    cats = []
+    for cp in characters:
+        if not cp.gc in cats:
+            cats.append(cp.gc)
+
+    for cat in cats:
+        f.write("""
+        template<>
+        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+            return __cat_{0}.lookup(c);
+        }}
+    """.format(cat))
+
+    for script in scripts_names:
+        if len(script) < 2:
+            continue
+        f.write("""
+        template<>
+        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+            return cp_script(c) == script::{0};
+        }}
+    """.format(script[1]))
+
+
+    def write_switch(i, words):
+        words   = list(filter(lambda w : len(w) > i, words))
+        if len(words) == 0:
+            return
+        letters = list(set([w[i] for w in words]))
+        letters.sort()
+        f.write("switch(n[{}]) {{:".format(i))
+        for l in letters:
+            f.write("case '{}' :{{".format(l))
+            matching  = list(filter(lambda w : w[i]==l, words))
+            print(i, l, matching)
+            for m in matching:
+                if len(m) == i + 1:
+                    f.write("if (n_s == {}) return __binary_prop::{};".format(i+1, m))
+                if len(matching) > 1:
+                    write_switch(i + 1, matching)
+            f.write("} break;")
+        f.write("default : return 0 ; }")
+
+    write_switch(0, known)
+
+
+
+
 def emit_binary_data(f, name, characters, pred):
     d = intbitset([c.cp for c in filter(pred, characters)])
     emit_trie_or_table(f, name, d)
@@ -377,6 +492,9 @@ if __name__ == "__main__":
         print("Age data")
         write_age_data(characters, f)
 
+        print("Numeric Data")
+        write_numeric_data(characters, f)
+
         emit_binary_data(f, "__prop_other_lower_data", characters, lambda c : c.olower)
         emit_binary_data(f, "__prop_other_upper_data", characters, lambda c : c.oupper)
         emit_binary_data(f, "__prop_alpha_data", characters, lambda c : c.alpha)
@@ -391,9 +509,19 @@ if __name__ == "__main__":
         emit_binary_data(f, "__prop_pattern_ws_data", characters, lambda c : c.pattern_ws)
         emit_binary_data(f, "__prop_pattern_syntax_data", characters, lambda c : c.pattern_syntax)
         emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
+        emit_binary_data(f, "__prop_omath_data", characters, lambda c : c.omath)
+        emit_binary_data(f, "__prop_qmark_data", characters, lambda c : c.qmark)
+        emit_binary_data(f, "__prop_dash_data", characters, lambda c : c.dash)
+        emit_binary_data(f, "__prop_sentence_terminal_data", characters, lambda c : c.sentence_terminal)
+        emit_binary_data(f, "__prop_terminal_punctuation_data", characters, lambda c : c.terminal_punctuation)
+        emit_binary_data(f, "__prop_extender_data", characters, lambda c : c.extender)
+        emit_binary_data(f, "__prop_deprecated_data", characters, lambda c : c.deprecated)
+        emit_binary_data(f, "__prop_diatric_data", characters, lambda c : c.diatric)
+
+        write_regex_support(f, characters, categories_name, scripts_names)
 
 
-        f.write("}")
+        f.write("}//namespace uni")
 
 
 
