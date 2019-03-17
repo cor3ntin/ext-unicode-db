@@ -56,6 +56,28 @@ constexpr script __script_from_string(const std::string_view s) {
     return script::unknown;
 }
 
+template<auto N, uni::version v = uni::version::standard_unicode_version>
+constexpr script __cp_script(char32_t cp) {
+    if(cp > 0x10FFFF)
+        return script::unknown;
+
+    constexpr const auto end = __script_data<N>::scripts_data.end();
+    auto it = uni::upper_bound(__script_data<N>::scripts_data.begin(), end, cp,
+                               [](char32_t cp, const __script_data_t& s) { return cp < s.first; });
+    if(it == end)
+        return script::unknown;
+    it--;
+    if constexpr(v < uni::version::v12_0) {
+        return __script_data<N>::older_cp_script(cp, it->s);
+    }
+    return it->s;
+}
+
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr script cp_script(char32_t cp) {
+    return __cp_script<0, v>(cp);
+}
+
 
 constexpr version cp_age(char32_t cp) {
     auto it = uni::upper_bound(__age_data.begin(), __age_data.end(), cp,
@@ -75,23 +97,6 @@ constexpr block cp_block(char32_t cp) {
         return block::no_block;
     it--;
     return it->b;
-}
-
-template<uni::version v = uni::version::standard_unicode_version>
-constexpr script cp_script(char32_t cp) {
-    if(cp > 0x10FFFF)
-        return script::unknown;
-
-    constexpr const auto end = __scripts_data.begin() + __scripts_data_indexes[1];
-    auto it = uni::upper_bound(__scripts_data.begin(), end, cp,
-                               [](char32_t cp, const __script_data_t& s) { return cp < s.first; });
-    if(it == end)
-        return script::unknown;
-    it--;
-    if constexpr(v < uni::version::v12_0) {
-        return __older_cp_script(cp, it->s);
-    }
-    return it->s;
 }
 
 template<>

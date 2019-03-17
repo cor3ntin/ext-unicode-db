@@ -33,7 +33,8 @@ class ucd_cp(object):
         self.cp  = cp_code(char.get('cp'))
         self.scx = [s.lower() for s in char.get("scx").split(" ")]
         self.sc  = char.get("sc").lower()
-        self.scx = [self.sc] + self.scx
+        if [self.sc] != self.scx:
+            self.scx = [self.sc] + self.scx
         self.gc  = char.get("gc").lower()
         self.age = char.get("age")
         self.block = char.get("blk").lower().replace("-", "_").replace(" ", "_")
@@ -194,65 +195,61 @@ def write_script_data(characters, changed, scripts_names, file):
     write_string_array(f, "__scripts_names", [(script[0], idx) for idx, script in enumerate(scripts_names)]
                                            + [(script[1], idx) for idx, script in enumerate(scripts_names)])
 
-    script_blocks = []
-    for cp in characters:
-        for i, script in enumerate(cp.scx):
-            script = script.lower()
-            if len(script_blocks) <= i:
-                script_blocks.append([])
-            script_blocks[i].append((cp.cp, script))
-
-    indexes = []
-    begin = 0
     f.write("struct __script_data_t {char32_t first; script s;};")
-    f.write("static constexpr const std::array __scripts_data = {")
-    for bidx, block in enumerate(script_blocks):
-        indexes.append(begin)
+    f.write("template <auto N> struct __script_data;")
+
+    def write_block(idx, characters, changed):
+        f.write("template <> struct __script_data<{}> {{".format(idx))
+        f.write("static constexpr const std::array scripts_data= {")
         prev = 'zzzz'
-        f.write("\n//block {}\n".format(bidx))
-        block = dict(block)
+        block = dict([(cp.cp, cp.scx) for cp in characters])
         for cp in range(0x10FFFF):
-            script = block[cp] if cp in block else 'zzzz'
+            script = block[cp][idx] if (cp in block and len(block[cp])) > idx else 'zzzz'
             if script != prev:
                 f.write("__script_data_t{{ {}, script::{} }},".format(to_hex(cp, 6), script))
-                begin = begin + 1
             prev = script
-
-    f.write("__script_data_t{0x110000, script::zzzz }")
-    f.write("};")
-    f.write("static constexpr const std::array __scripts_data_indexes = {")
-    for ii, i in enumerate(indexes):
-        f.write("{} {}".format(i, "," if ii < len(indexes) -1 else "" ))
-    f.write("};")
-
-    #generate compatibility data for script
-
-    modified = dict([(cp.cp, cp.sc) for cp in characters])
-    data = []
-
-
-    for k, v in changed.items():
-        old = [(cp.cp, cp.sc) for cp in v if cp.cp in modified and cp.sc != modified[cp.cp]]
-        if len(old) > 0:
-            data.append((age_name(k), old))
-        modified.update(dict(old))
-
-    for version, d in data:
-        f.write("static constexpr const std::array __scripts_data_compat_{} = {{".format(version))
-        for idx, (cp, script) in enumerate(d):
-            f.write("std::pair<char32_t, script>{{ {}, script::{} }} {}".format(cp, script, "," if idx < len(d) - 1 else ""))
+        f.write("__script_data_t{0x110000, script::zzzz }")
         f.write("};")
-    f.write("template <uni::version v> constexpr script __older_cp_script(char32_t cp, script c) {")
-    for version, _ in data:
-        f.write("""
-            if constexpr(v <= uni::version::{0}) {{
-                const auto it = uni::lower_bound(__scripts_data_compat_{0}.begin(), __scripts_data_compat_{0}.end(), cp,
-                    [](const auto & e, char32_t cp) {{ return e.first < cp; }});
-                if (it !=  __scripts_data_compat_{0}.end() && cp == it->first)
-                c = it->second;
-            }}
-""".format(version))
-    f.write("return c;}")
+
+        modified = block
+        data = []
+        for k, v in changed.items():
+            old = collections.OrderedDict([(cp.cp, cp.scx) for cp in v if not cp.cp in modified or cp.scx != modified[cp.cp]])
+            print(old)
+            for cp, v in old.items():
+                if len(v) < len(modified[cp]):
+                    old[cp].append('zzzz')
+            old = [(cp, scx) for cp, scx in old.items() if len(scx) > idx and (len(modified[cp]) <= idx or scx[idx] != modified[cp][idx])]
+
+            if len(old) > 0:
+                data.append((age_name(k), old))
+            modified.update(dict(old))
+
+        for version, d in data:
+            f.write("static constexpr const std::array scripts_data_compat_{} = {{".format(version))
+            for i, (cp, script) in enumerate(d):
+                f.write("std::pair<char32_t, script>{{ {}, script::{} }} {}".format(cp, script[idx], "," if i < len(d) - 1 else ""))
+            f.write("};")
+        f.write("template <uni::version v> constexpr script older_cp_script(char32_t cp, script c) {")
+        for version, _ in data:
+            f.write("""
+                if constexpr(v <= uni::version::{0}) {{
+                    const auto it = uni::lower_bound(scripts_data_compat_{0}.begin(), scripts_data_compat_{0}.end(), cp,
+                        [](const auto & e, char32_t cp) {{ return e.first < cp; }});
+                    if (it != scripts_data_compat_{0}.end() && cp == it->first)
+                    c = it->second;
+                }}
+    """.format(version))
+        f.write("return c;}")
+        f.write("};")
+
+    l = max([len(cp.scx) for cp in characters])
+    for _, v in changed.items():
+        m = max([len(cp.scx) for cp in v])
+        if m > l: l = m
+
+    for i in range(l):
+        write_block(i, characters, changed)
 
 
 def write_blocks_data(blocks_names, blocks, file):
