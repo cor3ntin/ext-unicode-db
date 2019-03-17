@@ -165,7 +165,7 @@ enum class script;
 enum class block;
 enum class category;
 enum class property;
-enum class age : uint8_t;
+enum class version : uint8_t;
 
 template<uni::script>
 bool cp_is(char32_t) = delete;
@@ -177,9 +177,9 @@ template<uni::property>
 bool cp_is(char32_t) = delete;
 
 constexpr category cp_category(char32_t cp);
-constexpr age cp_age(char32_t cp);
+constexpr version cp_age(char32_t cp);
 constexpr block cp_block(char32_t cp);
-constexpr script cp_script(char32_t cp);
+
 constexpr bool cp_is_valid(char32_t cp);
 constexpr bool cp_is_assigned(char32_t cp);
 constexpr bool cp_is_ascii(char32_t cp);

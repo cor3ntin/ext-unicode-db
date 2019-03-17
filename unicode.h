@@ -17,13 +17,13 @@ constexpr category cp_category(char32_t cp) {
     return __get_category(cp);
 }
 
-constexpr age __age_from_string(std::string_view a) {
+constexpr uni::version __age_from_string(std::string_view a) {
     for(auto i = 0; i < __age_strings.size(); ++i) {
         const auto res = __pronamecomp(a, __age_strings[i]);
         if(res == 0)
-            return age(i);
+            return uni::version(i);
     }
-    return age::unassigned;
+    return uni::version::unassigned;
 }
 
 constexpr category __category_from_string(const std::string_view s) {
@@ -57,11 +57,11 @@ constexpr script __script_from_string(const std::string_view s) {
 }
 
 
-constexpr age cp_age(char32_t cp) {
+constexpr version cp_age(char32_t cp) {
     auto it = uni::upper_bound(__age_data.begin(), __age_data.end(), cp,
                                [](char32_t cp, const __age_data_t& a) { return cp < a.first; });
     if(it == __age_data.begin())
-        return age::unassigned;
+        return version::unassigned;
     it--;
     return it->a;
 }
@@ -77,6 +77,7 @@ constexpr block cp_block(char32_t cp) {
     return it->b;
 }
 
+template<uni::version v = uni::version::standard_unicode_version>
 constexpr script cp_script(char32_t cp) {
     if(cp > 0x10FFFF)
         return script::unknown;
@@ -87,6 +88,9 @@ constexpr script cp_script(char32_t cp) {
     if(it == end)
         return script::unknown;
     it--;
+    if constexpr(v < uni::version::v12_0) {
+        return __older_cp_script(cp, it->s);
+    }
     return it->s;
 }
 

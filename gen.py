@@ -9,9 +9,13 @@ import collections
 from intbitset import intbitset
 
 DIR = os.path.dirname(os.path.realpath(__file__))
-UNICODE_DATA = os.path.join(DIR, "ucd", "ucd.nounihan.flat.xml")
+LAST_VERSION = "12.0"
+STANDARD_VERSION = "12.0"
+SUPPORTED_VERSIONS = ["11.0", "10.0"] #, "9.0", "8.0", "7.0"]
 PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
+
+EMOJI_PROPERTIES  = ["emoji", "emoji_presentation", "emoji_modifier", "emoji_modifier_base", "emoji_component", "extended_pictographic"]
 
 def cp_code(cp):
     try:
@@ -20,6 +24,9 @@ def cp_code(cp):
         return 0
 def to_hex(cp, n = 6):
     return "{0:#0{fill}X}".format(int(cp), fill=n).replace('X', 'x')
+
+def age_name(age):
+    return "v" + str(age).replace(".", '_')
 
 class ucd_cp(object):
     def __init__(self, char):
@@ -95,6 +102,9 @@ class ucd_cp(object):
             "XO_NFKD" ]:
                 self.props[p.lower()] =  char.get(p) == 'Y'
 
+        for p in EMOJI_PROPERTIES :
+            self.props[p] = False
+
 
 def write_string_array(f, array_name, strings_with_idx):
     dct = dict(strings_with_idx)
@@ -144,21 +154,36 @@ class ucd_block:
         self.last    = cp_code(block.get('last-cp'))
         self.name    = block.get('name')
 
-def get_unicode_data():
-    context = etree.iterparse(UNICODE_DATA, events=('end',))
+def get_unicode_data(version = LAST_VERSION):
+    context = etree.iterparse(os.path.join(DIR, "ucd", version, "ucd.nounihan.flat.xml"), events=('end',))
     blocks = []
-    characters = []
+    characters = [None] * (0x110000)
+
     for _, elem in context:
         if elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}char':
             cp = ucd_cp(elem)
             if cp.cp != 0 or len(characters) == 0:
-                characters.append(cp)
+                characters[cp.cp] = cp
         elif elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}block':
             blocks.append(ucd_block(elem))
+
+    regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")
+    lines = [line.rstrip('\n') for line in open(os.path.join(DIR, "ucd", version, "emoji-data.txt"), 'r')]
+    for line in lines:
+        m = regex.match(line)
+        if m:
+            start = int(m.group(1), 16)
+            end   = int(m.group(2), 16) if m.groups(2) != None else start
+            v = m.group(3).lower()
+            if not v in EMOJI_PROPERTIES:
+                continue
+            for i in range(start, end + 1):
+                if characters[i] != None:
+                    characters[i].props[v] = True
     return (characters, blocks)
 
 
-def write_script_data(characters, scripts_names, file):
+def write_script_data(characters, changed, scripts_names, file):
     f.write("enum class script {")
     for i, script in enumerate(scripts_names):
         f.write(script[0] + ", //{}\n".format(i))
@@ -199,6 +224,36 @@ def write_script_data(characters, scripts_names, file):
     for ii, i in enumerate(indexes):
         f.write("{} {}".format(i, "," if ii < len(indexes) -1 else "" ))
     f.write("};")
+
+    #generate compatibility data for script
+
+    modified = dict([(cp.cp, cp.sc) for cp in characters])
+    data = []
+
+
+    for k, v in changed.items():
+        old = [(cp.cp, cp.sc) for cp in v if cp.cp in modified and cp.sc != modified[cp.cp]]
+        if len(old) > 0:
+            data.append((age_name(k), old))
+        modified.update(dict(old))
+
+    for version, d in data:
+        f.write("static constexpr const std::array __scripts_data_compat_{} = {{".format(version))
+        for idx, (cp, script) in enumerate(d):
+            f.write("std::pair<char32_t, script>{{ {}, script::{} }} {}".format(cp, script, "," if idx < len(d) - 1 else ""))
+        f.write("};")
+    f.write("template <uni::version v> constexpr script __older_cp_script(char32_t cp, script c) {")
+    for version, _ in data:
+        f.write("""
+            if constexpr(v <= uni::version::{0}) {{
+                const auto it = uni::lower_bound(__scripts_data_compat_{0}.begin(), __scripts_data_compat_{0}.end(), cp,
+                    [](const auto & e, char32_t cp) {{ return e.first < cp; }});
+                if (it !=  __scripts_data_compat_{0}.end() && cp == it->first)
+                c = it->second;
+            }}
+""".format(version))
+    f.write("return c;}")
+
 
 def write_blocks_data(blocks_names, blocks, file):
     f.write("enum class block {")
@@ -407,13 +462,14 @@ def write_categories_data(characters, categories_names, file):
     print("total size : {}".format(size / 1024.0))
 
 def write_age_data(characters, f):
-    ages = list(set([cp.age for cp in characters]))
+    ages = list(set([float(cp.age) for cp in characters]))
     ages.sort()
-    f.write("enum class age : uint8_t {")
+    f.write("enum class version : uint8_t {")
     f.write("unassigned,")
     for age in ages:
-        f.write("v" + str(age).replace(".", '_') + ",")
-    f.write("__max };\n")
+        f.write(age_name(age) + ",")
+    f.write("standard_unicode_version = {}".format(age_name(STANDARD_VERSION)))
+    f.write("};")
 
 
     f.write("static constexpr std::array __age_strings = { \"unassigned\",")
@@ -421,7 +477,7 @@ def write_age_data(characters, f):
         f.write('"{}"{}'.format(age, "," if idx < len(ages) - 1 else ""))
     f.write("};\n")
 
-    f.write("\nstruct __age_data_t { char32_t first; age a;};\n")
+    f.write("\nstruct __age_data_t { char32_t first; version a;};\n")
     f.write("static constexpr std::array __age_data = {")
     known  = dict([(cp.cp, "v" + str(cp.age).replace(".", '_')) for cp in characters])
     prev  = ""
@@ -429,10 +485,10 @@ def write_age_data(characters, f):
     for cp in range(0, 0x10FFFF):
         age = known[cp] if cp in known else 'unassigned'
         if prev != age:
-            f.write("__age_data_t{{ {}, age::{} }},".format(to_hex(cp, 6), age))
+            f.write("__age_data_t{{ {}, version::{} }},".format(to_hex(cp, 6), age))
             size = size + 1
             prev = age
-    f.write("__age_data_t{0x110000, age::unassigned} };\n")
+    f.write("__age_data_t{0x110000, version::unassigned} };\n")
     print(size)
 
 def write_numeric_data(characters, f):
@@ -519,9 +575,14 @@ def write_binary_properties(characters, f):
     props = []
 
     lines = [line.rstrip('\n') for line in open(BINARY_PROPS_FILE, 'r')]
+
     values = []
+    for ep in EMOJI_PROPERTIES:
+        values.append([ep])
     for line in lines:
         values.append([n.strip().lower().replace(" ", "_").replace("-", "_") for n in line.split(";")])
+
+    values.sort()
 
     known  = set()
     f.write("enum class property {")
@@ -612,8 +673,34 @@ def emit_binary_data(f, name, characters, pred):
 if __name__ == "__main__":
     scripts_names = get_scripts_names()
     block_names = get_blocks_names()
-    characters, blocks = get_unicode_data()
+    all_characters, blocks = get_unicode_data()
+    characters = list(filter(lambda c : c != None, all_characters))
     categories_name = get_cats_names()
+
+
+    changed = {}
+    new = all_characters
+    for v in  SUPPORTED_VERSIONS:
+        changed[v] = []
+        print("Unicode {}".format(v))
+        old, _ = get_unicode_data(v)
+        for o in old:
+            try:
+                c = new[o.cp]
+                if c.sc != o.sc:
+                    print("new", c)
+                if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
+                    changed[v].append(o)
+                    continue
+                for k in c.props.keys():
+                    if c.props[k] != o.props[k]:
+                        changed[v].append(o)
+                        break
+            except:
+                pass
+        new = old
+
+        print("--------")
 
 
     with open(sys.argv[1], "w") as f:
@@ -622,14 +709,16 @@ if __name__ == "__main__":
         f.write("namespace uni {\n")
         f.write("struct __string_with_idx { const char* name; uint32_t value; };")
 
+        print("Age data")
+        write_age_data(characters, f)
+
         print("Script data")
-        write_script_data(characters, scripts_names, f)
+        write_script_data(characters, changed, scripts_names, f)
         print("Block data")
         write_blocks_data(block_names, blocks, f)
         print("Category data")
         write_categories_data(characters, categories_name,f)
-        print("Age data")
-        write_age_data(characters, f)
+
 
         print("Numeric Data")
         write_numeric_data(characters, f)

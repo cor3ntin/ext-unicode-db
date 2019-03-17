@@ -8,7 +8,7 @@ const auto codes = load_test_data();
 TEST_CASE("Verify that all code point have the same age as in the DB") {
 
     for(char32_t c = 0; c <= 0x10FFFF + 1; ++c) {
-        auto expected = uni::age::unassigned;
+        auto expected = uni::version::unassigned;
         if(auto it = codes.find(c); it != codes.end())
             expected = it->second.age;
         REQUIRE(uni::cp_age(c) == expected);
