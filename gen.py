@@ -12,6 +12,7 @@ DIR = os.path.dirname(os.path.realpath(__file__))
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
 SUPPORTED_VERSIONS = ["11.0", "10.0"] #, "9.0", "8.0", "7.0"]
+MIN_VERSION = "10.0"
 PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
 
@@ -159,12 +160,16 @@ def get_unicode_data(version = LAST_VERSION):
     context = etree.iterparse(os.path.join(DIR, "ucd", version, "ucd.nounihan.flat.xml"), events=('end',))
     blocks = []
     characters = [None] * (0x110000)
+    zfound = False
 
     for _, elem in context:
         if elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}char':
             cp = ucd_cp(elem)
-            if cp.cp != 0 or len(characters) == 0:
-                characters[cp.cp] = cp
+            if cp.cp == 0 and zfound:
+                continue
+            zfound = True
+            characters[cp.cp] = cp
+
         elif elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}block':
             blocks.append(ucd_block(elem))
 
@@ -250,6 +255,32 @@ def write_script_data(characters, changed, scripts_names, file):
 
     for i in range(l):
         write_block(i, characters, changed)
+
+    f.write("""
+    template<auto N, uni::version v = uni::version::standard_unicode_version>
+    constexpr script __cp_script(char32_t cp) {
+    if(cp > 0x10FFFF)
+        return script::unknown;
+
+    constexpr const auto end = __script_data<N>::scripts_data.end();
+    auto it = uni::upper_bound(__script_data<N>::scripts_data.begin(), end, cp,
+                               [](char32_t cp, const __script_data_t& s) { return cp < s.first; });
+    if(it == end)
+        return script::unknown;
+    it--;
+    if constexpr(v < uni::version::v12_0) {
+        return __script_data<N>::older_cp_script(cp, it->s);
+    }
+    return it->s;
+    }
+    """)
+
+    f.write("template<uni::version v = uni::version::standard_unicode_version>")
+    f.write("script __get_cp_script(char32_t cp, int idx) {")
+    f.write("switch(idx) {")
+    for i in range(l):
+        f.write("case {0}: return __cp_script<{0}, v>(cp);".format(i))
+    f.write("} return script::zzzz;}")
 
 
 def write_blocks_data(blocks_names, blocks, file):
@@ -465,7 +496,9 @@ def write_age_data(characters, f):
     f.write("unassigned,")
     for age in ages:
         f.write(age_name(age) + ",")
-    f.write("standard_unicode_version = {}".format(age_name(STANDARD_VERSION)))
+    f.write("standard_unicode_version = {},".format(age_name(STANDARD_VERSION)))
+    f.write("minimum_version = {},".format(age_name(MIN_VERSION)))
+    f.write("latest_version = {}".format(age_name(LAST_VERSION)))
     f.write("};")
 
 
@@ -476,7 +509,7 @@ def write_age_data(characters, f):
 
     f.write("\nstruct __age_data_t { char32_t first; version a;};\n")
     f.write("static constexpr std::array __age_data = {")
-    known  = dict([(cp.cp, "v" + str(cp.age).replace(".", '_')) for cp in characters])
+    known  = dict([(cp.cp, age_name(cp.age)) for cp in characters])
     prev  = ""
     size = 0
     for cp in range(0, 0x10FFFF):

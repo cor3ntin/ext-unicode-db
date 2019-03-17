@@ -9,4 +9,4 @@ macro(add_test name file)
 endmacro()
 
 add_test(tst_prop_script prop_script.cpp)
-target_compile_definitions(tst_prop_script PRIVATE -DUCDXML_FILE="${CMAKE_SOURCE_DIR}/ucd/ucd.nounihan.flat.xml")
+target_compile_definitions(tst_prop_script PRIVATE -DUCDXML_FILE="${CMAKE_SOURCE_DIR}/ucd/12.0/ucd.nounihan.flat.xml")

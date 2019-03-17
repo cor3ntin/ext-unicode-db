@@ -56,26 +56,68 @@ constexpr script __script_from_string(const std::string_view s) {
     return script::unknown;
 }
 
-template<auto N, uni::version v = uni::version::standard_unicode_version>
-constexpr script __cp_script(char32_t cp) {
-    if(cp > 0x10FFFF)
-        return script::unknown;
-
-    constexpr const auto end = __script_data<N>::scripts_data.end();
-    auto it = uni::upper_bound(__script_data<N>::scripts_data.begin(), end, cp,
-                               [](char32_t cp, const __script_data_t& s) { return cp < s.first; });
-    if(it == end)
-        return script::unknown;
-    it--;
-    if constexpr(v < uni::version::v12_0) {
-        return __script_data<N>::older_cp_script(cp, it->s);
-    }
-    return it->s;
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr script cp_script(char32_t cp) {
+    static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    return __cp_script<0, v>(cp);
 }
 
 template<uni::version v = uni::version::standard_unicode_version>
-constexpr script cp_script(char32_t cp) {
-    return __cp_script<0, v>(cp);
+struct script_extensions_view {
+    script_extensions_view(char32_t c) : c(c){};
+
+    struct sentinel {};
+    struct iterator {
+        iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, idx)) {
+            if(m_script == script::unknown)
+                m_script = __cp_script<0, v>(m_c);
+        }
+        script operator*() const {
+            return m_script;
+        };
+
+        void operator++() {
+            idx++;
+            m_script = __get_cp_script<v>(m_c, idx);
+        }
+
+        bool operator==(sentinel s) const {
+            return m_script == script::unknown;
+        };
+        bool operator!=(sentinel s) const {
+            return m_script != script::unknown;
+        };
+        bool operator==(iterator it) const {
+            return m_script == it.m_script && m_c == it.m_c;
+        };
+        bool operator!=(iterator it) const {
+            return !(*this == it);
+        };
+
+    private:
+        char32_t m_c;
+        script m_script;
+        int idx = 1;
+    };
+
+    iterator begin() const {
+        return iterator{c};
+    }
+
+private:
+    char32_t c;
+};
+
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr auto cp_script_extensions(char32_t cp) {
+    static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return script::zzzz;
+    }
+    return script_extensions_view<v>(cp);
 }
 
 
