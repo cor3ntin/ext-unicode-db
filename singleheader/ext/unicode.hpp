@@ -11872,6 +11872,10 @@ template<uni::version v = uni::version::standard_unicode_version>
 constexpr script cp_script(char32_t cp) {
     static_assert(v >= uni::version::minimum_version,
                   "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return script::zzzz;
+    }
     return __cp_script<0, v>(cp);
 }
 
