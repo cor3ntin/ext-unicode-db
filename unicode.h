@@ -16,7 +16,7 @@ enum class property;
 
 template<uni::version v = uni::version::standard_unicode_version>
 constexpr category cp_category(char32_t cp) {
-     static_assert(v >= uni::version::minimum_version,
+    static_assert(v >= uni::version::minimum_version,
                   "This version of the Unicode Database is not supported");
     if constexpr(v != uni::version::latest_version) {
         if(cp_age(cp) > v)
@@ -255,3 +255,11 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
 }
 
 }    // namespace uni
+
+
+static_assert(uni::cp_script('C') == uni::script::latin);
+static_assert(uni::cp_block(U'🎉') == uni::block::misc_pictographs);
+static_assert(!uni::cp_is<uni::property::xid_start>('1'));
+static_assert(uni::cp_is<uni::property::xid_continue>('1'));
+static_assert(uni::cp_age(U'🤩') == uni::version::v10_0);
+static_assert(uni::cp_is<uni::property::alphabetic>(U'ß'));

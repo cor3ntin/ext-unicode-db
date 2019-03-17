@@ -6,9 +6,9 @@ namespace uni {
 
 template<class ForwardIt, class T, class Compare>
 constexpr ForwardIt upper_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp) {
-    ForwardIt it;
-    typename std::iterator_traits<ForwardIt>::difference_type count, step;
-    count = std::distance(first, last);
+    ForwardIt it = first;
+    typename std::iterator_traits<ForwardIt>::difference_type count = std::distance(first, last);
+    typename std::iterator_traits<ForwardIt>::difference_type step = count / 2;
 
     while(count > 0) {
         it = first;
@@ -25,9 +25,9 @@ constexpr ForwardIt upper_bound(ForwardIt first, ForwardIt last, const T& value,
 
 template<class ForwardIt, class T, class Compare>
 constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp) {
-    ForwardIt it;
-    typename std::iterator_traits<ForwardIt>::difference_type count, step;
-    count = std::distance(first, last);
+    ForwardIt it = first;
+    typename std::iterator_traits<ForwardIt>::difference_type count = std::distance(first, last);
+    typename std::iterator_traits<ForwardIt>::difference_type step = count / 2;
 
     while(count > 0) {
         it = first;
