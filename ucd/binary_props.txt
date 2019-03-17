@@ -59,6 +59,3 @@ XO_NFC                   ; Expands_On_NFC
 XO_NFD                   ; Expands_On_NFD
 XO_NFKC                  ; Expands_On_NFKC
 XO_NFKD                  ; Expands_On_NFKD
-ASCII                    ; ASCII
-ANY                      ; ANY
-ASSIGNED                 ; ASSIGNED

@@ -27,32 +27,73 @@ class ucd_cp(object):
         self.scx = [s.lower() for s in char.get("scx").split(" ")]
         self.sc  = char.get("sc").lower()
         self.scx = [self.sc] + self.scx
-
         self.gc  = char.get("gc").lower()
         self.age = char.get("age")
         self.block = char.get("blk").lower().replace("-", "_").replace(" ", "_")
-        self.olower = char.get("OLower") == 'Y'
-        self.oupper = char.get("OUpper") == 'Y'
-        self.alpha = char.get("Alpha") == 'Y'
-        self.wspace = char.get("WSpace") == 'Y'
-        self.other_ignorable = char.get("ODI") == 'Y'
-        self.variation_selector = char.get("VS") == 'Y'
-        self.prepend_concat_mark = char.get("PCM") == 'Y'
-        self.oidstart = char.get("OIDS") == 'Y'
-        self.oidcontinue = char.get("OIDC") == 'Y'
-        self.xidstart = char.get("XIDS") == 'Y'
-        self.xidcontinue = char.get("XIDC") == 'Y'
-        self.pattern_ws = char.get("Pat_WS") == 'Y'
-        self.pattern_syntax = char.get("Pat_Syn") == 'Y'
         self.nv = None if char.get("nv") == 'NaN' else char.get("nv").split("/")
-        self.omath = char.get("OMath") == 'Y'
-        self.qmark = char.get("QMark") == 'Y'
-        self.dash  = char.get("Dash") == 'Y'
-        self.sentence_terminal = char.get("STerm") == 'Y'
-        self.terminal_punctuation = char.get("Term") == 'Y'
-        self.deprecated = char.get("Dep") == 'Y'
-        self.diatric = char.get("Dia") == 'Y'
-        self.extender = char.get("Ext") == 'Y'
+        self.props = {}
+        for p in [ "AHex",
+            "Alpha",
+            "Bidi_C",
+            "Bidi_M",
+            "Cased",
+            "CE",
+            "CI",
+            "Comp_Ex",
+#            "CWCF",
+#            "CWCM",
+#            "CWKCF",
+#            "CWL",
+#            "CWT",
+#            "CWU",
+            "Dash",
+            "Dep",
+            "DI",
+            "Dia",
+            "Ext",
+            "Gr_Base",
+            "Gr_Ext",
+#            "Gr_Link",
+            "Hex",
+#            "Hyphen",
+            "IDC",
+            "Ideo",
+            "IDS",
+            "IDSB",
+            "IDST",
+            "Join_C",
+            "LOE",
+            "Lower",
+            "Math",
+            "NChar",
+            "OAlpha",
+            "ODI",
+            "OGr_Ext",
+            "OIDC",
+            "OIDS",
+            "OLower",
+            "OMath",
+            "OUpper",
+            "Pat_Syn",
+            "Pat_WS",
+            "PCM",
+            "QMark",
+            "Radical",
+            "RI",
+            "SD",
+            "STerm",
+            "Term",
+            "UIdeo",
+            "Upper",
+            "VS",
+            "WSpace",
+            "XIDC",
+            "XIDS",
+            "XO_NFC",
+            "XO_NFD",
+            "XO_NFKC",
+            "XO_NFKD" ]:
+                self.props[p.lower()] =  char.get(p) == 'Y'
 
 
 def write_string_array(f, array_name, strings_with_idx):
@@ -218,11 +259,23 @@ def construct_bool_trie_data(data):
 
 
     r1 = chunks[0:0x800 // CHUNK]
+    if len([x for x in r1 if x == 0]) == len(r1):
+        r1 = []
+
+
     # 0x800..0x10000 trie
     (r2, r3) = compute_trie(chunks[0x800 // CHUNK : 0x10000 // CHUNK], 64 // CHUNK)
+    if len([x for x in r3 if x == 0]) == len(r3):
+        r2 = []
+        r3 = []
     # 0x10000..0x110000 trie
     (mid, r6) = compute_trie(chunks[0x10000 // CHUNK : 0x110000 // CHUNK], 64 // CHUNK)
-    (r4, r5)  = compute_trie(mid, 64)
+    if len([x for x in r6 if x == 0]) == len(r6):
+        r6 = []
+        r4 = []
+        r5 = []
+    else:
+        (r4, r5)  = compute_trie(mid, 64)
 
     size = len(r1) * 8 + len(r2) + len(r3) * 8 + len(r4) + len(r5) + len(r6) * 8
     return (size, (r1, r2, r3, r4, r5, r6))
@@ -235,7 +288,7 @@ def emit_bool_trie(f, name, trie_data):
     r4data = ','.join(str(node) for node in trie_data[3])
     r5data = ','.join(str(node) for node in trie_data[4])
     r6data = ','.join('0x%016x' % chunk for chunk in trie_data[5])
-    f.write("static constexpr __bool_trie<{}, {}, {}, {}, {}> {} {{".format(len(trie_data[1]), len(trie_data[2]), len(trie_data[3]), len(trie_data[4]), len(trie_data[5]), name))
+    f.write("static constexpr __bool_trie<{}, {}, {}, {}, {}, {}> {} {{".format(len(trie_data[0]), len(trie_data[1]), len(trie_data[2]), len(trie_data[3]), len(trie_data[4]), len(trie_data[5]), name))
     f.write("{{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}".format(r1data, r2data, r3data, r4data, r5data, r6data))
     f.write("};")
 
@@ -249,20 +302,24 @@ def emit_bool_table(f, name, data):
 
 def construct_range_data(data):
     prev = None
+    prev_cp = 0
     elems = []
     minc = min(data)
     maxc = max(data)
     for i in range(0x110000):
         res = i >= minc and i <= maxc and i in data
         if prev == None or res != prev:
-            elems.append((i, res))
+            if len(elems)!=0: elems[-1] = (elems[-1][0], elems[-1][1], i - prev_cp)
+            elems.append((i, res, 0))
             prev = res
+            prev_cp = i
+    if len(elems) != 0: elems[-1] = (elems[-1][0], elems[-1][1], i - prev_cp)
     return len(elems) * 4, elems
 
 def emit_bool_ranges(f, name, range_data):
     f.write("static constexpr __range_array<{}> {} = {{ {{".format(len(range_data), name))
     for idx, e in enumerate(range_data):
-        f.write("__range_array_elem{{ {}, {} }}".format(to_hex(e[0], 6), 1 if e[1] else 0))
+        f.write("__range_array_elem{{ {}, {} }} /*{}*/".format(to_hex(e[0], 6), 1 if e[1] else 0, e[2]))
         if idx != len(range_data) - 1: f.write(",")
     f.write("}};")
 
@@ -318,19 +375,34 @@ def write_categories_data(characters, categories_names, file):
     for k, v in cats.items():
         size += emit_trie_or_table(f, "__cat_{}".format(k), v)
         sorted_by_len.append((len(v), k))
+    meta_cats = {
+        "cased_letter" : ['lu', 'lt', 'll'],
+        "letter" : ['lu', 'lt', 'll', 'lm', 'lo'],
+        "mark"   : ['mn', 'mc', 'me'],
+        "number" : ['nd', 'nl', 'no'],
+        "punctuation" :  ['pc', 'pd', 'ps', 'pe', 'pi', 'pf', 'po'],
+        "symbol" : ['sm', 'sc', 'sk', 'so'],
+        "separator" : ['zs', 'zl', 'zp'],
+        "other"    : ['cc', 'cf', 'cs', 'co', 'cn']
+    }
+
+    sorted_by_len.sort(reverse=True)
 
     f.write("constexpr category __get_category(char32_t c) {")
-    sorted_by_len.sort(reverse=True)
     for _, cat in sorted_by_len:
         f.write("if (__cat_{0}.lookup(c)) return category::{0};".format(cat))
     f.write("return category::cn;}")
 
-    f.write("constexpr bool  __cp_is_letter(char32_t c) { return ")
-    sorted_by_len.sort(reverse=True)
+
     for _, cat in sorted_by_len:
-        if cat in ['lu', 'lt', 'll', 'lc', 'lm', 'lo']:
-            f.write("__cat_{0}.lookup(c) || ".format(cat))
-    f.write("true;}")
+        f.write("template <> constexpr bool cp_is<category::{0}>(char32_t c) {{ return __cat_{0}.lookup(c); }}".format(cat))
+
+    for name, cats in meta_cats.items():
+        f.write("template <> constexpr bool cp_is<category::{}>(char32_t c) {{ return ".format(name))
+        for _, cat in sorted_by_len:
+            if cat in cats:
+                f.write("__cat_{0}.lookup(c) || ".format(cat))
+        f.write("true;}")
 
     print("total size : {}".format(size / 1024.0))
 
@@ -364,28 +436,117 @@ def write_age_data(characters, f):
     print(size)
 
 def write_numeric_data(characters, f):
-    f.write("""
-    struct __numeric_data_t {
-        char32_t c: 24;
-        uint8_t p : 8;
-        int16_t n : 16;
-        int16_t d : 16;
-    };
-""")
-    f.write("static constexpr std::array __numeric_data = { ")
+
+    values = dict({
+        "8"   : [],
+        "16"  : [],
+        "32"  : [],
+        "64"  : []
+    })
+    dvalues = []
+
     for cp in characters:
-        if cp.nv:
-            n = int(cp.nv[0])
-            p = 0
-            d = cp.nv[1] if len(cp.nv) == 2 else '1'
-            while n != 0 and float(n / 10).is_integer():
-                p = p + 1
-                n = int(n / 10)
-            f.write("__numeric_data_t{{ {}, {}, {}, {} }},".format(to_hex(cp.cp, 6), p, n, d))
+        if not cp.nv:
+            continue
+        n = int(cp.nv[0])
+        d = int(cp.nv[1] if len(cp.nv) == 2 else '1')
+        if d != 1:
+            dvalues.append((cp.cp, d))
+        if abs(n > 2147483647):
+            values["64"].append((cp.cp, n))
+        elif abs(n > 32767):
+            values["32"].append((cp.cp, n))
+        elif abs(n > 127):
+            values["16"].append((cp.cp, n))
+        else:
+            values["8"].append((cp.cp, n))
+
+    for s, characters in values.items():
+        f.write("static constexpr std::array __numeric_data{} = {{ ".format(s))
+        for cp in characters:
+            f.write("std::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
+        f.write("std::pair<char32_t, int{}_t>{{0x110000, 0}} }};\n".format(s))
+
+    f.write("static constexpr std::array __numeric_data_d = {")
+    for cp in dvalues:
+        f.write("std::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
+    f.write("std::pair<char32_t, int16_t>{0x110000, 0} };\n")
 
 
+def write_binary_properties(characters, f):
 
-    f.write("__numeric_data_t{0x110000, 0, 0} };\n")
+    unsupported_props = [
+        "gr_link", # Grapheme_Link is deprecated
+        "hyphen",  # Hyphen is deprecated
+        "xo_nfc", # Expands_On_NFC is deprecated
+        "xo_nfd", # Expands_On_NFD is deprecated
+        "xo_nfkc", # Expands_On_NFKC is deprecated
+        "xo_nfkd", # Expands_On_NFKD is deprecated
+    ]
+
+    details = [
+        "ce",
+        "comp_ex",
+        "oids",
+        "odi",
+        "oalpha",
+        "ogr_ext",
+        "oidc",
+        "olower",
+        "omath",
+        "oupper"
+    ]
+
+    custom_impl = [
+        "cased",
+        "ci",
+        "di",
+        "idc",
+        "ids",
+        "lower",
+        "upper",
+        "math",
+        "nchar",
+
+        "cwcf",  # Changes_When_Casefolded
+        "cwcm",  # Changes_When_Casemapped
+        "cwkcf", # Changes_When_NFKC_Casefolded
+        "cwl",   # Changes_When_Lowercased
+        "cwt",   # Changes_When_Titlecased
+        "cwu",   # Changes_When_Uppercased
+    ]
+
+    props = []
+
+    lines = [line.rstrip('\n') for line in open(BINARY_PROPS_FILE, 'r')]
+    values = []
+    for line in lines:
+        values.append([n.strip().lower().replace(" ", "_").replace("-", "_") for n in line.split(";")])
+
+    known  = set()
+    f.write("enum class property {")
+    for v in values:
+        if v[0] in known or v[0] in unsupported_props:
+            continue
+        props.append(v[0])
+        if v[0] in details:
+            continue
+        f.write("{} ,".format(v[0]))
+        known.add(v[0])
+        for alias in v[1:]:
+            if not alias in known:
+                f.write("{} = {} ,".format(alias, v[0]))
+                known.add(alias)
+    f.write("__max };\n")
+
+
+    for prop in props:
+        if not prop in custom_impl:
+            emit_binary_data(f, "__prop_{}_data".format(prop), characters, lambda c : c.props[prop])
+
+    for prop in props:
+        if not prop in custom_impl and not prop in details:
+            f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return __prop_{0}_data.lookup(c); }}".format(prop))
 
 def write_regex_support(f, characters, categories_names, scripts_names):
     lines = [line.rstrip('\n') for line in open(BINARY_PROPS_FILE, 'r')]
@@ -473,30 +634,12 @@ if __name__ == "__main__":
         print("Numeric Data")
         write_numeric_data(characters, f)
 
-        emit_binary_data(f, "__prop_other_lower_data", characters, lambda c : c.olower)
-        emit_binary_data(f, "__prop_other_upper_data", characters, lambda c : c.oupper)
-        emit_binary_data(f, "__prop_alpha_data", characters, lambda c : c.alpha)
-        emit_binary_data(f, "__prop_other_ignorable_data", characters, lambda c : c.other_ignorable)
-        emit_binary_data(f, "__prop_variation_selector_data", characters, lambda c : c.variation_selector)
-        emit_binary_data(f, "__prop_prepend_concatenation_mark_data", characters, lambda c : c.prepend_concat_mark)
-        emit_binary_data(f, "__prop_ws_data", characters, lambda c : c.wspace)
-        emit_binary_data(f, "__prop_oidstart_data", characters, lambda c : c.oidstart)
-        emit_binary_data(f, "__prop_oidcontinue_data", characters, lambda c : c.oidcontinue)
-        emit_binary_data(f, "__prop_xidstart_data", characters, lambda c : c.xidstart)
-        emit_binary_data(f, "__prop_xidcontinue_data", characters, lambda c : c.xidcontinue)
-        emit_binary_data(f, "__prop_pattern_ws_data", characters, lambda c : c.pattern_ws)
-        emit_binary_data(f, "__prop_pattern_syntax_data", characters, lambda c : c.pattern_syntax)
-        emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
-        emit_binary_data(f, "__prop_omath_data", characters, lambda c : c.omath)
-        emit_binary_data(f, "__prop_qmark_data", characters, lambda c : c.qmark)
-        emit_binary_data(f, "__prop_dash_data", characters, lambda c : c.dash)
-        emit_binary_data(f, "__prop_sentence_terminal_data", characters, lambda c : c.sentence_terminal)
-        emit_binary_data(f, "__prop_terminal_punctuation_data", characters, lambda c : c.terminal_punctuation)
-        emit_binary_data(f, "__prop_extender_data", characters, lambda c : c.extender)
-        emit_binary_data(f, "__prop_deprecated_data", characters, lambda c : c.deprecated)
-        emit_binary_data(f, "__prop_diatric_data", characters, lambda c : c.diatric)
+        #write_regex_support(f, characters, categories_name, scripts_names)
 
-        write_regex_support(f, characters, categories_name, scripts_names)
+        print("Binary properties")
+        write_binary_properties(characters, f)
+
+        emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
 
 
         f.write("}//namespace uni")

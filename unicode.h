@@ -7,6 +7,10 @@
 #include <cmath>
 
 namespace uni {
+
+enum class property;
+
+
 constexpr category cp_category(char32_t cp) {
     if(cp > 0x10FFFF)
         return category::unassigned;
@@ -22,7 +26,7 @@ constexpr age __age_from_string(std::string_view a) {
     return age::unassigned;
 }
 
-constexpr category __category_from__string(const std::string_view s) {
+constexpr category __category_from_string(const std::string_view s) {
     for(auto i = 0; i < __categories_names.size(); ++i) {
         const auto& c = __categories_names[i];
         const auto res = __pronamecomp(s, c.name);
@@ -86,29 +90,28 @@ constexpr script cp_script(char32_t cp) {
     return it->s;
 }
 
-constexpr bool cp_is_non_character(char32_t cp) {
+template<>
+constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
     return (char32_t(cp) & 0xfffe) == 0xfffe || (char32_t(cp) >= 0xfdd0 && char32_t(cp) <= 0xfdef);
 }
 
-constexpr bool cp_is_lowercase(char32_t cp) {
-    return uni::__cat_ll.lookup(char32_t(cp)) || uni::__prop_other_lower_data.lookup(char32_t(cp));
+// http://unicode.org/reports/tr44/#Lowercase
+template<>
+constexpr bool cp_is<property::lowercase>(char32_t cp) {
+    return uni::__cat_ll.lookup(char32_t(cp)) || uni::__prop_olower_data.lookup(char32_t(cp));
 }
 
-constexpr bool cp_is_uppercase(char32_t cp) {
-    return uni::__cat_lu.lookup(char32_t(cp)) || uni::__prop_other_upper_data.lookup(char32_t(cp));
+// http://unicode.org/reports/tr44/#Uppercase
+template<>
+constexpr bool cp_is<property::uppercase>(char32_t cp) {
+    return uni::__cat_lu.lookup(char32_t(cp)) || uni::__prop_oupper_data.lookup(char32_t(cp));
 }
 
-constexpr bool cp_is_cased(char32_t cp) {
-    return cp_is_lowercase(cp) || cp_is_uppercase(cp) || uni::__cat_lt.lookup(char32_t(cp));
-}
-
-
-constexpr bool cp_is_alphabetic(char32_t cp) {
-    return uni::__prop_alpha_data.lookup(char32_t(cp));
-}
-
-constexpr bool cp_is_whitespace(char32_t cp) {
-    return uni::__prop_ws_data.lookup(char32_t(cp));
+// http://unicode.org/reports/tr44/#Cased
+template<>
+constexpr bool cp_is<property::cased>(char32_t cp) {
+    return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
+           uni::__cat_lt.lookup(char32_t(cp));
 }
 
 constexpr bool cp_is_valid(char32_t cp) {
@@ -122,10 +125,11 @@ constexpr bool cp_is_ascii(char32_t cp) {
     return char32_t(cp) <= 0x7F;
 }
 
-constexpr bool cp_is_ignorable(char32_t cp) {
+template<>
+constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
     const auto c = char32_t(cp);
-    const bool maybe = uni::__prop_other_ignorable_data.lookup(cp) || uni::__cat_cf.lookup(cp) ||
-                       uni::__prop_variation_selector_data.lookup(cp);
+    const bool maybe = uni::__prop_odi_data.lookup(cp) || uni::__cat_cf.lookup(cp) ||
+                       uni::__prop_vs_data.lookup(cp);
     if(!maybe)
         return false;
     // ignore (Interlinear annotation format characters
@@ -135,73 +139,54 @@ constexpr bool cp_is_ignorable(char32_t cp) {
     // Ignore Egyptian hieroglyph format characters
     else if(c >= 0x13430 && c <= 0x13438) {
         return false;
-    } else if(uni::__prop_ws_data.lookup(cp))
+    } else if(uni::__prop_wspace_data.lookup(cp))
         return false;
-    else if(uni::__prop_prepend_concatenation_mark_data.lookup(cp))
+    else if(uni::__prop_pcm_data.lookup(cp))
         return false;
     return true;
 }
 
 // http://www.unicode.org/reports/tr31/#D1
-constexpr bool cp_is_idstart(char32_t cp) {
-    const bool maybe = __cp_is_letter(cp) || __cat_nl.lookup(cp) || __prop_oidstart_data.lookup(cp);
+template<>
+constexpr bool cp_is<property::id_start>(char32_t cp) {
+    const bool maybe =
+        cp_is<category::letter>(cp) || __cat_nl.lookup(cp) || __prop_oids_data.lookup(cp);
     if(!maybe)
         return false;
-    return !__prop_pattern_syntax_data.lookup(cp) && !__prop_pattern_ws_data.lookup(cp);
+    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
 }
-constexpr bool cp_is_idcontinue(char32_t cp) {
-    const bool maybe = __cp_is_letter(cp) || __cat_nl.lookup(cp) ||
-                       __prop_oidstart_data.lookup(cp) || __cat_mn.lookup(cp) ||
-                       __cat_mc.lookup(cp) || __cat_nd.lookup(cp) || __cat_pc.lookup(cp) ||
-                       __prop_oidcontinue_data.lookup(cp);
+
+template<>
+constexpr bool cp_is<property::id_continue>(char32_t cp) {
+    const bool maybe = cp_is<category::letter>(cp) || __cat_nl.lookup(cp) ||
+                       __prop_oids_data.lookup(cp) || __cat_mn.lookup(cp) || __cat_mc.lookup(cp) ||
+                       __cat_nd.lookup(cp) || __cat_pc.lookup(cp) || __prop_oidc_data.lookup(cp);
     if(!maybe)
         return false;
-    return !__prop_pattern_syntax_data.lookup(cp) && !__prop_pattern_ws_data.lookup(cp);
+    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
 }
 
-
-constexpr bool cp_is_xidstart(char32_t cp) {
-    return __prop_xidstart_data.lookup(char32_t(cp));
+template<typename Array, typename Res = long long>
+constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
+    auto it = uni::lower_bound(array.begin(), array.end(), cp,
+                               [](const auto& d, char32_t cp) { return d.first < cp; });
+    if(it == array.end() || it->first != cp)
+        return false;
+    res = it->second;
+    return true;
 }
-constexpr bool cp_is_xidcontinue(char32_t cp) {
-    return __prop_xidcontinue_data.lookup(char32_t(cp));
-}
-
-struct numeric_value {
-
-    constexpr double value() const {
-        return numerator() / double(_d);
-    }
-
-    constexpr intmax_t numerator() const {
-        return _n * pow(10, _p);
-    }
-
-    constexpr intmax_t denominator() const {
-        return _d;
-    }
-
-    constexpr bool is_valid() const {
-        return _d != 0;
-    }
-
-protected:
-    constexpr numeric_value() = default;
-    constexpr numeric_value(uint8_t p, int16_t n, int16_t d) : _p(p), _n(n), _d(d) {}
-
-    uint8_t _p = 0;
-    int16_t _n = 0;
-    int16_t _d = 0;
-    friend constexpr numeric_value cp_numeric_value(char32_t cp);
-};
 
 constexpr numeric_value cp_numeric_value(char32_t cp) {
-    auto it = lower_bound(__numeric_data.begin(), __numeric_data.end(), cp,
-                          [](const __numeric_data_t& d, char32_t cp) { return d.c < cp; });
-    if(it == __numeric_data.end() || it->c != cp)
+    long long res = 0;
+    if(!(_get_numeric_value(cp, __numeric_data64, res) ||
+         _get_numeric_value(cp, __numeric_data32, res) ||
+         _get_numeric_value(cp, __numeric_data16, res) ||
+         _get_numeric_value(cp, __numeric_data8, res))) {
         return {};
-    return numeric_value{it->p, it->n, it->d};
+    }
+    uint16_t d = 1;
+    _get_numeric_value(cp, __numeric_data_d, d);
+    return numeric_value(res, d);
 }
-
 
 }    // namespace uni
