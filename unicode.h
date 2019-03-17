@@ -14,7 +14,7 @@ namespace uni {
 enum class property;
 
 
-template<uni::version v = uni::version::standard_unicode_version>
+template<uni::version v>
 constexpr category cp_category(char32_t cp) {
     static_assert(v >= uni::version::minimum_version,
                   "This version of the Unicode Database is not supported");
