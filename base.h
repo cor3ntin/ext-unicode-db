@@ -42,7 +42,11 @@ constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value,
     return first;
 }
 
-template<std::size_t r1_s, std::size_t r2_s, std::size_t r3_s, std::size_t r4_s, std::size_t r5_s,
+template<std::size_t r1_s,
+         std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b,
+         std::size_t r3_s,
+         std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b,
+         std::size_t r5_s, int16_t r5_t_f, int16_t r5_t_b,
          std::size_t r6_s>
 struct __bool_trie {
 
@@ -67,13 +71,24 @@ struct __bool_trie {
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0)
                 return false;
-            auto child = r2[(c >> 6) - 0x20];
+            auto i = (c >> 6) - 0x20;
+            if(i < r2_t_f || i > r2_s - r2_t_b)
+                i = 0;
+            auto child = r2[i + r2_t_f];
+
             return trie_range_leaf(c, r3.begin()[child]);
         } else {
             if constexpr(r6_s == 0)
                 return false;
-            auto child = r4[(c >> 12) - 0x10];
-            auto leaf = r5.begin()[(child << 6) + ((c >> 6) & 0x3f)];
+            auto i4 = (c >> 12) - 0x10;
+            if(i4 < r4_t_f || i4 > r4_s - r4_t_b)
+                i4 = 0;
+            auto child = r4[i4];
+
+            auto i5 = (child << 6) + ((c >> 6) & 0x3f);
+             if(i5 < r5_t_f || i5 > r5_s - r5_t_b)
+                i5 = 0;
+            auto leaf = r5.begin()[i5];
             return trie_range_leaf(c, r6.begin()[leaf]);
         }
     }

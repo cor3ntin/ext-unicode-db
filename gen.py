@@ -10,7 +10,7 @@ import collections
 DIR = os.path.dirname(os.path.realpath(__file__))
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
-SUPPORTED_VERSIONS = ["11.0"] # "10.0", "9.0", "8.0", "7.0"]
+SUPPORTED_VERSIONS = ["11.0", "10.0"] # "9.0", "8.0", "7.0"]
 MIN_VERSION = "10.0"
 PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
@@ -330,6 +330,16 @@ def construct_bool_trie_data(data):
     for cp in data:
         rawdata[cp] = True
 
+
+    def trim(arr):
+        import numpy
+        a = numpy.trim_zeros(arr, 'f')
+        f = len(arr) - len(a)
+        c = numpy.trim_zeros(a, 'b')
+        b = len(a) - len(c)
+        return (c, f, b)
+
+
     # convert to bitmap chunks of 64 bits each
     chunks = []
     for i in range(0x110000 // CHUNK):
@@ -350,6 +360,10 @@ def construct_bool_trie_data(data):
     if len([x for x in r3 if x == 0]) == len(r3):
         r2 = []
         r3 = []
+
+    #remove leading and trailing
+    r2 = trim(r2)
+
     # 0x10000..0x110000 trie
     (mid, r6) = compute_trie(chunks[0x10000 // CHUNK : 0x110000 // CHUNK], 64 // CHUNK)
     if len([x for x in r6 if x == 0]) == len(r6):
@@ -359,18 +373,34 @@ def construct_bool_trie_data(data):
     else:
         (r4, r5)  = compute_trie(mid, 64)
 
+    r4 = trim(r4)
+    r5 = trim(r5)
+
     size = len(r1) * 8 + len(r2) + len(r3) * 8 + len(r4) + len(r5) + len(r6) * 8
     return (size, (r1, r2, r3, r4, r5, r6))
 
 def emit_bool_trie(f, name, trie_data):
 
     r1data = ','.join('0x%016x' % chunk for chunk in trie_data[0])
-    r2data = ','.join(str(node) for node in trie_data[1])
+    r2data = ','.join(str(node) for node in trie_data[1][0])
     r3data = ','.join('0x%016x' % chunk for chunk in  trie_data[2])
-    r4data = ','.join(str(node) for node in trie_data[3])
-    r5data = ','.join(str(node) for node in trie_data[4])
+    r4data = ','.join(str(node) for node in trie_data[3][0])
+    r5data = ','.join(str(node) for node in trie_data[4][0])
     r6data = ','.join('0x%016x' % chunk for chunk in trie_data[5])
-    f.write("static constexpr __bool_trie<{}, {}, {}, {}, {}, {}> {} {{".format(len(trie_data[0]), len(trie_data[1]), len(trie_data[2]), len(trie_data[3]), len(trie_data[4]), len(trie_data[5]), name))
+    f.write("static constexpr __bool_trie<{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}> {} {{".format(
+        len(trie_data[0]),      #r1
+        len(trie_data[1][0]),   #r2
+        trie_data[1][1],
+        trie_data[1][2],
+        len(trie_data[2]),      #r3
+        len(trie_data[3][0]),   #r4
+        trie_data[3][1],
+        trie_data[3][2],
+        len(trie_data[4][0]),   #r5
+        trie_data[4][1],
+        trie_data[4][2],
+        len(trie_data[5]),      #r6
+        name))
     f.write("{{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}".format(r1data, r2data, r3data, r4data, r5data, r6data))
     f.write("};")
 
