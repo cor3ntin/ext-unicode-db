@@ -14,10 +14,17 @@ namespace uni {
 enum class property;
 
 
+template<uni::version v = uni::version::standard_unicode_version>
 constexpr category cp_category(char32_t cp) {
+     static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return category::cn;
+    }
     if(cp > 0x10FFFF)
         return category::unassigned;
-    return __get_category(cp);
+    return __get_category<uni::version::latest_version>(cp);
 }
 
 constexpr uni::version __age_from_string(std::string_view a) {

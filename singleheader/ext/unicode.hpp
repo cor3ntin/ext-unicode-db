@@ -171,13 +171,11 @@ enum class version : uint8_t;
 template<uni::script>
 bool cp_is(char32_t) = delete;
 
-template<uni::category>
-bool cp_is(char32_t) = delete;
 
 template<uni::property>
 bool cp_is(char32_t) = delete;
 
-constexpr category cp_category(char32_t cp);
+
 constexpr version cp_age(char32_t cp);
 constexpr block cp_block(char32_t cp);
 
@@ -2852,7 +2850,25 @@ struct __script_data<0> {
         __script_data_t{0x110000, script::zzzz}};
     static constexpr const std::array scripts_data_compat_v11_0 = {
         std::pair<char32_t, script>{2387, script::deva},
-        std::pair<char32_t, script>{2388, script::deva}};
+        std::pair<char32_t, script>{2388, script::deva},
+        std::pair<char32_t, script>{3721, script::zzzz},
+        std::pair<char32_t, script>{3736, script::zzzz},
+        std::pair<char32_t, script>{3744, script::zzzz},
+        std::pair<char32_t, script>{3756, script::zzzz},
+        std::pair<char32_t, script>{3770, script::zzzz},
+        std::pair<char32_t, script>{11209, script::zzzz},
+        std::pair<char32_t, script>{11263, script::zzzz},
+        std::pair<char32_t, script>{129343, script::zzzz},
+        std::pair<char32_t, script>{129403, script::zzzz}};
+    static constexpr const std::array scripts_data_compat_v10_0 = {
+        std::pair<char32_t, script>{1376, script::zzzz},
+        std::pair<char32_t, script>{1416, script::zzzz},
+        std::pair<char32_t, script>{3076, script::zzzz},
+        std::pair<char32_t, script>{3204, script::zzzz},
+        std::pair<char32_t, script>{12591, script::zzzz},
+        std::pair<char32_t, script>{42927, script::zzzz},
+        std::pair<char32_t, script>{72349, script::zzzz},
+        std::pair<char32_t, script>{127279, script::zzzz}};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script c) {
         if constexpr(v <= uni::version::v11_0) {
@@ -2860,6 +2876,14 @@ struct __script_data<0> {
                 uni::lower_bound(scripts_data_compat_v11_0.begin(), scripts_data_compat_v11_0.end(),
                                  cp, [](const auto& e, char32_t cp) { return e.first < cp; });
             if(it != scripts_data_compat_v11_0.end() && cp == it->first)
+                c = it->second;
+        }
+
+        if constexpr(v <= uni::version::v10_0) {
+            const auto it =
+                uni::lower_bound(scripts_data_compat_v10_0.begin(), scripts_data_compat_v10_0.end(),
+                                 cp, [](const auto& e, char32_t cp) { return e.first < cp; });
+            if(it != scripts_data_compat_v10_0.end() && cp == it->first)
                 c = it->second;
         }
         return c;
@@ -4883,33 +4907,21 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x037A, block::greek},
     __block_data_t{0x0380, block::no_block},
     __block_data_t{0x0384, block::greek},
-    __block_data_t{0x038B, block::no_block},
-    __block_data_t{0x038C, block::greek},
-    __block_data_t{0x038D, block::no_block},
-    __block_data_t{0x038E, block::greek},
-    __block_data_t{0x03A2, block::no_block},
-    __block_data_t{0x03A3, block::greek},
     __block_data_t{0x0400, block::cyrillic},
     __block_data_t{0x0500, block::cyrillic_sup},
-    __block_data_t{0x0530, block::no_block},
-    __block_data_t{0x0531, block::armenian},
+    __block_data_t{0x0530, block::armenian},
     __block_data_t{0x0557, block::no_block},
     __block_data_t{0x0559, block::armenian},
     __block_data_t{0x058B, block::no_block},
     __block_data_t{0x058D, block::armenian},
-    __block_data_t{0x0590, block::no_block},
-    __block_data_t{0x0591, block::hebrew},
+    __block_data_t{0x0590, block::hebrew},
     __block_data_t{0x05C8, block::no_block},
     __block_data_t{0x05D0, block::hebrew},
     __block_data_t{0x05EB, block::no_block},
     __block_data_t{0x05EF, block::hebrew},
     __block_data_t{0x05F5, block::no_block},
     __block_data_t{0x0600, block::arabic},
-    __block_data_t{0x061D, block::no_block},
-    __block_data_t{0x061E, block::arabic},
     __block_data_t{0x0700, block::syriac},
-    __block_data_t{0x070E, block::no_block},
-    __block_data_t{0x070F, block::syriac},
     __block_data_t{0x074B, block::no_block},
     __block_data_t{0x074D, block::syriac},
     __block_data_t{0x0750, block::arabic_sup},
@@ -4921,30 +4933,20 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0800, block::samaritan},
     __block_data_t{0x082E, block::no_block},
     __block_data_t{0x0830, block::samaritan},
-    __block_data_t{0x083F, block::no_block},
     __block_data_t{0x0840, block::mandaic},
     __block_data_t{0x085C, block::no_block},
     __block_data_t{0x085E, block::mandaic},
-    __block_data_t{0x085F, block::no_block},
     __block_data_t{0x0860, block::syriac_sup},
     __block_data_t{0x086B, block::no_block},
     __block_data_t{0x08A0, block::arabic_ext_a},
-    __block_data_t{0x08B5, block::no_block},
-    __block_data_t{0x08B6, block::arabic_ext_a},
     __block_data_t{0x08BE, block::no_block},
     __block_data_t{0x08D3, block::arabic_ext_a},
     __block_data_t{0x0900, block::devanagari},
     __block_data_t{0x0980, block::bengali},
-    __block_data_t{0x0984, block::no_block},
-    __block_data_t{0x0985, block::bengali},
     __block_data_t{0x098D, block::no_block},
     __block_data_t{0x098F, block::bengali},
     __block_data_t{0x0991, block::no_block},
     __block_data_t{0x0993, block::bengali},
-    __block_data_t{0x09A9, block::no_block},
-    __block_data_t{0x09AA, block::bengali},
-    __block_data_t{0x09B1, block::no_block},
-    __block_data_t{0x09B2, block::bengali},
     __block_data_t{0x09B3, block::no_block},
     __block_data_t{0x09B6, block::bengali},
     __block_data_t{0x09BA, block::no_block},
@@ -4957,30 +4959,15 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x09D7, block::bengali},
     __block_data_t{0x09D8, block::no_block},
     __block_data_t{0x09DC, block::bengali},
-    __block_data_t{0x09DE, block::no_block},
-    __block_data_t{0x09DF, block::bengali},
     __block_data_t{0x09E4, block::no_block},
     __block_data_t{0x09E6, block::bengali},
-    __block_data_t{0x09FF, block::no_block},
-    __block_data_t{0x0A01, block::gurmukhi},
-    __block_data_t{0x0A04, block::no_block},
-    __block_data_t{0x0A05, block::gurmukhi},
+    __block_data_t{0x0A00, block::gurmukhi},
     __block_data_t{0x0A0B, block::no_block},
     __block_data_t{0x0A0F, block::gurmukhi},
     __block_data_t{0x0A11, block::no_block},
     __block_data_t{0x0A13, block::gurmukhi},
-    __block_data_t{0x0A29, block::no_block},
-    __block_data_t{0x0A2A, block::gurmukhi},
-    __block_data_t{0x0A31, block::no_block},
-    __block_data_t{0x0A32, block::gurmukhi},
-    __block_data_t{0x0A34, block::no_block},
-    __block_data_t{0x0A35, block::gurmukhi},
-    __block_data_t{0x0A37, block::no_block},
-    __block_data_t{0x0A38, block::gurmukhi},
     __block_data_t{0x0A3A, block::no_block},
     __block_data_t{0x0A3C, block::gurmukhi},
-    __block_data_t{0x0A3D, block::no_block},
-    __block_data_t{0x0A3E, block::gurmukhi},
     __block_data_t{0x0A43, block::no_block},
     __block_data_t{0x0A47, block::gurmukhi},
     __block_data_t{0x0A49, block::no_block},
@@ -4989,30 +4976,12 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0A51, block::gurmukhi},
     __block_data_t{0x0A52, block::no_block},
     __block_data_t{0x0A59, block::gurmukhi},
-    __block_data_t{0x0A5D, block::no_block},
-    __block_data_t{0x0A5E, block::gurmukhi},
     __block_data_t{0x0A5F, block::no_block},
     __block_data_t{0x0A66, block::gurmukhi},
     __block_data_t{0x0A77, block::no_block},
-    __block_data_t{0x0A81, block::gujarati},
-    __block_data_t{0x0A84, block::no_block},
-    __block_data_t{0x0A85, block::gujarati},
-    __block_data_t{0x0A8E, block::no_block},
-    __block_data_t{0x0A8F, block::gujarati},
-    __block_data_t{0x0A92, block::no_block},
-    __block_data_t{0x0A93, block::gujarati},
-    __block_data_t{0x0AA9, block::no_block},
-    __block_data_t{0x0AAA, block::gujarati},
-    __block_data_t{0x0AB1, block::no_block},
-    __block_data_t{0x0AB2, block::gujarati},
-    __block_data_t{0x0AB4, block::no_block},
-    __block_data_t{0x0AB5, block::gujarati},
+    __block_data_t{0x0A80, block::gujarati},
     __block_data_t{0x0ABA, block::no_block},
     __block_data_t{0x0ABC, block::gujarati},
-    __block_data_t{0x0AC6, block::no_block},
-    __block_data_t{0x0AC7, block::gujarati},
-    __block_data_t{0x0ACA, block::no_block},
-    __block_data_t{0x0ACB, block::gujarati},
     __block_data_t{0x0ACE, block::no_block},
     __block_data_t{0x0AD0, block::gujarati},
     __block_data_t{0x0AD1, block::no_block},
@@ -5021,20 +4990,11 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0AE6, block::gujarati},
     __block_data_t{0x0AF2, block::no_block},
     __block_data_t{0x0AF9, block::gujarati},
-    __block_data_t{0x0B00, block::no_block},
-    __block_data_t{0x0B01, block::oriya},
-    __block_data_t{0x0B04, block::no_block},
-    __block_data_t{0x0B05, block::oriya},
+    __block_data_t{0x0B00, block::oriya},
     __block_data_t{0x0B0D, block::no_block},
     __block_data_t{0x0B0F, block::oriya},
     __block_data_t{0x0B11, block::no_block},
     __block_data_t{0x0B13, block::oriya},
-    __block_data_t{0x0B29, block::no_block},
-    __block_data_t{0x0B2A, block::oriya},
-    __block_data_t{0x0B31, block::no_block},
-    __block_data_t{0x0B32, block::oriya},
-    __block_data_t{0x0B34, block::no_block},
-    __block_data_t{0x0B35, block::oriya},
     __block_data_t{0x0B3A, block::no_block},
     __block_data_t{0x0B3C, block::oriya},
     __block_data_t{0x0B45, block::no_block},
@@ -5045,24 +5005,14 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0B56, block::oriya},
     __block_data_t{0x0B58, block::no_block},
     __block_data_t{0x0B5C, block::oriya},
-    __block_data_t{0x0B5E, block::no_block},
-    __block_data_t{0x0B5F, block::oriya},
     __block_data_t{0x0B64, block::no_block},
     __block_data_t{0x0B66, block::oriya},
     __block_data_t{0x0B78, block::no_block},
     __block_data_t{0x0B82, block::tamil},
-    __block_data_t{0x0B84, block::no_block},
-    __block_data_t{0x0B85, block::tamil},
     __block_data_t{0x0B8B, block::no_block},
     __block_data_t{0x0B8E, block::tamil},
-    __block_data_t{0x0B91, block::no_block},
-    __block_data_t{0x0B92, block::tamil},
     __block_data_t{0x0B96, block::no_block},
     __block_data_t{0x0B99, block::tamil},
-    __block_data_t{0x0B9B, block::no_block},
-    __block_data_t{0x0B9C, block::tamil},
-    __block_data_t{0x0B9D, block::no_block},
-    __block_data_t{0x0B9E, block::tamil},
     __block_data_t{0x0BA0, block::no_block},
     __block_data_t{0x0BA3, block::tamil},
     __block_data_t{0x0BA5, block::no_block},
@@ -5073,8 +5023,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0BBE, block::tamil},
     __block_data_t{0x0BC3, block::no_block},
     __block_data_t{0x0BC6, block::tamil},
-    __block_data_t{0x0BC9, block::no_block},
-    __block_data_t{0x0BCA, block::tamil},
     __block_data_t{0x0BCE, block::no_block},
     __block_data_t{0x0BD0, block::tamil},
     __block_data_t{0x0BD1, block::no_block},
@@ -5083,22 +5031,10 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0BE6, block::tamil},
     __block_data_t{0x0BFB, block::no_block},
     __block_data_t{0x0C00, block::telugu},
-    __block_data_t{0x0C0D, block::no_block},
-    __block_data_t{0x0C0E, block::telugu},
-    __block_data_t{0x0C11, block::no_block},
-    __block_data_t{0x0C12, block::telugu},
-    __block_data_t{0x0C29, block::no_block},
-    __block_data_t{0x0C2A, block::telugu},
     __block_data_t{0x0C3A, block::no_block},
     __block_data_t{0x0C3D, block::telugu},
-    __block_data_t{0x0C45, block::no_block},
-    __block_data_t{0x0C46, block::telugu},
-    __block_data_t{0x0C49, block::no_block},
-    __block_data_t{0x0C4A, block::telugu},
     __block_data_t{0x0C4E, block::no_block},
     __block_data_t{0x0C55, block::telugu},
-    __block_data_t{0x0C57, block::no_block},
-    __block_data_t{0x0C58, block::telugu},
     __block_data_t{0x0C5B, block::no_block},
     __block_data_t{0x0C60, block::telugu},
     __block_data_t{0x0C64, block::no_block},
@@ -5106,147 +5042,69 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x0C70, block::no_block},
     __block_data_t{0x0C77, block::telugu},
     __block_data_t{0x0C80, block::kannada},
-    __block_data_t{0x0C8D, block::no_block},
-    __block_data_t{0x0C8E, block::kannada},
-    __block_data_t{0x0C91, block::no_block},
-    __block_data_t{0x0C92, block::kannada},
-    __block_data_t{0x0CA9, block::no_block},
-    __block_data_t{0x0CAA, block::kannada},
-    __block_data_t{0x0CB4, block::no_block},
-    __block_data_t{0x0CB5, block::kannada},
     __block_data_t{0x0CBA, block::no_block},
     __block_data_t{0x0CBC, block::kannada},
-    __block_data_t{0x0CC5, block::no_block},
-    __block_data_t{0x0CC6, block::kannada},
-    __block_data_t{0x0CC9, block::no_block},
-    __block_data_t{0x0CCA, block::kannada},
     __block_data_t{0x0CCE, block::no_block},
     __block_data_t{0x0CD5, block::kannada},
     __block_data_t{0x0CD7, block::no_block},
     __block_data_t{0x0CDE, block::kannada},
-    __block_data_t{0x0CDF, block::no_block},
-    __block_data_t{0x0CE0, block::kannada},
     __block_data_t{0x0CE4, block::no_block},
     __block_data_t{0x0CE6, block::kannada},
-    __block_data_t{0x0CF0, block::no_block},
-    __block_data_t{0x0CF1, block::kannada},
     __block_data_t{0x0CF3, block::no_block},
     __block_data_t{0x0D00, block::malayalam},
-    __block_data_t{0x0D04, block::no_block},
-    __block_data_t{0x0D05, block::malayalam},
-    __block_data_t{0x0D0D, block::no_block},
-    __block_data_t{0x0D0E, block::malayalam},
-    __block_data_t{0x0D11, block::no_block},
-    __block_data_t{0x0D12, block::malayalam},
-    __block_data_t{0x0D45, block::no_block},
-    __block_data_t{0x0D46, block::malayalam},
-    __block_data_t{0x0D49, block::no_block},
-    __block_data_t{0x0D4A, block::malayalam},
     __block_data_t{0x0D50, block::no_block},
     __block_data_t{0x0D54, block::malayalam},
     __block_data_t{0x0D64, block::no_block},
     __block_data_t{0x0D66, block::malayalam},
     __block_data_t{0x0D80, block::no_block},
     __block_data_t{0x0D82, block::sinhala},
-    __block_data_t{0x0D84, block::no_block},
-    __block_data_t{0x0D85, block::sinhala},
     __block_data_t{0x0D97, block::no_block},
     __block_data_t{0x0D9A, block::sinhala},
-    __block_data_t{0x0DB2, block::no_block},
-    __block_data_t{0x0DB3, block::sinhala},
-    __block_data_t{0x0DBC, block::no_block},
-    __block_data_t{0x0DBD, block::sinhala},
     __block_data_t{0x0DBE, block::no_block},
     __block_data_t{0x0DC0, block::sinhala},
     __block_data_t{0x0DC7, block::no_block},
     __block_data_t{0x0DCA, block::sinhala},
     __block_data_t{0x0DCB, block::no_block},
     __block_data_t{0x0DCF, block::sinhala},
-    __block_data_t{0x0DD5, block::no_block},
-    __block_data_t{0x0DD6, block::sinhala},
-    __block_data_t{0x0DD7, block::no_block},
-    __block_data_t{0x0DD8, block::sinhala},
     __block_data_t{0x0DE0, block::no_block},
     __block_data_t{0x0DE6, block::sinhala},
     __block_data_t{0x0DF0, block::no_block},
     __block_data_t{0x0DF2, block::sinhala},
     __block_data_t{0x0DF5, block::no_block},
-    __block_data_t{0x0E01, block::thai},
+    __block_data_t{0x0E00, block::thai},
     __block_data_t{0x0E3B, block::no_block},
     __block_data_t{0x0E3F, block::thai},
     __block_data_t{0x0E5C, block::no_block},
-    __block_data_t{0x0E81, block::lao},
-    __block_data_t{0x0E83, block::no_block},
-    __block_data_t{0x0E84, block::lao},
-    __block_data_t{0x0E85, block::no_block},
-    __block_data_t{0x0E86, block::lao},
-    __block_data_t{0x0E8B, block::no_block},
-    __block_data_t{0x0E8C, block::lao},
-    __block_data_t{0x0EA4, block::no_block},
-    __block_data_t{0x0EA5, block::lao},
-    __block_data_t{0x0EA6, block::no_block},
-    __block_data_t{0x0EA7, block::lao},
+    __block_data_t{0x0E80, block::lao},
     __block_data_t{0x0EBE, block::no_block},
     __block_data_t{0x0EC0, block::lao},
-    __block_data_t{0x0EC5, block::no_block},
-    __block_data_t{0x0EC6, block::lao},
-    __block_data_t{0x0EC7, block::no_block},
-    __block_data_t{0x0EC8, block::lao},
     __block_data_t{0x0ECE, block::no_block},
     __block_data_t{0x0ED0, block::lao},
     __block_data_t{0x0EDA, block::no_block},
     __block_data_t{0x0EDC, block::lao},
     __block_data_t{0x0EE0, block::no_block},
     __block_data_t{0x0F00, block::tibetan},
-    __block_data_t{0x0F48, block::no_block},
-    __block_data_t{0x0F49, block::tibetan},
     __block_data_t{0x0F6D, block::no_block},
     __block_data_t{0x0F71, block::tibetan},
-    __block_data_t{0x0F98, block::no_block},
-    __block_data_t{0x0F99, block::tibetan},
-    __block_data_t{0x0FBD, block::no_block},
-    __block_data_t{0x0FBE, block::tibetan},
-    __block_data_t{0x0FCD, block::no_block},
-    __block_data_t{0x0FCE, block::tibetan},
     __block_data_t{0x0FDB, block::no_block},
     __block_data_t{0x1000, block::myanmar},
     __block_data_t{0x10A0, block::georgian},
-    __block_data_t{0x10C6, block::no_block},
-    __block_data_t{0x10C7, block::georgian},
     __block_data_t{0x10C8, block::no_block},
     __block_data_t{0x10CD, block::georgian},
     __block_data_t{0x10CE, block::no_block},
     __block_data_t{0x10D0, block::georgian},
     __block_data_t{0x1100, block::jamo},
     __block_data_t{0x1200, block::ethiopic},
-    __block_data_t{0x1249, block::no_block},
-    __block_data_t{0x124A, block::ethiopic},
     __block_data_t{0x124E, block::no_block},
     __block_data_t{0x1250, block::ethiopic},
-    __block_data_t{0x1257, block::no_block},
-    __block_data_t{0x1258, block::ethiopic},
-    __block_data_t{0x1259, block::no_block},
-    __block_data_t{0x125A, block::ethiopic},
     __block_data_t{0x125E, block::no_block},
     __block_data_t{0x1260, block::ethiopic},
-    __block_data_t{0x1289, block::no_block},
-    __block_data_t{0x128A, block::ethiopic},
     __block_data_t{0x128E, block::no_block},
     __block_data_t{0x1290, block::ethiopic},
-    __block_data_t{0x12B1, block::no_block},
-    __block_data_t{0x12B2, block::ethiopic},
     __block_data_t{0x12B6, block::no_block},
     __block_data_t{0x12B8, block::ethiopic},
-    __block_data_t{0x12BF, block::no_block},
-    __block_data_t{0x12C0, block::ethiopic},
-    __block_data_t{0x12C1, block::no_block},
-    __block_data_t{0x12C2, block::ethiopic},
     __block_data_t{0x12C6, block::no_block},
     __block_data_t{0x12C8, block::ethiopic},
-    __block_data_t{0x12D7, block::no_block},
-    __block_data_t{0x12D8, block::ethiopic},
-    __block_data_t{0x1311, block::no_block},
-    __block_data_t{0x1312, block::ethiopic},
     __block_data_t{0x1316, block::no_block},
     __block_data_t{0x1318, block::ethiopic},
     __block_data_t{0x135B, block::no_block},
@@ -5264,18 +5122,12 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x16A0, block::runic},
     __block_data_t{0x16F9, block::no_block},
     __block_data_t{0x1700, block::tagalog},
-    __block_data_t{0x170D, block::no_block},
-    __block_data_t{0x170E, block::tagalog},
     __block_data_t{0x1715, block::no_block},
     __block_data_t{0x1720, block::hanunoo},
     __block_data_t{0x1737, block::no_block},
     __block_data_t{0x1740, block::buhid},
     __block_data_t{0x1754, block::no_block},
     __block_data_t{0x1760, block::tagbanwa},
-    __block_data_t{0x176D, block::no_block},
-    __block_data_t{0x176E, block::tagbanwa},
-    __block_data_t{0x1771, block::no_block},
-    __block_data_t{0x1772, block::tagbanwa},
     __block_data_t{0x1774, block::no_block},
     __block_data_t{0x1780, block::khmer},
     __block_data_t{0x17DE, block::no_block},
@@ -5284,8 +5136,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x17F0, block::khmer},
     __block_data_t{0x17FA, block::no_block},
     __block_data_t{0x1800, block::mongolian},
-    __block_data_t{0x180F, block::no_block},
-    __block_data_t{0x1810, block::mongolian},
     __block_data_t{0x181A, block::no_block},
     __block_data_t{0x1820, block::mongolian},
     __block_data_t{0x1879, block::no_block},
@@ -5294,8 +5144,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x18B0, block::ucas_ext},
     __block_data_t{0x18F6, block::no_block},
     __block_data_t{0x1900, block::limbu},
-    __block_data_t{0x191F, block::no_block},
-    __block_data_t{0x1920, block::limbu},
     __block_data_t{0x192C, block::no_block},
     __block_data_t{0x1930, block::limbu},
     __block_data_t{0x193C, block::no_block},
@@ -5318,8 +5166,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1A1C, block::no_block},
     __block_data_t{0x1A1E, block::buginese},
     __block_data_t{0x1A20, block::tai_tham},
-    __block_data_t{0x1A5F, block::no_block},
-    __block_data_t{0x1A60, block::tai_tham},
     __block_data_t{0x1A7D, block::no_block},
     __block_data_t{0x1A7F, block::tai_tham},
     __block_data_t{0x1A8A, block::no_block},
@@ -5355,8 +5201,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1D00, block::phonetic_ext},
     __block_data_t{0x1D80, block::phonetic_ext_sup},
     __block_data_t{0x1DC0, block::diacriticals_sup},
-    __block_data_t{0x1DFA, block::no_block},
-    __block_data_t{0x1DFB, block::diacriticals_sup},
     __block_data_t{0x1E00, block::latin_ext_additional},
     __block_data_t{0x1F00, block::greek_ext},
     __block_data_t{0x1F16, block::no_block},
@@ -5367,37 +5211,16 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1F48, block::greek_ext},
     __block_data_t{0x1F4E, block::no_block},
     __block_data_t{0x1F50, block::greek_ext},
-    __block_data_t{0x1F58, block::no_block},
-    __block_data_t{0x1F59, block::greek_ext},
-    __block_data_t{0x1F5A, block::no_block},
-    __block_data_t{0x1F5B, block::greek_ext},
-    __block_data_t{0x1F5C, block::no_block},
-    __block_data_t{0x1F5D, block::greek_ext},
-    __block_data_t{0x1F5E, block::no_block},
-    __block_data_t{0x1F5F, block::greek_ext},
     __block_data_t{0x1F7E, block::no_block},
     __block_data_t{0x1F80, block::greek_ext},
-    __block_data_t{0x1FB5, block::no_block},
-    __block_data_t{0x1FB6, block::greek_ext},
-    __block_data_t{0x1FC5, block::no_block},
-    __block_data_t{0x1FC6, block::greek_ext},
     __block_data_t{0x1FD4, block::no_block},
     __block_data_t{0x1FD6, block::greek_ext},
-    __block_data_t{0x1FDC, block::no_block},
-    __block_data_t{0x1FDD, block::greek_ext},
     __block_data_t{0x1FF0, block::no_block},
     __block_data_t{0x1FF2, block::greek_ext},
-    __block_data_t{0x1FF5, block::no_block},
-    __block_data_t{0x1FF6, block::greek_ext},
-    __block_data_t{0x1FFF, block::no_block},
     __block_data_t{0x2000, block::punctuation},
-    __block_data_t{0x2065, block::no_block},
-    __block_data_t{0x2066, block::punctuation},
     __block_data_t{0x2070, block::super_and_sub},
     __block_data_t{0x2072, block::no_block},
     __block_data_t{0x2074, block::super_and_sub},
-    __block_data_t{0x208F, block::no_block},
-    __block_data_t{0x2090, block::super_and_sub},
     __block_data_t{0x209D, block::no_block},
     __block_data_t{0x20A0, block::currency_symbols},
     __block_data_t{0x20C0, block::no_block},
@@ -5431,16 +5254,11 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x2B96, block::no_block},
     __block_data_t{0x2B98, block::misc_arrows},
     __block_data_t{0x2C00, block::glagolitic},
-    __block_data_t{0x2C2F, block::no_block},
-    __block_data_t{0x2C30, block::glagolitic},
-    __block_data_t{0x2C5F, block::no_block},
     __block_data_t{0x2C60, block::latin_ext_c},
     __block_data_t{0x2C80, block::coptic},
     __block_data_t{0x2CF4, block::no_block},
     __block_data_t{0x2CF9, block::coptic},
     __block_data_t{0x2D00, block::georgian_sup},
-    __block_data_t{0x2D26, block::no_block},
-    __block_data_t{0x2D27, block::georgian_sup},
     __block_data_t{0x2D28, block::no_block},
     __block_data_t{0x2D2D, block::georgian_sup},
     __block_data_t{0x2D2E, block::no_block},
@@ -5452,43 +5270,23 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x2D80, block::ethiopic_ext},
     __block_data_t{0x2D97, block::no_block},
     __block_data_t{0x2DA0, block::ethiopic_ext},
-    __block_data_t{0x2DA7, block::no_block},
-    __block_data_t{0x2DA8, block::ethiopic_ext},
-    __block_data_t{0x2DAF, block::no_block},
-    __block_data_t{0x2DB0, block::ethiopic_ext},
-    __block_data_t{0x2DB7, block::no_block},
-    __block_data_t{0x2DB8, block::ethiopic_ext},
-    __block_data_t{0x2DBF, block::no_block},
-    __block_data_t{0x2DC0, block::ethiopic_ext},
-    __block_data_t{0x2DC7, block::no_block},
-    __block_data_t{0x2DC8, block::ethiopic_ext},
-    __block_data_t{0x2DCF, block::no_block},
-    __block_data_t{0x2DD0, block::ethiopic_ext},
-    __block_data_t{0x2DD7, block::no_block},
-    __block_data_t{0x2DD8, block::ethiopic_ext},
-    __block_data_t{0x2DDF, block::no_block},
     __block_data_t{0x2DE0, block::cyrillic_ext_a},
     __block_data_t{0x2E00, block::sup_punctuation},
     __block_data_t{0x2E50, block::no_block},
     __block_data_t{0x2E80, block::cjk_radicals_sup},
-    __block_data_t{0x2E9A, block::no_block},
-    __block_data_t{0x2E9B, block::cjk_radicals_sup},
     __block_data_t{0x2EF4, block::no_block},
     __block_data_t{0x2F00, block::kangxi},
     __block_data_t{0x2FD6, block::no_block},
     __block_data_t{0x2FF0, block::idc},
     __block_data_t{0x2FFC, block::no_block},
     __block_data_t{0x3000, block::cjk_symbols},
-    __block_data_t{0x3040, block::no_block},
-    __block_data_t{0x3041, block::hiragana},
+    __block_data_t{0x3040, block::hiragana},
     __block_data_t{0x3097, block::no_block},
     __block_data_t{0x3099, block::hiragana},
     __block_data_t{0x30A0, block::katakana},
     __block_data_t{0x3100, block::no_block},
     __block_data_t{0x3105, block::bopomofo},
-    __block_data_t{0x3130, block::no_block},
-    __block_data_t{0x3131, block::compat_jamo},
-    __block_data_t{0x318F, block::no_block},
+    __block_data_t{0x3130, block::compat_jamo},
     __block_data_t{0x3190, block::kanbun},
     __block_data_t{0x31A0, block::bopomofo_ext},
     __block_data_t{0x31BB, block::no_block},
@@ -5496,9 +5294,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x31E4, block::no_block},
     __block_data_t{0x31F0, block::katakana_ext},
     __block_data_t{0x3200, block::enclosed_cjk},
-    __block_data_t{0x321F, block::no_block},
-    __block_data_t{0x3220, block::enclosed_cjk},
-    __block_data_t{0x32FF, block::no_block},
     __block_data_t{0x3300, block::cjk_compat},
     __block_data_t{0x3400, block::no_block},
     __block_data_t{0x3405, block::cjk_ext_a},
@@ -5624,12 +5419,9 @@ static constexpr const std::array __block_data = {
     __block_data_t{0xA960, block::jamo_ext_a},
     __block_data_t{0xA97D, block::no_block},
     __block_data_t{0xA980, block::javanese},
-    __block_data_t{0xA9CE, block::no_block},
-    __block_data_t{0xA9CF, block::javanese},
     __block_data_t{0xA9DA, block::no_block},
     __block_data_t{0xA9DE, block::javanese},
     __block_data_t{0xA9E0, block::myanmar_ext_b},
-    __block_data_t{0xA9FF, block::no_block},
     __block_data_t{0xAA00, block::cham},
     __block_data_t{0xAA37, block::no_block},
     __block_data_t{0xAA40, block::cham},
@@ -5643,16 +5435,13 @@ static constexpr const std::array __block_data = {
     __block_data_t{0xAADB, block::tai_viet},
     __block_data_t{0xAAE0, block::meetei_mayek_ext},
     __block_data_t{0xAAF7, block::no_block},
-    __block_data_t{0xAB01, block::ethiopic_ext_a},
+    __block_data_t{0xAB00, block::ethiopic_ext_a},
     __block_data_t{0xAB07, block::no_block},
     __block_data_t{0xAB09, block::ethiopic_ext_a},
     __block_data_t{0xAB0F, block::no_block},
     __block_data_t{0xAB11, block::ethiopic_ext_a},
     __block_data_t{0xAB17, block::no_block},
     __block_data_t{0xAB20, block::ethiopic_ext_a},
-    __block_data_t{0xAB27, block::no_block},
-    __block_data_t{0xAB28, block::ethiopic_ext_a},
-    __block_data_t{0xAB2F, block::no_block},
     __block_data_t{0xAB30, block::latin_ext_e},
     __block_data_t{0xAB68, block::no_block},
     __block_data_t{0xAB70, block::cherokee_sup},
@@ -5675,16 +5464,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0xFB13, block::alphabetic_pf},
     __block_data_t{0xFB18, block::no_block},
     __block_data_t{0xFB1D, block::alphabetic_pf},
-    __block_data_t{0xFB37, block::no_block},
-    __block_data_t{0xFB38, block::alphabetic_pf},
-    __block_data_t{0xFB3D, block::no_block},
-    __block_data_t{0xFB3E, block::alphabetic_pf},
-    __block_data_t{0xFB3F, block::no_block},
-    __block_data_t{0xFB40, block::alphabetic_pf},
-    __block_data_t{0xFB42, block::no_block},
-    __block_data_t{0xFB43, block::alphabetic_pf},
-    __block_data_t{0xFB45, block::no_block},
-    __block_data_t{0xFB46, block::alphabetic_pf},
     __block_data_t{0xFB50, block::arabic_pf_a},
     __block_data_t{0xFBC2, block::no_block},
     __block_data_t{0xFBD3, block::arabic_pf_a},
@@ -5701,18 +5480,11 @@ static constexpr const std::array __block_data = {
     __block_data_t{0xFE20, block::half_marks},
     __block_data_t{0xFE30, block::cjk_compat_forms},
     __block_data_t{0xFE50, block::small_forms},
-    __block_data_t{0xFE53, block::no_block},
-    __block_data_t{0xFE54, block::small_forms},
-    __block_data_t{0xFE67, block::no_block},
-    __block_data_t{0xFE68, block::small_forms},
     __block_data_t{0xFE6C, block::no_block},
     __block_data_t{0xFE70, block::arabic_pf_b},
-    __block_data_t{0xFE75, block::no_block},
-    __block_data_t{0xFE76, block::arabic_pf_b},
     __block_data_t{0xFEFD, block::no_block},
     __block_data_t{0xFEFF, block::arabic_pf_b},
-    __block_data_t{0xFF00, block::no_block},
-    __block_data_t{0xFF01, block::half_and_full_forms},
+    __block_data_t{0xFF00, block::half_and_full_forms},
     __block_data_t{0xFFBF, block::no_block},
     __block_data_t{0xFFC2, block::half_and_full_forms},
     __block_data_t{0xFFC8, block::no_block},
@@ -5723,20 +5495,10 @@ static constexpr const std::array __block_data = {
     __block_data_t{0xFFDA, block::half_and_full_forms},
     __block_data_t{0xFFDD, block::no_block},
     __block_data_t{0xFFE0, block::half_and_full_forms},
-    __block_data_t{0xFFE7, block::no_block},
-    __block_data_t{0xFFE8, block::half_and_full_forms},
-    __block_data_t{0xFFEF, block::no_block},
+    __block_data_t{0xFFF0, block::no_block},
     __block_data_t{0xFFF9, block::specials},
     __block_data_t{0xFFFE, block::no_block},
     __block_data_t{0x10000, block::linear_b_syllabary},
-    __block_data_t{0x1000C, block::no_block},
-    __block_data_t{0x1000D, block::linear_b_syllabary},
-    __block_data_t{0x10027, block::no_block},
-    __block_data_t{0x10028, block::linear_b_syllabary},
-    __block_data_t{0x1003B, block::no_block},
-    __block_data_t{0x1003C, block::linear_b_syllabary},
-    __block_data_t{0x1003E, block::no_block},
-    __block_data_t{0x1003F, block::linear_b_syllabary},
     __block_data_t{0x1004E, block::no_block},
     __block_data_t{0x10050, block::linear_b_syllabary},
     __block_data_t{0x1005E, block::no_block},
@@ -5748,7 +5510,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x10134, block::no_block},
     __block_data_t{0x10137, block::aegean_numbers},
     __block_data_t{0x10140, block::ancient_greek_numbers},
-    __block_data_t{0x1018F, block::no_block},
     __block_data_t{0x10190, block::ancient_symbols},
     __block_data_t{0x1019C, block::no_block},
     __block_data_t{0x101A0, block::ancient_symbols},
@@ -5769,8 +5530,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x10350, block::old_permic},
     __block_data_t{0x1037B, block::no_block},
     __block_data_t{0x10380, block::ugaritic},
-    __block_data_t{0x1039E, block::no_block},
-    __block_data_t{0x1039F, block::ugaritic},
     __block_data_t{0x103A0, block::old_persian},
     __block_data_t{0x103C4, block::no_block},
     __block_data_t{0x103C8, block::old_persian},
@@ -5800,25 +5559,17 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x10800, block::cypriot_syllabary},
     __block_data_t{0x10806, block::no_block},
     __block_data_t{0x10808, block::cypriot_syllabary},
-    __block_data_t{0x10809, block::no_block},
-    __block_data_t{0x1080A, block::cypriot_syllabary},
-    __block_data_t{0x10836, block::no_block},
-    __block_data_t{0x10837, block::cypriot_syllabary},
     __block_data_t{0x10839, block::no_block},
     __block_data_t{0x1083C, block::cypriot_syllabary},
     __block_data_t{0x1083D, block::no_block},
     __block_data_t{0x1083F, block::cypriot_syllabary},
     __block_data_t{0x10840, block::imperial_aramaic},
-    __block_data_t{0x10856, block::no_block},
-    __block_data_t{0x10857, block::imperial_aramaic},
     __block_data_t{0x10860, block::palmyrene},
     __block_data_t{0x10880, block::nabataean},
     __block_data_t{0x1089F, block::no_block},
     __block_data_t{0x108A7, block::nabataean},
     __block_data_t{0x108B0, block::no_block},
     __block_data_t{0x108E0, block::hatran},
-    __block_data_t{0x108F3, block::no_block},
-    __block_data_t{0x108F4, block::hatran},
     __block_data_t{0x108F6, block::no_block},
     __block_data_t{0x108FB, block::hatran},
     __block_data_t{0x10900, block::phoenician},
@@ -5835,14 +5586,8 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x109D0, block::no_block},
     __block_data_t{0x109D2, block::meroitic_cursive},
     __block_data_t{0x10A00, block::kharoshthi},
-    __block_data_t{0x10A04, block::no_block},
-    __block_data_t{0x10A05, block::kharoshthi},
     __block_data_t{0x10A07, block::no_block},
     __block_data_t{0x10A0C, block::kharoshthi},
-    __block_data_t{0x10A14, block::no_block},
-    __block_data_t{0x10A15, block::kharoshthi},
-    __block_data_t{0x10A18, block::no_block},
-    __block_data_t{0x10A19, block::kharoshthi},
     __block_data_t{0x10A36, block::no_block},
     __block_data_t{0x10A38, block::kharoshthi},
     __block_data_t{0x10A3B, block::no_block},
@@ -5884,7 +5629,7 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x10D30, block::hanifi_rohingya},
     __block_data_t{0x10D3A, block::no_block},
     __block_data_t{0x10E60, block::rumi},
-    __block_data_t{0x10E7F, block::no_block},
+    __block_data_t{0x10E80, block::no_block},
     __block_data_t{0x10F00, block::old_sogdian},
     __block_data_t{0x10F28, block::no_block},
     __block_data_t{0x10F30, block::sogdian},
@@ -5905,50 +5650,27 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x110F0, block::sora_sompeng},
     __block_data_t{0x110FA, block::no_block},
     __block_data_t{0x11100, block::chakma},
-    __block_data_t{0x11135, block::no_block},
-    __block_data_t{0x11136, block::chakma},
     __block_data_t{0x11147, block::no_block},
     __block_data_t{0x11150, block::mahajani},
     __block_data_t{0x11177, block::no_block},
     __block_data_t{0x11180, block::sharada},
     __block_data_t{0x111CE, block::no_block},
     __block_data_t{0x111D0, block::sharada},
-    __block_data_t{0x111E0, block::no_block},
-    __block_data_t{0x111E1, block::sinhala_archaic_numbers},
+    __block_data_t{0x111E0, block::sinhala_archaic_numbers},
     __block_data_t{0x111F5, block::no_block},
     __block_data_t{0x11200, block::khojki},
-    __block_data_t{0x11212, block::no_block},
-    __block_data_t{0x11213, block::khojki},
     __block_data_t{0x1123F, block::no_block},
     __block_data_t{0x11280, block::multani},
-    __block_data_t{0x11287, block::no_block},
-    __block_data_t{0x11288, block::multani},
-    __block_data_t{0x11289, block::no_block},
-    __block_data_t{0x1128A, block::multani},
-    __block_data_t{0x1128E, block::no_block},
-    __block_data_t{0x1128F, block::multani},
-    __block_data_t{0x1129E, block::no_block},
-    __block_data_t{0x1129F, block::multani},
     __block_data_t{0x112AA, block::no_block},
     __block_data_t{0x112B0, block::khudawadi},
     __block_data_t{0x112EB, block::no_block},
     __block_data_t{0x112F0, block::khudawadi},
     __block_data_t{0x112FA, block::no_block},
     __block_data_t{0x11300, block::grantha},
-    __block_data_t{0x11304, block::no_block},
-    __block_data_t{0x11305, block::grantha},
     __block_data_t{0x1130D, block::no_block},
     __block_data_t{0x1130F, block::grantha},
     __block_data_t{0x11311, block::no_block},
     __block_data_t{0x11313, block::grantha},
-    __block_data_t{0x11329, block::no_block},
-    __block_data_t{0x1132A, block::grantha},
-    __block_data_t{0x11331, block::no_block},
-    __block_data_t{0x11332, block::grantha},
-    __block_data_t{0x11334, block::no_block},
-    __block_data_t{0x11335, block::grantha},
-    __block_data_t{0x1133A, block::no_block},
-    __block_data_t{0x1133B, block::grantha},
     __block_data_t{0x11345, block::no_block},
     __block_data_t{0x11347, block::grantha},
     __block_data_t{0x11349, block::no_block},
@@ -5965,10 +5687,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x11370, block::grantha},
     __block_data_t{0x11375, block::no_block},
     __block_data_t{0x11400, block::newa},
-    __block_data_t{0x1145A, block::no_block},
-    __block_data_t{0x1145B, block::newa},
-    __block_data_t{0x1145C, block::no_block},
-    __block_data_t{0x1145D, block::newa},
     __block_data_t{0x11460, block::no_block},
     __block_data_t{0x11480, block::tirhuta},
     __block_data_t{0x114C8, block::no_block},
@@ -6013,42 +5731,20 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x11AC0, block::pau_cin_hau},
     __block_data_t{0x11AF9, block::no_block},
     __block_data_t{0x11C00, block::bhaiksuki},
-    __block_data_t{0x11C09, block::no_block},
-    __block_data_t{0x11C0A, block::bhaiksuki},
-    __block_data_t{0x11C37, block::no_block},
-    __block_data_t{0x11C38, block::bhaiksuki},
     __block_data_t{0x11C46, block::no_block},
     __block_data_t{0x11C50, block::bhaiksuki},
     __block_data_t{0x11C6D, block::no_block},
     __block_data_t{0x11C70, block::marchen},
     __block_data_t{0x11C90, block::no_block},
     __block_data_t{0x11C92, block::marchen},
-    __block_data_t{0x11CA8, block::no_block},
-    __block_data_t{0x11CA9, block::marchen},
     __block_data_t{0x11CB7, block::no_block},
     __block_data_t{0x11D00, block::masaram_gondi},
-    __block_data_t{0x11D07, block::no_block},
-    __block_data_t{0x11D08, block::masaram_gondi},
-    __block_data_t{0x11D0A, block::no_block},
-    __block_data_t{0x11D0B, block::masaram_gondi},
     __block_data_t{0x11D37, block::no_block},
     __block_data_t{0x11D3A, block::masaram_gondi},
-    __block_data_t{0x11D3B, block::no_block},
-    __block_data_t{0x11D3C, block::masaram_gondi},
-    __block_data_t{0x11D3E, block::no_block},
-    __block_data_t{0x11D3F, block::masaram_gondi},
     __block_data_t{0x11D48, block::no_block},
     __block_data_t{0x11D50, block::masaram_gondi},
     __block_data_t{0x11D5A, block::no_block},
     __block_data_t{0x11D60, block::gunjala_gondi},
-    __block_data_t{0x11D66, block::no_block},
-    __block_data_t{0x11D67, block::gunjala_gondi},
-    __block_data_t{0x11D69, block::no_block},
-    __block_data_t{0x11D6A, block::gunjala_gondi},
-    __block_data_t{0x11D8F, block::no_block},
-    __block_data_t{0x11D90, block::gunjala_gondi},
-    __block_data_t{0x11D92, block::no_block},
-    __block_data_t{0x11D93, block::gunjala_gondi},
     __block_data_t{0x11D99, block::no_block},
     __block_data_t{0x11DA0, block::gunjala_gondi},
     __block_data_t{0x11DAA, block::no_block},
@@ -6060,13 +5756,10 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x12000, block::cuneiform},
     __block_data_t{0x1239A, block::no_block},
     __block_data_t{0x12400, block::cuneiform_numbers},
-    __block_data_t{0x1246F, block::no_block},
-    __block_data_t{0x12470, block::cuneiform_numbers},
     __block_data_t{0x12475, block::no_block},
     __block_data_t{0x12480, block::early_dynastic_cuneiform},
     __block_data_t{0x12544, block::no_block},
     __block_data_t{0x13000, block::egyptian_hieroglyphs},
-    __block_data_t{0x1342F, block::no_block},
     __block_data_t{0x13430, block::egyptian_hieroglyph_format_controls},
     __block_data_t{0x13439, block::no_block},
     __block_data_t{0x14400, block::anatolian_hieroglyphs},
@@ -6074,8 +5767,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x16800, block::bamum_sup},
     __block_data_t{0x16A39, block::no_block},
     __block_data_t{0x16A40, block::mro},
-    __block_data_t{0x16A5F, block::no_block},
-    __block_data_t{0x16A60, block::mro},
     __block_data_t{0x16A6A, block::no_block},
     __block_data_t{0x16A6E, block::mro},
     __block_data_t{0x16A70, block::no_block},
@@ -6086,10 +5777,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x16B00, block::pahawh_hmong},
     __block_data_t{0x16B46, block::no_block},
     __block_data_t{0x16B50, block::pahawh_hmong},
-    __block_data_t{0x16B5A, block::no_block},
-    __block_data_t{0x16B5B, block::pahawh_hmong},
-    __block_data_t{0x16B62, block::no_block},
-    __block_data_t{0x16B63, block::pahawh_hmong},
     __block_data_t{0x16B78, block::no_block},
     __block_data_t{0x16B7D, block::pahawh_hmong},
     __block_data_t{0x16B90, block::no_block},
@@ -6142,42 +5829,16 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1D360, block::counting_rod},
     __block_data_t{0x1D379, block::no_block},
     __block_data_t{0x1D400, block::math_alphanum},
-    __block_data_t{0x1D455, block::no_block},
-    __block_data_t{0x1D456, block::math_alphanum},
-    __block_data_t{0x1D49D, block::no_block},
-    __block_data_t{0x1D49E, block::math_alphanum},
     __block_data_t{0x1D4A0, block::no_block},
     __block_data_t{0x1D4A2, block::math_alphanum},
     __block_data_t{0x1D4A3, block::no_block},
     __block_data_t{0x1D4A5, block::math_alphanum},
     __block_data_t{0x1D4A7, block::no_block},
     __block_data_t{0x1D4A9, block::math_alphanum},
-    __block_data_t{0x1D4AD, block::no_block},
-    __block_data_t{0x1D4AE, block::math_alphanum},
-    __block_data_t{0x1D4BA, block::no_block},
-    __block_data_t{0x1D4BB, block::math_alphanum},
-    __block_data_t{0x1D4BC, block::no_block},
-    __block_data_t{0x1D4BD, block::math_alphanum},
-    __block_data_t{0x1D4C4, block::no_block},
-    __block_data_t{0x1D4C5, block::math_alphanum},
-    __block_data_t{0x1D506, block::no_block},
-    __block_data_t{0x1D507, block::math_alphanum},
     __block_data_t{0x1D50B, block::no_block},
     __block_data_t{0x1D50D, block::math_alphanum},
-    __block_data_t{0x1D515, block::no_block},
-    __block_data_t{0x1D516, block::math_alphanum},
-    __block_data_t{0x1D51D, block::no_block},
-    __block_data_t{0x1D51E, block::math_alphanum},
-    __block_data_t{0x1D53A, block::no_block},
-    __block_data_t{0x1D53B, block::math_alphanum},
-    __block_data_t{0x1D53F, block::no_block},
-    __block_data_t{0x1D540, block::math_alphanum},
-    __block_data_t{0x1D545, block::no_block},
-    __block_data_t{0x1D546, block::math_alphanum},
     __block_data_t{0x1D547, block::no_block},
     __block_data_t{0x1D54A, block::math_alphanum},
-    __block_data_t{0x1D551, block::no_block},
-    __block_data_t{0x1D552, block::math_alphanum},
     __block_data_t{0x1D6A6, block::no_block},
     __block_data_t{0x1D6A8, block::math_alphanum},
     __block_data_t{0x1D7CC, block::no_block},
@@ -6185,18 +5846,10 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1D800, block::sutton_signwriting},
     __block_data_t{0x1DA8C, block::no_block},
     __block_data_t{0x1DA9B, block::sutton_signwriting},
-    __block_data_t{0x1DAA0, block::no_block},
-    __block_data_t{0x1DAA1, block::sutton_signwriting},
     __block_data_t{0x1DAB0, block::no_block},
     __block_data_t{0x1E000, block::glagolitic_sup},
-    __block_data_t{0x1E007, block::no_block},
-    __block_data_t{0x1E008, block::glagolitic_sup},
     __block_data_t{0x1E019, block::no_block},
     __block_data_t{0x1E01B, block::glagolitic_sup},
-    __block_data_t{0x1E022, block::no_block},
-    __block_data_t{0x1E023, block::glagolitic_sup},
-    __block_data_t{0x1E025, block::no_block},
-    __block_data_t{0x1E026, block::glagolitic_sup},
     __block_data_t{0x1E02B, block::no_block},
     __block_data_t{0x1E100, block::nyiakeng_puachue_hmong},
     __block_data_t{0x1E12D, block::no_block},
@@ -6220,75 +5873,23 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1E95A, block::no_block},
     __block_data_t{0x1E95E, block::adlam},
     __block_data_t{0x1E960, block::no_block},
-    __block_data_t{0x1EC71, block::indic_siyaq_numbers},
+    __block_data_t{0x1EC70, block::indic_siyaq_numbers},
     __block_data_t{0x1ECB5, block::no_block},
-    __block_data_t{0x1ED01, block::ottoman_siyaq_numbers},
+    __block_data_t{0x1ED00, block::ottoman_siyaq_numbers},
     __block_data_t{0x1ED3E, block::no_block},
     __block_data_t{0x1EE00, block::arabic_math},
-    __block_data_t{0x1EE04, block::no_block},
-    __block_data_t{0x1EE05, block::arabic_math},
-    __block_data_t{0x1EE20, block::no_block},
-    __block_data_t{0x1EE21, block::arabic_math},
-    __block_data_t{0x1EE23, block::no_block},
-    __block_data_t{0x1EE24, block::arabic_math},
     __block_data_t{0x1EE25, block::no_block},
     __block_data_t{0x1EE27, block::arabic_math},
-    __block_data_t{0x1EE28, block::no_block},
-    __block_data_t{0x1EE29, block::arabic_math},
-    __block_data_t{0x1EE33, block::no_block},
-    __block_data_t{0x1EE34, block::arabic_math},
-    __block_data_t{0x1EE38, block::no_block},
-    __block_data_t{0x1EE39, block::arabic_math},
-    __block_data_t{0x1EE3A, block::no_block},
-    __block_data_t{0x1EE3B, block::arabic_math},
     __block_data_t{0x1EE3C, block::no_block},
     __block_data_t{0x1EE42, block::arabic_math},
     __block_data_t{0x1EE43, block::no_block},
     __block_data_t{0x1EE47, block::arabic_math},
-    __block_data_t{0x1EE48, block::no_block},
-    __block_data_t{0x1EE49, block::arabic_math},
-    __block_data_t{0x1EE4A, block::no_block},
-    __block_data_t{0x1EE4B, block::arabic_math},
-    __block_data_t{0x1EE4C, block::no_block},
-    __block_data_t{0x1EE4D, block::arabic_math},
-    __block_data_t{0x1EE50, block::no_block},
-    __block_data_t{0x1EE51, block::arabic_math},
-    __block_data_t{0x1EE53, block::no_block},
-    __block_data_t{0x1EE54, block::arabic_math},
     __block_data_t{0x1EE55, block::no_block},
     __block_data_t{0x1EE57, block::arabic_math},
-    __block_data_t{0x1EE58, block::no_block},
-    __block_data_t{0x1EE59, block::arabic_math},
-    __block_data_t{0x1EE5A, block::no_block},
-    __block_data_t{0x1EE5B, block::arabic_math},
-    __block_data_t{0x1EE5C, block::no_block},
-    __block_data_t{0x1EE5D, block::arabic_math},
-    __block_data_t{0x1EE5E, block::no_block},
-    __block_data_t{0x1EE5F, block::arabic_math},
-    __block_data_t{0x1EE60, block::no_block},
-    __block_data_t{0x1EE61, block::arabic_math},
-    __block_data_t{0x1EE63, block::no_block},
-    __block_data_t{0x1EE64, block::arabic_math},
     __block_data_t{0x1EE65, block::no_block},
     __block_data_t{0x1EE67, block::arabic_math},
-    __block_data_t{0x1EE6B, block::no_block},
-    __block_data_t{0x1EE6C, block::arabic_math},
-    __block_data_t{0x1EE73, block::no_block},
-    __block_data_t{0x1EE74, block::arabic_math},
-    __block_data_t{0x1EE78, block::no_block},
-    __block_data_t{0x1EE79, block::arabic_math},
-    __block_data_t{0x1EE7D, block::no_block},
-    __block_data_t{0x1EE7E, block::arabic_math},
-    __block_data_t{0x1EE7F, block::no_block},
-    __block_data_t{0x1EE80, block::arabic_math},
-    __block_data_t{0x1EE8A, block::no_block},
-    __block_data_t{0x1EE8B, block::arabic_math},
     __block_data_t{0x1EE9C, block::no_block},
     __block_data_t{0x1EEA1, block::arabic_math},
-    __block_data_t{0x1EEA4, block::no_block},
-    __block_data_t{0x1EEA5, block::arabic_math},
-    __block_data_t{0x1EEAA, block::no_block},
-    __block_data_t{0x1EEAB, block::arabic_math},
     __block_data_t{0x1EEBC, block::no_block},
     __block_data_t{0x1EEF0, block::arabic_math},
     __block_data_t{0x1EEF2, block::no_block},
@@ -6299,10 +5900,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1F0A0, block::playing_cards},
     __block_data_t{0x1F0AF, block::no_block},
     __block_data_t{0x1F0B1, block::playing_cards},
-    __block_data_t{0x1F0C0, block::no_block},
-    __block_data_t{0x1F0C1, block::playing_cards},
-    __block_data_t{0x1F0D0, block::no_block},
-    __block_data_t{0x1F0D1, block::playing_cards},
     __block_data_t{0x1F0F6, block::no_block},
     __block_data_t{0x1F100, block::enclosed_alphanum_sup},
     __block_data_t{0x1F10D, block::no_block},
@@ -6347,10 +5944,6 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x1F890, block::sup_arrows_c},
     __block_data_t{0x1F8AE, block::no_block},
     __block_data_t{0x1F900, block::sup_symbols_and_pictographs},
-    __block_data_t{0x1F90C, block::no_block},
-    __block_data_t{0x1F90D, block::sup_symbols_and_pictographs},
-    __block_data_t{0x1F972, block::no_block},
-    __block_data_t{0x1F973, block::sup_symbols_and_pictographs},
     __block_data_t{0x1F977, block::no_block},
     __block_data_t{0x1F97A, block::sup_symbols_and_pictographs},
     __block_data_t{0x1F9A3, block::no_block},
@@ -6403,7 +5996,7 @@ static constexpr const std::array __block_data = {
     __block_data_t{0x2626E, block::no_block},
     __block_data_t{0x2F800, block::cjk_compat_ideographs_sup},
     __block_data_t{0x2FA1E, block::no_block},
-    __block_data_t{0xE0001, block::tags},
+    __block_data_t{0xE0000, block::tags},
     __block_data_t{0xE0002, block::no_block},
     __block_data_t{0xE0020, block::tags},
     __block_data_t{0xE0080, block::no_block},
@@ -7817,6 +7410,113 @@ static constexpr __bool_trie<32, 992, 72, 256, 512, 57> __cat_mn{
      0xf87fffffffffffff, 0x00201fffffffffff, 0x0000fffef8000010, 0x000007dbf9ffff7f,
      0x0000f00000000000, 0x00000000007f0000, 0x00000000000007f0, 0xffffffffffffffff,
      0x0000ffffffffffff}};
+static constexpr __bool_trie<32, 992, 51, 256, 640, 37> __cat_cn{
+    {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
+     0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
+     0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
+     0x0000000000000000, 0x0000000000000000, 0x0000000400002800, 0x0000000000000000,
+     0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
+     0x0001000000000000, 0x0000000000000000, 0x0000000000010000, 0x0000000000000000,
+     0x0000000020000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
+     0x0000000000004000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+    {0,  1,  2,  3, 3,  3,  4,  5, 6, 7, 8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+     3,  23, 24, 3, 25, 26, 27, 3, 3, 3, 28, 3,  3,  3,  3,  3,  29, 30, 31, 32, 3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 27, 33, 3,  3,  34, 3,  3,  3,  1,  3,  3,  3,  3,  1,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  35, 3,  3,  3,  3,  3,  36, 2,  37, 3,  38, 34, 3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  39, 1,  3,  3,  40, 3,
+     41, 42, 3,  3, 43, 3,  3,  3, 3, 3, 3,  22, 3,  3,  44, 3,  34, 3,  1,  3,  3,  0,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  45, 3,  3,
+     3,  3,  46, 3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  47, 48, 3,
+     3,  3,  3,  3, 3,  3,  3,  3, 3, 3, 49, 3,  3,  22, 3,  3,  50},
+    {0x8000000000000000, 0x0000000080000000, 0x0020000000000000, 0x0000000000000000,
+     0x0002020000000010, 0x8000000040000000, 0x2092020000000011, 0x0000000020000000,
+     0x0012020000044011, 0x0000000000000440, 0x0012020000000011, 0x0000000040000000,
+     0x0000000028020010, 0x0000000000000200, 0x0000020000022000, 0x0000000000800220,
+     0x0010020000022000, 0x0001000080000220, 0x0000000000022010, 0x0000000000000220,
+     0x1004000000000010, 0x0000000000a00000, 0x0000000000000001, 0x0000005000000829,
+     0x00000000000000a0, 0x0000000000000100, 0x2000000001000000, 0x0000000000002000,
+     0x0000000000000040, 0x0000000002800200, 0x8002000000000200, 0x0000000000800002,
+     0x0000000000020000, 0x0002200000000000, 0x0000000000008000, 0x0400000000000000,
+     0x0000000055000000, 0x8020000010000020, 0x0000002000000000, 0x0000800000000000,
+     0x0000004000000000, 0x8080808000000000, 0x0000000080808080, 0x0000000004000000,
+     0x0001000000000000, 0x8000000000004000, 0x0000808000000001, 0xa080000000000000,
+     0x0000000000000024, 0x0020008000080000, 0x0000808000000000},
+    {0, 1, 2, 3, 4, 4, 5, 4, 4, 4, 4, 4, 4, 6, 7, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
+    {0,  1,  1,  1,  1,  1,  2,  1, 1,  1, 1, 1,  1,  1, 3,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  4, 5,  1, 6, 1,  1,  1, 1,  7,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  8, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  9,  1, 1,  10, 11, 1,  12,
+     1,  13, 1,  1,  1,  1,  14, 1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  15, 1, 16, 1,  17, 18, 19, 1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 20, 1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 20, 1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 21, 1,  1, 1,  22, 1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  23, 24, 25, 26, 27, 1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  10, 1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  28, 1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  29, 1,  1,
+     30, 1,  1,  1,  31, 32, 33, 1, 1,  1, 1, 1,  1,  1, 1,  34, 1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  35, 36,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  30, 1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1,  1,  1,  1,  1,  1, 1,  1,  1,  1,  1,
+     1,  1,  1,  1,  1,  1,  1,  1, 1,  1, 1, 1,  1,  1, 1},
+    {0x4800008000001000, 0x0000000000000000, 0x0000000000008000, 0x0000000040000000,
+     0x0040000000000200, 0x0000000000400000, 0x0008000000000000, 0x0000000001100010,
+     0x8000000000000000, 0x0020000000000000, 0x0000000100000000, 0x0000000000040000,
+     0x0000000040004280, 0x0412020000000010, 0x0000000014000000, 0x0080000000000200,
+     0x0000010000000000, 0x4800000000000480, 0x0000024000000000, 0x0000000000048000,
+     0x0000800000000000, 0x0000000080000000, 0x0000000404000000, 0x0000000000200000,
+     0x1400200020000000, 0x0000000000000010, 0x8400000020200040, 0x0000000000020020,
+     0x0000002400000080, 0x0001000000000000, 0x0000000000000001, 0x0508010900000010,
+     0xa108080955091500, 0x0000041000000400, 0x0000000000010001, 0x0000000000001000,
+     0x0004000000000000}};
 static constexpr __range_array<11> __cat_me = {
     {__range_array_elem{0x0000, 0} /*1160*/, __range_array_elem{0x0488, 1} /*2*/,
      __range_array_elem{0x048A, 0} /*5684*/, __range_array_elem{0x1ABE, 1} /*1*/,
@@ -7920,7 +7620,15 @@ static constexpr __range_array<25> __cat_nl = {
      __range_array_elem{0x1246F, 0} /*1039248*/}};
 static constexpr flat_array<1> __cat_zl{{0x2028}};
 static constexpr flat_array<1> __cat_zp{{0x2029}};
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr category cp_category(char32_t cp);
+template<version v>
+constexpr category __get_category_for_version(char32_t, category c);
+template<version v>
 constexpr category __get_category(char32_t c) {
+    if(auto cat = __get_category_for_version<v>(c, category::cn); cat != category::cn)
+        return cat;
+
     if(__cat_lo.lookup(c))
         return category::lo;
     if(__cat_so.lookup(c))
@@ -7945,6 +7653,8 @@ constexpr category __get_category(char32_t c) {
         return category::lm;
     if(__cat_nl.lookup(c))
         return category::nl;
+    if(__cat_cn.lookup(c))
+        return category::cn;
     if(__cat_cf.lookup(c))
         return category::cf;
     if(__cat_sk.lookup(c))
@@ -7977,148 +7687,416 @@ constexpr category __get_category(char32_t c) {
         return category::zl;
     return category::cn;
 }
-template<>
-constexpr bool cp_is<category::lo>(char32_t c) {
-    return __cat_lo.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::lo, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_lo.lookup(c)) == category::lo;
 }
-template<>
-constexpr bool cp_is<category::so>(char32_t c) {
-    return __cat_so.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::so, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_so.lookup(c)) == category::so;
 }
-template<>
-constexpr bool cp_is<category::ll>(char32_t c) {
-    return __cat_ll.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::ll, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_ll.lookup(c)) == category::ll;
 }
-template<>
-constexpr bool cp_is<category::mn>(char32_t c) {
-    return __cat_mn.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::mn, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_mn.lookup(c)) == category::mn;
 }
-template<>
-constexpr bool cp_is<category::lu>(char32_t c) {
-    return __cat_lu.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::lu, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_lu.lookup(c)) == category::lu;
 }
-template<>
-constexpr bool cp_is<category::sm>(char32_t c) {
-    return __cat_sm.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::sm, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_sm.lookup(c)) == category::sm;
 }
-template<>
-constexpr bool cp_is<category::no>(char32_t c) {
-    return __cat_no.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::no, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_no.lookup(c)) == category::no;
 }
-template<>
-constexpr bool cp_is<category::nd>(char32_t c) {
-    return __cat_nd.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::nd, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_nd.lookup(c)) == category::nd;
 }
-template<>
-constexpr bool cp_is<category::po>(char32_t c) {
-    return __cat_po.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::po, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_po.lookup(c)) == category::po;
 }
-template<>
-constexpr bool cp_is<category::mc>(char32_t c) {
-    return __cat_mc.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::mc, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_mc.lookup(c)) == category::mc;
 }
-template<>
-constexpr bool cp_is<category::lm>(char32_t c) {
-    return __cat_lm.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::lm, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_lm.lookup(c)) == category::lm;
 }
-template<>
-constexpr bool cp_is<category::nl>(char32_t c) {
-    return __cat_nl.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::nl, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_nl.lookup(c)) == category::nl;
 }
-template<>
-constexpr bool cp_is<category::cf>(char32_t c) {
-    return __cat_cf.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::cn, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_cn.lookup(c)) == category::cn;
 }
-template<>
-constexpr bool cp_is<category::sk>(char32_t c) {
-    return __cat_sk.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::cf, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_cf.lookup(c)) == category::cf;
 }
-template<>
-constexpr bool cp_is<category::ps>(char32_t c) {
-    return __cat_ps.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::sk, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_sk.lookup(c)) == category::sk;
 }
-template<>
-constexpr bool cp_is<category::pe>(char32_t c) {
-    return __cat_pe.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::ps, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_ps.lookup(c)) == category::ps;
 }
-template<>
-constexpr bool cp_is<category::cc>(char32_t c) {
-    return __cat_cc.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::pe, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_pe.lookup(c)) == category::pe;
 }
-template<>
-constexpr bool cp_is<category::sc>(char32_t c) {
-    return __cat_sc.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::cc, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_cc.lookup(c)) == category::cc;
 }
-template<>
-constexpr bool cp_is<category::lt>(char32_t c) {
-    return __cat_lt.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::sc, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_sc.lookup(c)) == category::sc;
 }
-template<>
-constexpr bool cp_is<category::pd>(char32_t c) {
-    return __cat_pd.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::lt, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_lt.lookup(c)) == category::lt;
 }
-template<>
-constexpr bool cp_is<category::zs>(char32_t c) {
-    return __cat_zs.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::pd, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_pd.lookup(c)) == category::pd;
 }
-template<>
-constexpr bool cp_is<category::me>(char32_t c) {
-    return __cat_me.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::zs, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_zs.lookup(c)) == category::zs;
 }
-template<>
-constexpr bool cp_is<category::pi>(char32_t c) {
-    return __cat_pi.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::me, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_me.lookup(c)) == category::me;
 }
-template<>
-constexpr bool cp_is<category::pf>(char32_t c) {
-    return __cat_pf.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::pi, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_pi.lookup(c)) == category::pi;
 }
-template<>
-constexpr bool cp_is<category::pc>(char32_t c) {
-    return __cat_pc.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::pf, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_pf.lookup(c)) == category::pf;
 }
-template<>
-constexpr bool cp_is<category::zp>(char32_t c) {
-    return __cat_zp.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::pc, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_pc.lookup(c)) == category::pc;
 }
-template<>
-constexpr bool cp_is<category::zl>(char32_t c) {
-    return __cat_zl.lookup(c);
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::zp, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_zp.lookup(c)) == category::zp;
 }
-template<>
-constexpr bool cp_is<category::cased_letter>(char32_t c) {
-    return __cat_ll.lookup(c) || __cat_lu.lookup(c) || __cat_lt.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::zl, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    return __get_category_for_version<v>(c, __cat_zl.lookup(c)) == category::zl;
 }
-template<>
-constexpr bool cp_is<category::letter>(char32_t c) {
-    return __cat_lo.lookup(c) || __cat_ll.lookup(c) || __cat_lu.lookup(c) || __cat_lm.lookup(c) ||
-           __cat_lt.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::cased_letter, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_ll.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::ll;
+    }
+    if(cat == category::cn && __cat_lu.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lu;
+    }
+    if(cat == category::cn && __cat_lt.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lt;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::ll || cat == category::lu || cat == category::lt || true;
 }
-template<>
-constexpr bool cp_is<category::mark>(char32_t c) {
-    return __cat_mn.lookup(c) || __cat_mc.lookup(c) || __cat_me.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::letter, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_lo.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lo;
+    }
+    if(cat == category::cn && __cat_ll.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::ll;
+    }
+    if(cat == category::cn && __cat_lu.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lu;
+    }
+    if(cat == category::cn && __cat_lm.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lm;
+    }
+    if(cat == category::cn && __cat_lt.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::lt;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::lo || cat == category::ll || cat == category::lu ||
+           cat == category::lm || cat == category::lt || true;
 }
-template<>
-constexpr bool cp_is<category::number>(char32_t c) {
-    return __cat_no.lookup(c) || __cat_nd.lookup(c) || __cat_nl.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::mark, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_mn.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::mn;
+    }
+    if(cat == category::cn && __cat_mc.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::mc;
+    }
+    if(cat == category::cn && __cat_me.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::me;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::mn || cat == category::mc || cat == category::me || true;
 }
-template<>
-constexpr bool cp_is<category::punctuation>(char32_t c) {
-    return __cat_po.lookup(c) || __cat_ps.lookup(c) || __cat_pe.lookup(c) || __cat_pd.lookup(c) ||
-           __cat_pi.lookup(c) || __cat_pf.lookup(c) || __cat_pc.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::number, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_no.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::no;
+    }
+    if(cat == category::cn && __cat_nd.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::nd;
+    }
+    if(cat == category::cn && __cat_nl.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::nl;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::no || cat == category::nd || cat == category::nl || true;
 }
-template<>
-constexpr bool cp_is<category::symbol>(char32_t c) {
-    return __cat_so.lookup(c) || __cat_sm.lookup(c) || __cat_sk.lookup(c) || __cat_sc.lookup(c) ||
-           true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::punctuation, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_po.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::po;
+    }
+    if(cat == category::cn && __cat_ps.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::ps;
+    }
+    if(cat == category::cn && __cat_pe.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::pe;
+    }
+    if(cat == category::cn && __cat_pd.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::pd;
+    }
+    if(cat == category::cn && __cat_pi.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::pi;
+    }
+    if(cat == category::cn && __cat_pf.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::pf;
+    }
+    if(cat == category::cn && __cat_pc.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::pc;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::po || cat == category::ps || cat == category::pe ||
+           cat == category::pd || cat == category::pi || cat == category::pf ||
+           cat == category::pc || true;
 }
-template<>
-constexpr bool cp_is<category::separator>(char32_t c) {
-    return __cat_zs.lookup(c) || __cat_zp.lookup(c) || __cat_zl.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::symbol, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_so.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::so;
+    }
+    if(cat == category::cn && __cat_sm.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::sm;
+    }
+    if(cat == category::cn && __cat_sk.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::sk;
+    }
+    if(cat == category::cn && __cat_sc.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::sc;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::so || cat == category::sm || cat == category::sk ||
+           cat == category::sc || true;
 }
-template<>
-constexpr bool cp_is<category::other>(char32_t c) {
-    return __cat_cf.lookup(c) || __cat_cc.lookup(c) || true;
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::separator, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_zs.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::zs;
+    }
+    if(cat == category::cn && __cat_zp.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::zp;
+    }
+    if(cat == category::cn && __cat_zl.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::zl;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::zs || cat == category::zp || cat == category::zl || true;
+}
+template<category category_, version v = uni::version::standard_unicode_version,
+         std::enable_if_t<category_ == category::other, int> = 0>
+constexpr bool cp_is(char32_t c) {
+    category cat = category::cn;
+    if(cat == category::cn && __cat_cn.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::cn;
+    }
+    if(cat == category::cn && __cat_cf.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::cf;
+    }
+    if(cat == category::cn && __cat_cc.lookup(c)) {
+        if constexpr(v == uni::version::latest_version)
+            return true;
+        cat = category::cc;
+    }
+    cat = __get_category_for_version<v>(c, cat);
+    return cat == category::cn || cat == category::cf || cat == category::cc || true;
+}
+static constexpr std::array __cat_version_data_v11_0{
+    std::pair{0x0E89, category::cn}, std::pair{0x0E98, category::cn},
+    std::pair{0x0EA0, category::cn}, std::pair{0x0EAC, category::cn},
+    std::pair{0x0EBA, category::cn}, std::pair{0x166D, category::po},
+    std::pair{0x1CF2, category::mc}, std::pair{0x1CF3, category::mc},
+    std::pair{0x2BC9, category::cn}, std::pair{0x2BFF, category::cn},
+    std::pair{0xA9BD, category::mc}, std::pair{0x1F93F, category::cn},
+    std::pair{0x1F97B, category::cn}};
+static constexpr std::array __cat_version_data_v10_0{
+    std::pair{0x0560, category::cn},  std::pair{0x0588, category::cn},
+    std::pair{0x0C04, category::cn},  std::pair{0x0C84, category::cn},
+    std::pair{0x10D0, category::lo},  std::pair{0x10D1, category::lo},
+    std::pair{0x10D2, category::lo},  std::pair{0x10D3, category::lo},
+    std::pair{0x10D4, category::lo},  std::pair{0x10D5, category::lo},
+    std::pair{0x10D6, category::lo},  std::pair{0x10D7, category::lo},
+    std::pair{0x10D8, category::lo},  std::pair{0x10D9, category::lo},
+    std::pair{0x10DA, category::lo},  std::pair{0x10DB, category::lo},
+    std::pair{0x10DC, category::lo},  std::pair{0x10DD, category::lo},
+    std::pair{0x10DE, category::lo},  std::pair{0x10DF, category::lo},
+    std::pair{0x10E0, category::lo},  std::pair{0x10E1, category::lo},
+    std::pair{0x10E2, category::lo},  std::pair{0x10E3, category::lo},
+    std::pair{0x10E4, category::lo},  std::pair{0x10E5, category::lo},
+    std::pair{0x10E6, category::lo},  std::pair{0x10E7, category::lo},
+    std::pair{0x10E8, category::lo},  std::pair{0x10E9, category::lo},
+    std::pair{0x10EA, category::lo},  std::pair{0x10EB, category::lo},
+    std::pair{0x10EC, category::lo},  std::pair{0x10ED, category::lo},
+    std::pair{0x10EE, category::lo},  std::pair{0x10EF, category::lo},
+    std::pair{0x10F0, category::lo},  std::pair{0x10F1, category::lo},
+    std::pair{0x10F2, category::lo},  std::pair{0x10F3, category::lo},
+    std::pair{0x10F4, category::lo},  std::pair{0x10F5, category::lo},
+    std::pair{0x10F6, category::lo},  std::pair{0x10F7, category::lo},
+    std::pair{0x10F8, category::lo},  std::pair{0x10F9, category::lo},
+    std::pair{0x10FA, category::lo},  std::pair{0x10FD, category::lo},
+    std::pair{0x10FE, category::lo},  std::pair{0x10FF, category::lo},
+    std::pair{0x312F, category::cn},  std::pair{0xA7AF, category::cn},
+    std::pair{0x111C9, category::po}, std::pair{0x11A07, category::mc},
+    std::pair{0x11A08, category::mc}, std::pair{0x11A9D, category::cn},
+    std::pair{0x1F12F, category::cn}};
+template<version v>
+constexpr category __get_category_for_version(char32_t cp, category c) {
+    if constexpr(v <= uni::version::v11_0) {
+        const auto it =
+            uni::lower_bound(__cat_version_data_v11_0.begin(), __cat_version_data_v11_0.end(), cp,
+                             [](const auto& e, char32_t cp) { return e.first < cp; });
+        if(it != __cat_version_data_v11_0.end() && cp == it->first)
+            c = it->second;
+    }
+    if constexpr(v <= uni::version::v10_0) {
+        const auto it =
+            uni::lower_bound(__cat_version_data_v10_0.begin(), __cat_version_data_v10_0.end(), cp,
+                             [](const auto& e, char32_t cp) { return e.first < cp; });
+        if(it != __cat_version_data_v10_0.end() && cp == it->first)
+            c = it->second;
+    }
+    return c;
 }
 static constexpr std::array __numeric_data8 = {
     std::pair<char32_t, int8_t>{0x0030, 0},    std::pair<char32_t, int8_t>{0x0031, 1},
@@ -10520,8 +10498,8 @@ static constexpr __bool_trie<32, 992, 55, 256, 448, 42> __prop_oalpha_data{
      0x000000000000008b, 0x00000000007b7c00, 0x0078000000000000, 0xfffffffffffe8000,
      0x00000000000780ff, 0x0000000040000000, 0x000007dbf9ffff7f, 0x0000000000000080,
      0xffff03ffffff03ff, 0x00000000000003ff}};
-static constexpr flat_array<7> __prop_odi_data{
-    {0x034F, 0x115F, 0x1160, 0x17B4, 0x17B5, 0x3164, 0xFFA0}};
+static constexpr flat_array<9> __prop_odi_data{
+    {0x034F, 0x115F, 0x1160, 0x17B4, 0x17B5, 0x2065, 0x3164, 0xFFA0, 0xE0000}};
 static constexpr __range_array<49> __prop_ogr_ext_data = {
     {__range_array_elem{0x0000, 0} /*2494*/,
      __range_array_elem{0x09BE, 1} /*1*/,
@@ -11599,102 +11577,97 @@ template<>
 constexpr bool cp_is<property::xids>(char32_t c) {
     return __prop_xids_data.lookup(c);
 }
-static constexpr __bool_trie<32, 992, 145, 256, 1216, 153> __prop_assigned{
+static constexpr __bool_trie<32, 992, 128, 256, 1216, 137> __prop_assigned{
     {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
      0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
      0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffffff, 0xfcffffffffffffff, 0xfffffffbffffd7f0, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xfcffffffffffffff, 0xfffffffffffffff0, 0xffffffffffffffff,
      0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xfffeffffffffffff, 0xfffffffffe7fffff, 0xfffffffffffee7ff, 0x001f87ffffff00ff,
-     0xffffffffdfffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffbfff, 0xffffffffffffe7ff, 0x0003ffffffffffff, 0xe7ffffffffffffff},
-    {0,   1,   2,   3,   4,  4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14,  15,  16, 17, 18,
-     19,  20,  21,  22,  23, 24,  25,  26,  4,   27,  28,  29,  4,   4,   4,  30,  4,   4,  4,  4,
-     4,   31,  32,  33,  34, 35,  36,  37,  4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  38, 39,
-     40,  41,  4,   42,  43, 39,  44,  45,  46,  47,  48,  49,  50,  51,  52, 53,  4,   54, 4,  55,
-     56,  57,  58,  59,  4,  4,   4,   60,  4,   4,   4,   4,   61,  62,  63, 64,  4,   65, 66, 67,
-     4,   4,   68,  4,   4,  4,   4,   4,   4,   4,   4,   4,   69,  70,  4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   71,  72,  4,   73, 74,  4,   75,  76,  77,  78,  79,  4,   80,  81, 82,  4,   4,  4,  83,
-     4,   84,  85,  4,   86, 4,   87,  88,  74,  4,   4,   89,  4,   4,   4,  4,   90,  53, 91, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  92,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 93,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 4,
-     94,  95,  96,  97,  93, 98,  53,  53,  53,  53,  53,  53,  99,  100, 53, 53,  53,  53, 53, 53,
-     53,  101, 53,  102, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 103, 53,  53, 53, 53,
-     53,  53,  53,  104, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 105, 53,  106, 107, 53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  108, 53, 109, 53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  110, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  111, 53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  112, 53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  108, 53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  111, 53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  113, 53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  114, 53,  98,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  115, 116, 53,  117, 53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  109, 4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   118, 119, 4,   4,   4,   4,   120, 4,   4,  121, 4,   4,  4,  122,
-     123, 121, 4,   124, 4,  125, 4,   126, 127, 128, 4,   129, 130, 131, 4,  132, 4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,
-     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   88,  133, 53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,
-     53,  53,  53,  53,  4,  4,   4,   4,   4,   134, 4,   135, 136, 137, 4,  138, 4,   4,  4,  4,
-     4,   139, 140, 141, 36, 142, 4,   143, 84,  4,   89,  144},
-    {0x7fff3fffffffffff, 0x000007ff4fffffff, 0x3fdfffff00000000, 0xfffffffffff80000,
-     0xffffffffffffffff, 0xf3c5fdfffff99fef, 0x7fffffcfb080799f, 0xd36dfdfffff987ee,
-     0x007fffc05e023987, 0xf3edfdfffffbbfee, 0xfe03ffcf00013bbf, 0xf3edfdfffff99fee,
-     0x00ffffcfb0c0399f, 0xc3ffc718d63dc7ec, 0x07ffffc000813dc7, 0xe3fffdfffffddfff,
-     0xff80ffcf07603ddf, 0xf3effdfffffddfff, 0x0006ffcf40603ddf, 0xfffffffffffddfef,
-     0xffffffcffff0fddf, 0x2ffbfffffc7fffec, 0x001cffc0ff5f847f, 0x87fffffffffffffe,
-     0x000000000fffffff, 0x3fffffaffffff7d6, 0x00000000f3ff3f5f, 0xfffe1ffffffffeff,
-     0xdffffffffeffffff, 0x0000000007ffdfff, 0xffffffffffff20bf, 0xffffffff3d7f3dff,
-     0x7f3dffffffff3dff, 0xffffffffff7fff3d, 0xffffffffff3dffff, 0x1fffffffe7ffffff,
-     0xffffffff03ffffff, 0x3f3fffffffffffff, 0xffffffff1fffffff, 0x01ffffffffffffff,
-     0x007fffff001fdfff, 0x000ddfff000fffff, 0x03ff03ff3fffffff, 0xffffffff03ff7fff,
-     0xffff07ffffffffff, 0x003fffffffffffff, 0x0fff0fff7fffffff, 0x001f3ffffffffff1,
-     0xffff0fffffffffff, 0xffffffffc7ff03ff, 0xffffffffcfffffff, 0x9fffffff7fffffff,
+     0xffffffffffffffff, 0xfffffffffe7fffff, 0xffffffffffffe7ff, 0x001f87ffffff00ff,
+     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xffffffffffffe7ff, 0x0003ffffffffffff, 0xe7ffffffffffffff},
+    {0,   1,   2,   3,   4,  4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14,  15, 16, 9,  17,
+     4,   18,  19,  20,  21, 22,  23,  24,  4,   25,  4,   26,  4,   4,   4,  27,  4,  4,  4,  4,
+     4,   28,  29,  30,  31, 32,  33,  34,  4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  35, 36,
+     37,  38,  4,   39,  33, 36,  40,  41,  42,  43,  44,  45,  46,  47,  48, 49,  4,  50, 4,  51,
+     52,  53,  54,  55,  4,  4,   4,   4,   4,   4,   4,   4,   56,  57,  4,  58,  4,  59, 35, 60,
+     4,   4,   61,  4,   4,  4,   4,   4,   4,   4,   4,   4,   62,  63,  4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   64,  31,  4,   4,  4,   4,   65,  66,  67,  68,  4,   4,   69,  4,  70,  4,  4,  4,  71,
+     4,   4,   72,  4,   73, 4,   74,  75,  4,   4,   4,   4,   4,   4,   4,  4,   76, 49, 77, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  78,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 79,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 4,
+     80,  81,  82,  83,  79, 84,  49,  49,  49,  49,  49,  49,  85,  86,  49, 49,  49, 49, 49, 49,
+     49,  87,  49,  88,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 89,  49, 49, 49, 49,
+     49,  49,  49,  90,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 91,  49,  92,  93,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  94,  49, 95,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  96,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  97,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  98,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  94,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  97,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  99, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  100, 49,  84,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  101, 102, 49,  103, 49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  95,  4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   104, 105, 4,   4,   4,   4,   106, 4,   4,  107, 4,  4,  4,  108,
+     109, 107, 4,   110, 4,  111, 4,   112, 113, 114, 4,   115, 116, 117, 4,  118, 4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,  4,  4,  4,
+     4,   4,   4,   4,   4,  4,   4,   4,   4,   4,   75,  119, 49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  49, 49,  49,  49,  49,  49,  49,  49,  49,  49,  49, 49,  49, 49, 49, 49,
+     49,  49,  49,  49,  4,  4,   4,   4,   4,   0,   4,   120, 121, 4,   4,  122, 4,  4,  4,  4,
+     4,   123, 124, 125, 33, 44,  4,   47,  4,   4,   126, 127},
+    {0xffff3fffffffffff, 0x000007ffcfffffff, 0x3fffffff00000000, 0xfffffffffff80000,
+     0xffffffffffffffff, 0xf3c7fffffff99fff, 0xffffffcff080799f, 0xf3fffffffff987ff,
+     0x007fffc07e023987, 0xf3ffffffffffffff, 0xfe03ffcf00013fff, 0xf3fffffffff99fff,
+     0x00ffffcff0c0399f, 0xc3ffc718fe3fc7fc, 0x07ffffc000813fc7, 0xe3ffffffffffffff,
+     0xff80ffcf07e03fff, 0x0007ffcfc0603fff, 0xffffffcffff0ffff, 0x3ffffffffc7ffffc,
+     0x001cffc0ffff847f, 0x87ffffffffffffff, 0x000000000fffffff, 0x3fffffffffffffff,
+     0x00000000f3ff3fff, 0xfffe1fffffffffff, 0x0000000007ffffff, 0xffffffffffff20ff,
+     0xffffffff3fff3fff, 0xff3fffffffff3fff, 0xffffffffffffff3f, 0xffffffffff3fffff,
+     0x1fffffffe7ffffff, 0xffffffff03ffffff, 0x3f3fffffffffffff, 0xffffffff1fffffff,
+     0x01ffffffffffffff, 0x007fffff001fffff, 0x000fffff000fffff, 0x03ff03ff3fffffff,
+     0xffff07ffffffffff, 0x003fffffffffffff, 0x0fff0fffffffffff, 0x001f3ffffffffff1,
+     0xffff0fffffffffff, 0xffffffffc7ff03ff, 0xffffffffcfffffff, 0x9fffffffffffffff,
      0x7fff3fff03ff03ff, 0x0000000000000000, 0x1fffffffffff0fff, 0xf00fffffffffffff,
      0xf8ffffffffffffff, 0xffffffffffffe3ff, 0xe7ffffffffff01ff, 0x07ffffffffff00ff,
-     0xfbffffffffffffff, 0xffffffff3f3fffff, 0x3fffffffaaff3f3f, 0xffdfffffffffffff,
-     0x7fdcffffefcfffdf, 0xfff3ffdfffffffff, 0xffffffff1fff7fff, 0x0001ffffffff0000,
-     0xffffffffffff0fff, 0x0000007fffffffff, 0xffffffff000007ff, 0xffcfffffffffffff,
-     0xffffffffff3fffff, 0xffff7fffffffffff, 0xffffffff7fffffff, 0xfe0fffffffffffff,
-     0xffff20bfffffffff, 0x800180ffffffffff, 0x7f7f7f7f007fffff, 0xffffffff7f7f7f7f,
-     0x000000000000ffff, 0xfffffffffbffffff, 0x000fffffffffffff, 0x0fff0000003fffff,
-     0xfffffffffffffffe, 0xfffffffffe7fffff, 0xfffeffffffffffe0, 0x07ffffffffff7fff,
-     0xffff000fffffffff, 0x7fffffffffffffff, 0x0000000000000020, 0x0000000000000008,
-     0x0000040000000000, 0x0000000000002000, 0x0000000000000389, 0x0000000020000000,
-     0x8000000000701000, 0x0000010080000001, 0x0001000000000000, 0x0000000000000010,
-     0x00003e0000000040, 0x000000000000103e, 0x000000000000001e, 0x0000000008000000,
-     0x0202000000000000, 0x0400000000000000, 0xc000000000000000, 0x000000000001f000,
-     0x4000000000000000, 0x0000000000001000, 0x0000000000040000, 0x0000000000000040,
-     0x0000000000400000, 0x0000100000000000, 0x0008400000000000, 0x0000000200000000,
-     0x0100000000001040, 0x0040000000000000, 0xffffffffffff1fff, 0xffffffffffff007f,
-     0x00000fffffffffff, 0x00ffffffffffffff, 0xff8000000000007c, 0x03ff0fffffffffff,
-     0xffffffff03ffc03f, 0x1fffffff800fffff, 0x7fffffffc3ffbfff, 0x007fffffffffffff,
-     0xfffffffff3ff3fff, 0x007ffffff8000007, 0xffff7f7f007e7e7e, 0xffff00ffffffffff,
-     0x03ff3fffffffffff, 0x0ffffffffffff87f, 0xffff3fffffffffff, 0x0000000003ffffff,
-     0x5f7fffffe0f8007f, 0xffffffffffffffdb, 0xfffffffffff80003, 0xffffffffffff0000,
-     0xfffffffffffcffff, 0x3fff0000000000ff, 0xffdf0f7ffff7ffff, 0x9fffffffffffffff,
-     0x3e007f7f1cfcfcfc},
+     0xffffffff3f3fffff, 0x3fffffffffff3f3f, 0xfffcffffffcfffff, 0xfff3ffffffffffff,
+     0x0001ffffffff0000, 0xffffffffffff0fff, 0x0000007fffffffff, 0xffffffff000007ff,
+     0xffcfffffffffffff, 0xfe0fffffffffffff, 0xffff20ffffffffff, 0x800180ffffffffff,
+     0xffffffff007fffff, 0x000000000000ffff, 0x000fffffffffffff, 0x0fff0000003fffff,
+     0xfffffffffe7fffff, 0xffffffffffffffe0, 0x07ffffffffffffff, 0xffff000fffffffff,
+     0x0000000000000020, 0x0000000000000008, 0x0000040000000000, 0x0000000000002000,
+     0x0000000000000389, 0x0000000020000000, 0x8000000000701000, 0x0000010080000001,
+     0x0001000000000000, 0x0000000000000010, 0x00003e0000000040, 0x000000000000103e,
+     0x000000000000001e, 0x0000000008000000, 0x0202000000000000, 0x0400000000000000,
+     0xc000000000000000, 0x000000000001f000, 0x4000000000000000, 0x0000000000001000,
+     0x0000000000040000, 0x0000000000000040, 0x0000000000400000, 0x0000100000000000,
+     0x0008400000000000, 0x0000000200000000, 0x0100000000001040, 0x0040000000000000,
+     0xffffffffffff1fff, 0xffffffffffff007f, 0x00000fffffffffff, 0x00ffffffffffffff,
+     0xff8000000000007c, 0x03ff0fffffffffff, 0xffffffff03ffc03f, 0x1fffffff800fffff,
+     0xffffffffc3ffffff, 0x007fffffffffffff, 0xfffffffff3ff3fff, 0x007ffffff8000007,
+     0xffffffff007e7e7f, 0xffff00ffffffffff, 0x03ff3fffffffffff, 0x0ffffffffffff87f,
+     0x0000000003ffffff, 0xffffffffe0f8007f, 0xfffffffffff80003, 0xffffffffffff0000,
+     0xfffffffffffcffff, 0x3fff0000000000ff, 0x7fffffffffffffff, 0x3e00ffff1cfcfcfc},
     {0, 1, 2,  3, 4, 5,  6, 7, 8, 5, 5, 9, 5, 10, 11, 12, 13, 5, 14, 15, 5, 5, 16, 5, 5, 5, 5, 5, 5,
      5, 5, 17, 5, 5, 5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5, 5, 5,
      5, 5, 5,  5, 5, 5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5, 5, 5,
@@ -11704,108 +11677,101 @@ static constexpr __bool_trie<32, 992, 145, 256, 1216, 153> __prop_assigned{
      5, 5, 5,  5, 5, 5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5, 5, 5,
      5, 5, 5,  5, 5, 18, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5, 5, 5,
      5, 5, 5,  5, 5, 5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5},
-    {0,   1,   2,   3,   4,   2,   5,   6,   7,   7,   8,   9,   10,  11,  12,  13,  2,   2,   14,
-     15,  16,  17,  7,   7,   2,   2,   2,   2,   18,  19,  7,   7,   20,  21,  22,  23,  24,  7,
-     25,  26,  27,  28,  29,  30,  31,  32,  33,  7,   2,   34,  35,  36,  37,  7,   7,   7,   7,
-     38,  7,   7,   16,  39,  7,   40,  2,   41,  2,   42,  43,  44,  2,   45,  46,  7,   47,  48,
-     49,  50,  7,   7,   2,   51,  2,   52,  7,   7,   53,  54,  2,   55,  56,  57,  58,  7,   7,
-     7,   59,  7,   60,  61,  7,   7,   62,  63,  2,   64,  65,  56,  7,   7,   7,   7,   66,  67,
-     68,  7,   69,  70,  71,  7,   7,   7,   7,   72,  7,   7,   7,   73,  2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   39,  7,   2,   74,  2,   2,   2,   75,  7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   76,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   77,  7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,
-     2,   2,   2,   2,   2,   2,   56,  78,  7,   79,  2,   80,  81,  7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   2,   82,  7,   2,   83,  84,  85,  2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   86,  2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   35,  7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   2,   2,   2,   2,   87,  88,  2,   2,   2,   2,   2,   59,  7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   89,  90,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   91,  92,  2,
-     2,   93,  2,   94,  7,   95,  2,   96,  7,   7,   2,   97,  98,  99,  100, 101, 2,   2,   2,
-     2,   102, 2,   2,   2,   2,   103, 2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   104, 7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   105, 7,   7,   7,   106, 107, 7,   7,   7,   7,   7,   108, 7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   109, 2,
-     110, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   111, 112, 7,   113, 7,   7,   7,
-     114, 115, 116, 117, 7,   7,   7,   7,   118, 2,   119, 120, 121, 122, 123, 124, 125, 126, 7,
-     7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   127, 2,   128,
-     2,   129, 130, 131, 132, 7,   133, 134, 135, 136, 2,   137, 138, 7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   139, 140, 7,   141,
-     142, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   143, 7,   144, 7,   7,   7,
-     7,   145, 146, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   147, 7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   148, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   149, 7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   150, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,
-     2,   2,   2,   2,   2,   2,   2,   54,  7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   151, 2,   7,   7,   2,   2,   2,
-     152, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7},
-    {0xb7ffff7fffffefff, 0x000000003fff3fff, 0xffffffffffffffff, 0x07ffffffffffffff,
-     0xff8fffffffffff87, 0x000000010fff7fff, 0x3fffffffffff0000, 0x0000000000000000,
-     0xffffffff1fffffff, 0x0fffffff0001ffff, 0xffffe00fffffffff, 0x07ffffffffff07ff,
-     0xffffffffbfffffff, 0x00000000003fff0f, 0xffff03ff3fffffff, 0x0fffffffff0fffff,
-     0xffff00ffffffffff, 0x0000800fffffffff, 0x007fffffffffffff, 0x000000ff003fffff,
-     0x91bffffffffffd3f, 0xffffffffffbfffff, 0x0000ff807fffffff, 0xf837ffff00000000,
-     0x83ffffff8fffffff, 0xf0ffffffffffffff, 0xfffffffffffcffff, 0x873ffffffeeff06f,
-     0xffffffff01ff01ff, 0x00000000ffffffff, 0x007ff87fffffffff, 0xfe3fffffffffffff,
-     0xff07ffffff3fffff, 0x0000fe001e03ffff, 0x00000000000001ff, 0x0007ffffffffffff,
-     0xfc07ffffffffffff, 0x03ff00ffffffffff, 0x7fffffff00000000, 0x0000000003ffffff,
-     0x007fffff00000000, 0x8000fffffffc3fff, 0x03ff01ffffff2003, 0xffdfffffffffffff,
-     0x007fffffffff007f, 0x001ffffeffff3fff, 0x7ffffffffffbffff, 0xffff03ffbfffbd7f,
-     0x03ff07ffffffffff, 0xfbedfdfffff99fef, 0x001f1fcfe081399f, 0x00000000ebffffff,
-     0x0000000003ff00ff, 0xff3fffffffffffff, 0x000000003fffffff, 0x00001fff03ff001f,
-     0x01ffffffffffffff, 0x00000000000003ff, 0xffff0fffe7ffffff, 0x0fffffffffffffff,
-     0xffffffff00000000, 0x8007ffffffffffff, 0xfffffcff00000000, 0x0000001ffcffffff,
-     0xffffffffffff00ff, 0x00000007ffffffff, 0xff7ffffffffffdff, 0xffff1fffffff003f,
-     0x007ffefffffcffff, 0xb47ffffffffffb7f, 0xfffffdbf03ff00ff, 0x000003ff01fb7fff,
-     0x01ffffff00000000, 0x8003ffffffffffff, 0x001f7fffffffffff, 0x000000000000000f,
-     0x01ff7fffffffffff, 0x000000000000007f, 0x0000c3ff7fffffff, 0x003f3fffffff0000,
-     0xe0fffffbfbff003f, 0x000000000000ffff, 0x0000000007ffffff, 0xffffffffffff87ff,
+    {0,   1,   0,   2,   3,   0,  4,   5,  6,   6,   7,   8,  9,   10,  0,   11,  0,   0,   12, 13,
+     14,  15,  6,   6,   0,   0,  0,   0,  16,  17,  6,   6,  18,  0,   19,  20,  21,  6,   22, 23,
+     24,  25,  26,  27,  28,  29, 30,  6,  0,   31,  32,  33, 34,  6,   6,   6,   6,   35,  6,  6,
+     14,  36,  6,   37,  0,   38, 0,   39, 0,   40,  0,   41, 42,  6,   43,  44,  45,  46,  6,  6,
+     0,   26,  0,   47,  6,   6,  48,  49, 0,   50,  51,  52, 53,  6,   6,   6,   54,  6,   35, 55,
+     6,   6,   56,  57,  0,   58, 59,  51, 6,   6,   6,   6,  0,   60,  61,  6,   62,  63,  64, 6,
+     6,   6,   6,   65,  6,   6,  6,   66, 0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   36,  6,   0,   67, 0,   0,  0,   68,  6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   0,   0,   0,  0,   0,  51,  6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   69,  6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   0,   0,   0,  0,
+     0,   0,   0,   0,   51,  70, 6,   71, 0,   72,  73,  6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   0,   74,  6,   0,   75, 76,  77, 0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   0,   78,  0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   32,  6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   0,   0,   0,  0,
+     79,  80,  0,   0,   0,   0,  0,   54, 6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   0,   81, 82,  6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     0,   0,   0,   83,  84,  0,  0,   85, 0,   86,  6,   87, 0,   88,  6,   6,   0,   0,   89, 0,
+     90,  91,  0,   0,   0,   0,  92,  0,  0,   0,   0,   93, 0,   0,   0,   0,   0,   0,   0,  0,
+     0,   0,   94,  6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   95,  6,  6,   6,  96,  97,  6,   6,  6,   6,   6,   98,  6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   0,   0,   0,  99,
+     0,   100, 6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   101, 67,  6,   102, 6,   6,  6,
+     103, 104, 105, 106, 6,   6,  6,   6,  107, 0,   108, 83, 109, 110, 111, 112, 113, 114, 6,  6,
+     0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,  0,   0,   0,   115, 0,   116, 0,  117,
+     118, 63,  119, 6,   0,   62, 120, 90, 0,   121, 122, 6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  123, 124, 6,   125, 126, 6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  127, 6,   128, 6,  6,   6,   6,   129, 130, 6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   131, 6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   132, 6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   133, 6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   134, 6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     0,   0,   0,   0,   0,   0,  0,   0,  49,  6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  135, 0,   6,   6,   0,   0,   0,  136,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6,   6,   6,   6,  6,
+     6,   6,   6,   6,   6,   6,  6,   6,  6,   6,   6,   6,  6,   6,   6,   6},
+    {0xffffffffffffffff, 0x000000003fff3fff, 0x07ffffffffffffff, 0xff8fffffffffff87,
+     0x000000010fffffff, 0x3fffffffffff0000, 0x0000000000000000, 0xffffffff1fffffff,
+     0x0fffffff0001ffff, 0xffffe00fffffffff, 0x07ffffffffff07ff, 0x00000000003fff0f,
+     0xffff03ff3fffffff, 0x0fffffffff0fffff, 0xffff00ffffffffff, 0x0000800fffffffff,
+     0x007fffffffffffff, 0x000000ff003fffff, 0x91ffffffffffff3f, 0x0000ff807fffffff,
+     0xf83fffff00000000, 0x83ffffff8fffffff, 0xf0ffffffffffffff, 0xfffffffffffcffff,
+     0x873ffffffffff07f, 0xffffffff01ff01ff, 0x00000000ffffffff, 0x007ff87fffffffff,
+     0xfe3fffffffffffff, 0xff07ffffff3fffff, 0x0000fe001e03ffff, 0x00000000000001ff,
+     0x0007ffffffffffff, 0xfc07ffffffffffff, 0x03ff00ffffffffff, 0xffffffff00000000,
+     0x0000000003ffffff, 0x007fffff00000000, 0x8000fffffffc3fff, 0x03ff01ffffff2003,
+     0x007fffffffff007f, 0x001fffffffff3fff, 0x7fffffffffffffff, 0xffff03ffffffffff,
+     0x03ff07ffffffffff, 0xfffffffffff99fff, 0x001f1fcfe081399f, 0x0000000003ff00ff,
+     0xff3fffffffffffff, 0x000000003fffffff, 0x00001fff03ff001f, 0x01ffffffffffffff,
+     0x00000000000003ff, 0xffff0fffe7ffffff, 0x0fffffffffffffff, 0x8007ffffffffffff,
+     0xfffffcff00000000, 0x0000001ffcffffff, 0xffffffffffff00ff, 0x00000007ffffffff,
+     0xffff1fffffff003f, 0x007ffffffffcffff, 0xfc7fffffffffffff, 0xffffffff03ff00ff,
+     0x000003ff01ffffff, 0x01ffffff00000000, 0x8003ffffffffffff, 0x001fffffffffffff,
+     0x000000000000000f, 0x000000000000007f, 0x0000c3ffffffffff, 0x003f3fffffff0000,
+     0xe0ffffffffff003f, 0x000000000000ffff, 0x0000000007ffffff, 0xffffffffffff87ff,
      0x00000000ffff80ff, 0x0000000f00000000, 0x00ffffffffffffff, 0x000000007fffffff,
      0xffff00f000070000, 0x1fff07ffffffffff, 0x0000000ff3ff01ff, 0x003fffffffffffff,
      0xfffffe7fffffffff, 0x000001ffffffffff, 0x000000000000003f, 0x000fffff00000000,
-     0x01ffffff007fffff, 0xffffffffffdfffff, 0xebffde64dfffffff, 0xffffffffffffffef,
-     0x7bffffffdfdfe7bf, 0xfffffffffffdfc5f, 0xffffff3fffffffff, 0xffffffffffffcfff,
-     0x0000fffef8000fff, 0x000007dbf9ffff7f, 0x3fff1fffffffffff, 0x000000000000c3ff,
-     0x83ffffffffffffff, 0x00000000007fff9f, 0x00000000c3ff0fff, 0xfffe000000000000,
-     0x001fffffffffffff, 0x3ffffffffffffffe, 0x0af7fe96ffffffef, 0x5ef7f796aa96ea84,
-     0x0ffffbee0ffffbff, 0x0003000000000000, 0xffff0fffffffffff, 0xfffe7fff000fffff,
-     0x003ffffffffefffe, 0xffffffffffff1fff, 0xffff1fffffffffff, 0x00001fffffffffff,
+     0x01ffffff007fffff, 0xfffffe64ffffffff, 0xffffffffffffe7ff, 0xfffffffffffffc7f,
+     0xffffff3fffffffff, 0xffffffffffffcfff, 0x0000fffff8000fff, 0x000007fff9ffffff,
+     0x3fff1fffffffffff, 0x000000000000c3ff, 0x83ffffffffffffff, 0x00000000007fff9f,
+     0x00000000c3ff0fff, 0xffff000000000000, 0x3fffffffffffffff, 0x0fffff9fffffffff,
+     0xffffff9fff9fff84, 0x0ffffffe0fffffff, 0x0003000000000000, 0xffff0fffffffffff,
+     0xfffe7fff000fffff, 0xffffffffffff1fff, 0xffff1fffffffffff, 0x00001fffffffffff,
      0xffffffc000000000, 0x0fffffffffff0007, 0x0000003f000301ff, 0x07ff1fff003fffff,
-     0x000fffffffffffff, 0x00000fff01ffffff, 0xffffffffffff0fff, 0xffffffff03ff00ff,
-     0x00003fffffff00ff, 0xffffffffffffefff, 0xfc7bffffffffffff, 0xffffc7e7ffffffff,
-     0xffffffffffffe7ff, 0x070f3fff000fffff, 0x00000000003f0007, 0x0000000000000003,
+     0x000fffffffffffff, 0x00000fff01ffffff, 0xffffffffffff0fff, 0x00003fffffff00ff,
+     0xffffc7e7ffffffff, 0x070f3fff000fffff, 0x00000000003f0007, 0x0000000000000003,
      0x0000001000000000, 0x0000000400000000, 0x0000000200000000, 0x0000040000000000,
      0x0000000010001008, 0x2000040000000000, 0x0000000002000000, 0x0000000000010000,
-     0x0000000001000000, 0x0000000008000000, 0x0000200000000000, 0xffffffff00000002,
+     0x0000000001000000, 0x0000000008000000, 0x0000200000000000, 0xffffffff00000003,
      0x0000ffffffffffff}};
 }    // namespace uni
 #ifndef UNI_SINGLE_HEADER
@@ -11826,7 +11792,7 @@ enum class property;
 constexpr category cp_category(char32_t cp) {
     if(cp > 0x10FFFF)
         return category::unassigned;
-    return __get_category(cp);
+    return __get_category<uni::version::latest_version>(cp);
 }
 
 constexpr uni::version __age_from_string(std::string_view a) {

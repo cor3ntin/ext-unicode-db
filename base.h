@@ -170,13 +170,11 @@ enum class version : uint8_t;
 template<uni::script>
 bool cp_is(char32_t) = delete;
 
-template<uni::category>
-bool cp_is(char32_t) = delete;
 
 template<uni::property>
 bool cp_is(char32_t) = delete;
 
-constexpr category cp_category(char32_t cp);
+
 constexpr version cp_age(char32_t cp);
 constexpr block cp_block(char32_t cp);
 

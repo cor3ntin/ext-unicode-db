@@ -1,17 +1,16 @@
 #!/usr/bin/python3
 
-from lxml import etree
+import xml.etree.cElementTree as etree
 import sys
 import os
-import pystache
 import re
 import collections
-from intbitset import intbitset
+#from intbitset import intbitset
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
-SUPPORTED_VERSIONS = ["11.0", "10.0"] #, "9.0", "8.0", "7.0"]
+SUPPORTED_VERSIONS = ["11.0"] # "10.0", "9.0", "8.0", "7.0"]
 MIN_VERSION = "10.0"
 PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
@@ -27,6 +26,8 @@ def to_hex(cp, n = 6):
     return "{0:#0{fill}X}".format(int(cp), fill=n).replace('X', 'x')
 
 def age_name(age):
+    if age == 'unassigned':
+        return age
     return "v" + str(age).replace(".", '_')
 
 class ucd_cp(object):
@@ -157,21 +158,20 @@ class ucd_block:
         self.name    = block.get('name')
 
 def get_unicode_data(version = LAST_VERSION):
-    context = etree.iterparse(os.path.join(DIR, "ucd", version, "ucd.nounihan.flat.xml"), events=('end',))
-    blocks = []
+    root = etree.parse(os.path.join(DIR, "ucd", version, "ucd.nounihan.flat.xml")).getroot()
+    repertoire = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}repertoire")
     characters = [None] * (0x110000)
     zfound = False
-
-    for _, elem in context:
-        if elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}char':
-            cp = ucd_cp(elem)
-            if cp.cp == 0 and zfound:
-                continue
-            zfound = True
-            characters[cp.cp] = cp
-
-        elif elem.tag =='{http://www.unicode.org/ns/2003/ucd/1.0}block':
-            blocks.append(ucd_block(elem))
+    for elem in repertoire:
+        cp = ucd_cp(elem)
+        if cp.cp == 0 and zfound:
+            continue
+        zfound = True
+        characters[cp.cp] = cp
+    blocks_node = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}blocks")
+    blocks = []
+    for elem in blocks_node:
+        blocks.append(ucd_block(elem))
 
     regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")
     lines = [line.rstrip('\n') for line in open(os.path.join(DIR, "ucd", version, "emoji-data.txt"), 'r')]
@@ -220,7 +220,6 @@ def write_script_data(characters, changed, scripts_names, file):
         data = []
         for k, v in changed.items():
             old = collections.OrderedDict([(cp.cp, cp.scx) for cp in v if not cp.cp in modified or cp.scx != modified[cp.cp]])
-            print(old)
             for cp, v in old.items():
                 if len(v) < len(modified[cp]):
                     old[cp].append('zzzz')
@@ -438,7 +437,7 @@ def emit_trie_or_table(f, name, data):
     print("{} : {} element(s) - type: {} - size: {}  (array: {}, range: {}, trie : {}".format(name, len(data), t, size, asize, rsize, tsize))
     return size
 
-def write_categories_data(characters, categories_names, file):
+def write_categories_data(characters, changed, categories_names, file):
     f.write("enum class category {")
     for cat in categories_names:
         f.write(cat[0] + ",")
@@ -471,26 +470,73 @@ def write_categories_data(characters, categories_names, file):
 
     sorted_by_len.sort(reverse=True)
 
-    f.write("constexpr category __get_category(char32_t c) {")
+    f.write("""
+    template<uni::version v = uni::version::standard_unicode_version>
+    constexpr category cp_category(char32_t cp);
+    template<version v>
+    constexpr category __get_category_for_version(char32_t, category c);
+    template <version v>
+    constexpr category __get_category(char32_t c) {
+    if(auto cat = __get_category_for_version<v>(c, category::cn); cat != category::cn)
+        return cat;
+
+    """)
     for _, cat in sorted_by_len:
         f.write("if (__cat_{0}.lookup(c)) return category::{0};".format(cat))
     f.write("return category::cn;}")
 
 
     for _, cat in sorted_by_len:
-        f.write("template <> constexpr bool cp_is<category::{0}>(char32_t c) {{ return __cat_{0}.lookup(c); }}".format(cat))
+        f.write("""template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::{0}, int> = 0>
+        constexpr bool cp_is(char32_t c) {{
+            return __get_category_for_version<v>(c, __cat_{0}.lookup(c)) == category::{0}; }}
+        """.format(cat))
 
     for name, cats in meta_cats.items():
-        f.write("template <> constexpr bool cp_is<category::{}>(char32_t c) {{ return ".format(name))
+        f.write("""template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::{}, int> = 0>
+        constexpr bool cp_is(char32_t c) {{
+            category cat = category::cn;
+            """.format(name))
         for _, cat in sorted_by_len:
             if cat in cats:
-                f.write("__cat_{0}.lookup(c) || ".format(cat))
+                f.write("if(cat == category::cn && __cat_{0}.lookup(c)) {{ if constexpr(v == uni::version::latest_version) return true; cat = category::{0}; }}".format(cat))
+        f.write("cat =  __get_category_for_version<v>(c, cat); return ")
+        for _, cat in sorted_by_len:
+            if cat in cats:
+                f.write("cat == category::{0} ||".format(cat))
         f.write("true;}")
 
+
+    #changed characters
+
+
     print("total size : {}".format(size / 1024.0))
+    with_data = []
+    modified = dict([(cp.cp, cp.gc) for cp in characters])
+    for k, v in changed.items():
+        old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
+        if len(old) == 0:
+            continue
+        f.write("static constexpr std::array __cat_version_data_{} {{".format(age_name(k)))
+        for idx, (cp, gc) in enumerate(old):
+            f.write("std::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
+        f.write("};")
+        modified.update(old)
+        with_data.append(k)
+
+    f.write("template <version v> constexpr category __get_category_for_version(char32_t cp, category c) {")
+    for v in with_data:
+        f.write("""
+            if constexpr( v<= uni::version::{0} ) {{
+                const auto it = uni::lower_bound(__cat_version_data_{0}.begin(), __cat_version_data_{0}.end(), cp,
+                [](const auto & e, char32_t cp) {{ return e.first < cp; }});
+            if (it != __cat_version_data_{0}.end() && cp == it->first)
+                c = it->second;
+        }}""".format(age_name(v)))
+    f.write("return c; }")
 
 def write_age_data(characters, f):
-    ages = list(set([float(cp.age) for cp in characters]))
+    ages = list(set([float(cp.age) for cp in characters if cp.age != 'unassigned']))
     ages.sort()
     f.write("enum class version : uint8_t {")
     f.write("unassigned,")
@@ -697,10 +743,11 @@ def write_regex_support(f, characters, categories_names, scripts_names):
 
 
 def emit_binary_data(f, name, characters, pred):
-    d = intbitset([c.cp for c in filter(pred, characters)])
+    d = set([c.cp for c in filter(pred, characters)])
     emit_trie_or_table(f, name, d)
 
 if __name__ == "__main__":
+
     scripts_names = get_scripts_names()
     block_names = get_blocks_names()
     all_characters, blocks = get_unicode_data()
@@ -712,13 +759,11 @@ if __name__ == "__main__":
     new = all_characters
     for v in  SUPPORTED_VERSIONS:
         changed[v] = []
-        print("Unicode {}".format(v))
+        print("Getting informations for Unicode {}".format(v))
         old, _ = get_unicode_data(v)
         for o in old:
             try:
                 c = new[o.cp]
-                if c.sc != o.sc:
-                    print("new", c)
                 if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
                     changed[v].append(o)
                     continue
@@ -729,9 +774,6 @@ if __name__ == "__main__":
             except:
                 pass
         new = old
-
-        print("--------")
-
 
     with open(sys.argv[1], "w") as f:
         f.write("""
@@ -751,7 +793,7 @@ namespace uni {
         print("Block data")
         write_blocks_data(block_names, blocks, f)
         print("Category data")
-        write_categories_data(characters, categories_name,f)
+        write_categories_data(characters, changed, categories_name,f)
 
 
         print("Numeric Data")
