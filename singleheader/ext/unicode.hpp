@@ -73,22 +73,28 @@ struct __bool_trie {
             if constexpr(r3_s == 0)
                 return false;
             auto i = (c >> 6) - 0x20;
-            if(i < r2_t_f || i > r2_s - r2_t_b)
+            if(i < r2_t_f || i > r2_t_f + r2_s)
                 i = 0;
-            auto child = r2[i + r2_t_f];
+            else
+                i -= r2_t_f;
+            auto child = r2[i];
 
             return trie_range_leaf(c, r3.begin()[child]);
         } else {
             if constexpr(r6_s == 0)
                 return false;
             auto i4 = (c >> 12) - 0x10;
-            if(i4 < r4_t_f || i4 > r4_s - r4_t_b)
+            if(i4 < r4_t_f || i4 > r4_t_f + r4_s)
                 i4 = 0;
+            else
+                i4 -= r4_t_f;
             auto child = r4[i4];
 
             auto i5 = (child << 6) + ((c >> 6) & 0x3f);
-             if(i5 < r5_t_f || i5 > r5_s - r5_t_b)
+            if(i5 < r5_t_f || i5 > r5_t_f + r5_s)
                 i5 = 0;
+            else
+                i5 -= r5_t_f;
             auto leaf = r5.begin()[i5];
             return trie_range_leaf(c, r6.begin()[leaf]);
         }
@@ -11705,3 +11711,4 @@ static_assert(!uni::cp_is<uni::property::xid_start>('1'));
 static_assert(uni::cp_is<uni::property::xid_continue>('1'));
 static_assert(uni::cp_age(U'🤩') == uni::version::v10_0);
 static_assert(uni::cp_is<uni::property::alphabetic>(U'ß'));
+static_assert(uni::cp_category(U'🦝') == uni::category::so);
