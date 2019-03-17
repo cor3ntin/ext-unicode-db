@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "common.h"
-#include "unicode.h"
+#include <ext/unicode.hpp>
 #include <catch2/catch.hpp>
 
 const auto codes = load_test_data();

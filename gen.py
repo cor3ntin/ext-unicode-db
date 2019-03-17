@@ -734,9 +734,13 @@ if __name__ == "__main__":
 
 
     with open(sys.argv[1], "w") as f:
-        f.write("#pragma once\n")
-        f.write("#include \"utils.h\"\n")
-        f.write("namespace uni {\n")
+        f.write("""
+#ifndef UNI_SINGLE_HEADER
+#pragma once
+#include "base.h"
+#endif
+namespace uni {
+""")
         f.write("struct __string_with_idx { const char* name; uint32_t value; };")
 
         print("Age data")

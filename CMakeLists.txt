@@ -33,6 +33,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 
 add_custom_command(
+        COMMENT "Generating properties file"
         OUTPUT ${PROJECT_SOURCE_DIR}/props.h
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_SOURCE_DIR}/props.h
@@ -40,18 +41,31 @@ add_custom_command(
         DEPENDS
             ${PROJECT_SOURCE_DIR}/gen.py
         )
-#APPEND_COVERAGE_COMPILER_FLAGS()
+
+add_custom_command(
+    COMMENT "Generating Single Header"
+    OUTPUT ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/singleheader/ext/
+    COMMAND cat single_header.h base.h props.h unicode.h > ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp
+    DEPENDS
+        ${PROJECT_SOURCE_DIR}/props.h
+        ${PROJECT_SOURCE_DIR}/base.h
+        ${PROJECT_SOURCE_DIR}/unicode.h
+        ${PROJECT_SOURCE_DIR}/single_header.h
+    )
 
 add_library(std_ext_uni STATIC
     gen.py
     props.h
     unicode.h
-    utils.h
+    base.h
     props.cpp
+    ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp
 )
 
 target_include_directories(std_ext_uni PUBLIC
-    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/singleheader
 )
 
 target_link_libraries(std_ext_uni)

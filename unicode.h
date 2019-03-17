@@ -1,5 +1,8 @@
-#pragma once
-#include "props.h"
+
+#ifndef UNI_SINGLE_HEADER
+#    pragma once
+#    include "props.h"
+#endif
 #include <cstring>
 #include <string_view>
 #include <optional>
