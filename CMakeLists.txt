@@ -37,7 +37,7 @@ add_custom_command(
         OUTPUT ${PROJECT_SOURCE_DIR}/props.h
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_SOURCE_DIR}/props.h
-        COMMAND /opt/clangsvn/bin/clang-format ${PROJECT_SOURCE_DIR}/props.h -i
+        COMMAND clang-format ${PROJECT_SOURCE_DIR}/props.h -i
         DEPENDS
             ${PROJECT_SOURCE_DIR}/gen.py
         )
