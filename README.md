@@ -6,3 +6,9 @@ mkdir build
 cd build
 cmake ..
 ```
+
+## Regenerate single header unicode.hpp library
+
+```
+make single-header
+```
