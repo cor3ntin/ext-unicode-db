@@ -95,8 +95,8 @@ struct __bool_trie {
                 return false;
             std::size_t i = ((c >> 6) - 0x20);
             auto child = 0;
-            if(i > r2_t_f && i <= r2_t_f + r2_s)
-                child = r2[i];
+            if(i >= r2_t_f && i < r2_t_f + r2_s)
+                child = r2[i - r2_t_f];
 
             return trie_range_leaf(c, r3.begin()[child]);
         } else {
@@ -104,14 +104,14 @@ struct __bool_trie {
                 return false;
             std::size_t i4 = (c >> 12) - 0x10;
             auto child = 0;
-            if(i4 > r4_t_f && i4 <= r4_t_f + r4_s)
-                child = r4[i4];
+            if(i4 >= r4_t_f && i4 < r4_t_f + r4_s)
+                child = r4[i4 - r4_t_f];
 
 
             std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
             auto leaf = 0;
-            if(i5 > r5_t_f && i5 <= r5_t_f + r5_s)
-                leaf = r5.begin()[i5];
+            if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
+                leaf = r5.begin()[i5 - r5_t_f];
             return trie_range_leaf(c, r6.begin()[leaf]);
         }
     }

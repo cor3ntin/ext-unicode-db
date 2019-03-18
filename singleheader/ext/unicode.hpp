@@ -106,7 +106,7 @@ struct __bool_trie {
             std::size_t i4 = (c >> 12) - 0x10;
             auto child = 0;
             if(i4 >= r4_t_f && i4 < r4_t_f + r4_s)
-                child = r4[i4 - r4_t_f ];
+                child = r4[i4 - r4_t_f];
 
 
             std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
@@ -12018,4 +12018,4 @@ static_assert(!uni::cp_is<uni::property::xid_start>('1'));
 static_assert(uni::cp_is<uni::property::xid_continue>('1'));
 static_assert(uni::cp_age(U'🤩') == uni::version::v10_0);
 static_assert(uni::cp_is<uni::property::alphabetic>(U'ß'));
-//st atic_assert(uni::cp_category(U'🦝') == uni::category::so);
+static_assert(uni::cp_category(U'🦝') == uni::category::so);
