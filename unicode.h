@@ -28,7 +28,7 @@ constexpr category cp_category(char32_t cp) {
 }
 
 constexpr uni::version __age_from_string(std::string_view a) {
-    for(auto i = 0; i < __age_strings.size(); ++i) {
+    for(std::size_t i = 0; i < __age_strings.size(); ++i) {
         const auto res = __pronamecomp(a, __age_strings[i]);
         if(res == 0)
             return uni::version(i);
@@ -37,7 +37,7 @@ constexpr uni::version __age_from_string(std::string_view a) {
 }
 
 constexpr category __category_from_string(const std::string_view s) {
-    for(auto i = 0; i < __categories_names.size(); ++i) {
+    for(std::size_t i = 0; i < __categories_names.size(); ++i) {
         const auto& c = __categories_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -47,7 +47,7 @@ constexpr category __category_from_string(const std::string_view s) {
 }
 
 constexpr block __block_from_string(const std::string_view s) {
-    for(auto i = 0; i < __blocks_names.size(); ++i) {
+    for(std::size_t i = 0; i < __blocks_names.size(); ++i) {
         const auto& c = __blocks_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -57,7 +57,7 @@ constexpr block __block_from_string(const std::string_view s) {
 }
 
 constexpr script __script_from_string(const std::string_view s) {
-    for(auto i = 0; i < __scripts_names.size(); ++i) {
+    for(std::size_t i = 0; i < __scripts_names.size(); ++i) {
         const auto& c = __scripts_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -96,10 +96,10 @@ struct script_extensions_view {
             m_script = __get_cp_script<v>(m_c, idx);
         }
 
-        bool operator==(sentinel s) const {
+        bool operator==(sentinel) const {
             return m_script == script::unknown;
         };
-        bool operator!=(sentinel s) const {
+        bool operator!=(sentinel) const {
             return m_script != script::unknown;
         };
         bool operator==(iterator it) const {
