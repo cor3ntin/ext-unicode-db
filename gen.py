@@ -163,6 +163,8 @@ def get_unicode_data(version = LAST_VERSION):
     characters = [None] * (0x110000)
     zfound = False
     for elem in repertoire:
+        if elem.tag != '{http://www.unicode.org/ns/2003/ucd/1.0}char':
+            continue
         cp = ucd_cp(elem)
         if cp.cp == 0 and zfound:
             continue
@@ -171,6 +173,8 @@ def get_unicode_data(version = LAST_VERSION):
     blocks_node = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}blocks")
     blocks = []
     for elem in blocks_node:
+        if elem.tag != '{http://www.unicode.org/ns/2003/ucd/1.0}block':
+            continue
         blocks.append(ucd_block(elem))
 
     regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")

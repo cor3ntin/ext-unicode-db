@@ -42,12 +42,34 @@ constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value,
     return first;
 }
 
-template<std::size_t r1_s,
-         std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b,
-         std::size_t r3_s,
-         std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b,
-         std::size_t r5_s, int16_t r5_t_f, int16_t r5_t_b,
-         std::size_t r6_s>
+template<class ForwardIt, class T>
+constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value) {
+    ForwardIt it = first;
+    typename std::iterator_traits<ForwardIt>::difference_type count = std::distance(first, last);
+    typename std::iterator_traits<ForwardIt>::difference_type step = count / 2;
+
+    while(count > 0) {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        if(*it < value) {
+            first = ++it;
+            count -= step + 1;
+        } else
+            count = step;
+    }
+    return first;
+}
+
+template<class ForwardIt, class T>
+constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
+    first = uni::lower_bound(first, last, value);
+    return (!(first == last) && !(value < *first));
+}
+
+template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
+         std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
+         int16_t r5_t_b, std::size_t r6_s>
 struct __bool_trie {
 
     // not tries, just bitmaps for all code points 0..0x7FF (UTF-8 1- and 2-byte sequences)
@@ -71,30 +93,25 @@ struct __bool_trie {
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0)
                 return false;
-            auto i = (c >> 6) - 0x20;
-            if(i < r2_t_f || i > r2_t_f + r2_s)
-                i = 0;
-            else
-                i -= r2_t_f;
-            auto child = r2[i];
+            int32_t i = ((c >> 6) - 0x20);
+            auto child = 0;
+            if(i > r2_t_f && i <= r2_t_f + r2_s)
+                child = r2[i];
 
             return trie_range_leaf(c, r3.begin()[child]);
         } else {
             if constexpr(r6_s == 0)
                 return false;
-            auto i4 = (c >> 12) - 0x10;
-            if(i4 < r4_t_f || i4 > r4_t_f + r4_s)
-                i4 = 0;
-            else
-                i4 -= r4_t_f;
-            auto child = r4[i4];
+            int32_t i4 = (c >> 12) - 0x10;
+            auto child = 0;
+            if(i4 > r4_t_f && i4 <= r4_t_f + r4_s)
+                child = r4[i4];
 
-            auto i5 = (child << 6) + ((c >> 6) & 0x3f);
-            if(i5 < r5_t_f || i5 > r5_t_f + r5_s)
-                i5 = 0;
-            else
-                i5 -= r5_t_f;
-            auto leaf = r5.begin()[i5];
+
+            int32_t i5 = (child << 6) + ((c >> 6) & 0x3f);
+            auto leaf = 0;
+            if(i5 > r5_t_f && i5 <= r5_t_f + r5_s)
+                leaf = r5.begin()[i5];
             return trie_range_leaf(c, r6.begin()[leaf]);
         }
     }
@@ -116,7 +133,7 @@ struct flat_array {
                     return false;
             }
         } else {
-            return std::binary_search(data.begin(), data.end(), u);
+            return uni::binary_search(data.begin(), data.end(), u);
         }
         return false;
     }
