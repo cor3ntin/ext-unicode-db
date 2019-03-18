@@ -8096,7 +8096,7 @@ constexpr bool cp_is(char32_t c) {
         cat = category::lt;
     }
     cat = __get_category_for_version<v>(c, cat);
-    return cat == category::ll || cat == category::lu || cat == category::lt || true;
+    return cat == category::ll || cat == category::lu || cat == category::lt || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::letter, int> = 0>
@@ -8129,7 +8129,7 @@ constexpr bool cp_is(char32_t c) {
     }
     cat = __get_category_for_version<v>(c, cat);
     return cat == category::lo || cat == category::ll || cat == category::lu ||
-           cat == category::lm || cat == category::lt || true;
+           cat == category::lm || cat == category::lt || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::mark, int> = 0>
@@ -8151,7 +8151,7 @@ constexpr bool cp_is(char32_t c) {
         cat = category::me;
     }
     cat = __get_category_for_version<v>(c, cat);
-    return cat == category::mn || cat == category::mc || cat == category::me || true;
+    return cat == category::mn || cat == category::mc || cat == category::me || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::number, int> = 0>
@@ -8173,7 +8173,7 @@ constexpr bool cp_is(char32_t c) {
         cat = category::nl;
     }
     cat = __get_category_for_version<v>(c, cat);
-    return cat == category::no || cat == category::nd || cat == category::nl || true;
+    return cat == category::no || cat == category::nd || cat == category::nl || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::punctuation, int> = 0>
@@ -8217,7 +8217,7 @@ constexpr bool cp_is(char32_t c) {
     cat = __get_category_for_version<v>(c, cat);
     return cat == category::po || cat == category::ps || cat == category::pe ||
            cat == category::pd || cat == category::pi || cat == category::pf ||
-           cat == category::pc || true;
+           cat == category::pc || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::symbol, int> = 0>
@@ -8245,7 +8245,7 @@ constexpr bool cp_is(char32_t c) {
     }
     cat = __get_category_for_version<v>(c, cat);
     return cat == category::so || cat == category::sm || cat == category::sk ||
-           cat == category::sc || true;
+           cat == category::sc || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::separator, int> = 0>
@@ -8267,7 +8267,7 @@ constexpr bool cp_is(char32_t c) {
         cat = category::zl;
     }
     cat = __get_category_for_version<v>(c, cat);
-    return cat == category::zs || cat == category::zp || cat == category::zl || true;
+    return cat == category::zs || cat == category::zp || cat == category::zl || false;
 }
 template<category category_, version v = uni::version::standard_unicode_version,
          std::enable_if_t<category_ == category::other, int> = 0>
@@ -8284,7 +8284,7 @@ constexpr bool cp_is(char32_t c) {
         cat = category::cc;
     }
     cat = __get_category_for_version<v>(c, cat);
-    return cat == category::cf || cat == category::cc || true;
+    return cat == category::cf || cat == category::cc || false;
 }
 static constexpr std::array __cat_version_data_v11_0{
     std::pair{0x166D, category::po}, std::pair{0x1CF2, category::mc},

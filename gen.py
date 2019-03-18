@@ -538,7 +538,7 @@ def write_categories_data(characters, changed, categories_names, file):
         for _, cat in sorted_by_len:
             if cat in cats:
                 f.write("cat == category::{0} ||".format(cat))
-        f.write("true;}")
+        f.write("false;}")
 
 
     #changed characters
