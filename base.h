@@ -179,10 +179,14 @@ constexpr int __propcharcomp(char a, char b) {
     return 1;
 }
 constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
-    auto a = sa.begin();
-    auto b = sb.begin();
-
-    for(; a != sb.end() && b != sb.end(); a++, b++) {
+    // workaround, iterators in std::string_view are not constexpr in libc++ (for now)
+    const char * a = sa.begin();
+    const char * b = sb.begin();
+    
+    const char * ae = sa.end();
+    const char * be = sb.end();
+    
+    for(; a != ae && b != be; a++, b++) {
         auto res = __propcharcomp(*a, *b);
         if(res != 0)
             return res;
