@@ -523,7 +523,7 @@ def write_categories_data(characters, changed, categories_names, file):
     for _, cat in sorted_by_len:
         f.write("""template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::{0}, int> = 0>
         constexpr bool cp_is(char32_t c) {{
-            return __get_category_for_version<v>(c, __cat_{0}.lookup(c)) == category::{0}; }}
+            return __get_category_for_version<v>(c, __cat_{0}.lookup(c) ?  category::{0} : category::cn) == category::{0}; }}
         """.format(cat))
 
     for name, cats in meta_cats.items():
