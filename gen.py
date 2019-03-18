@@ -31,17 +31,25 @@ def age_name(age):
     return "v" + str(age).replace(".", '_')
 
 class ucd_cp(object):
-    def __init__(self, char):
-        self.cp  = cp_code(char.get('cp'))
+    def __init__(self, cp, char):
+        self.cp  = cp
+        self.gc  = char.get("gc").lower()
+        self.age = char.get("age")
+        self.reserved = False
+        if self.gc in ['co', 'cn', 'cs']:
+            self.reserved = True
+            return
+
+
+
+        self.props = {}
         self.scx = [s.lower() for s in char.get("scx").split(" ")]
         self.sc  = char.get("sc").lower()
         if [self.sc] != self.scx:
             self.scx = [self.sc] + self.scx
-        self.gc  = char.get("gc").lower()
-        self.age = char.get("age")
+
         self.block = char.get("blk").lower().replace("-", "_").replace(" ", "_")
         self.nv = None if char.get("nv") == 'NaN' else char.get("nv").split("/")
-        self.props = {}
         for p in [ "AHex",
             "Alpha",
             "Bidi_C",
@@ -103,7 +111,8 @@ class ucd_cp(object):
             "XO_NFD",
             "XO_NFKC",
             "XO_NFKD" ]:
-                self.props[p.lower()] =  char.get(p) == 'Y'
+                if  char.get(p) == 'Y':
+                    self.props[p.lower()] =  True
 
         for p in EMOJI_PROPERTIES :
             self.props[p] = False
@@ -126,8 +135,7 @@ def get_scripts_names():
     for line in lines:
         m = regex.match(line)
         if m:
-            #long, short names
-            scripts.append((m.group(2).lower(), m.group(1).lower()))
+            scripts.append((m.group(1).lower(), m.group(2).lower()))
     return scripts
 
 def get_blocks_names():
@@ -147,8 +155,7 @@ def get_cats_names():
     for line in lines:
         m = regex.match(line)
         if m:
-            #long, short names
-            cats.append((m.group(2).lower(), m.group(1).lower()))
+            cats.append((m.group(1).lower(), m.group(2).lower()))
     return cats
 
 class ucd_block:
@@ -158,24 +165,33 @@ class ucd_block:
         self.name    = block.get('name')
 
 def get_unicode_data(version = LAST_VERSION):
-    root = etree.parse(os.path.join(DIR_WITH_UCD, version, "ucd.nounihan.flat.xml")).getroot()
-    repertoire = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}repertoire")
+    doc = etree.iterparse(os.path.join(DIR_WITH_UCD, version, "ucd.nounihan.flat.xml"), events=['end'])
     characters = [None] * (0x110000)
     zfound = False
-    for elem in repertoire:
-        if elem.tag != '{http://www.unicode.org/ns/2003/ucd/1.0}char':
-            continue
-        cp = ucd_cp(elem)
-        if cp.cp == 0 and zfound:
-            continue
-        zfound = True
-        characters[cp.cp] = cp
-    blocks_node = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}blocks")
     blocks = []
-    for elem in blocks_node:
-        if elem.tag != '{http://www.unicode.org/ns/2003/ucd/1.0}block':
-            continue
-        blocks.append(ucd_block(elem))
+    for _, elem in doc:
+        if elem.tag in["{http://www.unicode.org/ns/2003/ucd/1.0}char", "{http://www.unicode.org/ns/2003/ucd/1.0}reserved", "{http://www.unicode.org/ns/2003/ucd/1.0}surrogate"]:
+            f = elem.get("first-cp")
+            l = elem.get("last-cp")
+
+            if f != None and l != None: # Handle range
+                f = cp_code(f)
+                l = cp_code(l)
+                for c in range(f, l):
+                    characters[c] = ucd_cp(c, elem)
+                continue
+            c = elem.get("cp")
+            if c == None:
+                continue
+            c = cp_code(c)
+            if c == 0 and zfound:
+                continue
+            zfound = True
+            characters[c] = ucd_cp(c, elem)
+        elif elem.tag in["{http://www.unicode.org/ns/2003/ucd/1.0}block"]:
+            blocks.append(ucd_block(elem))
+
+        elem.clear()
 
     regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")
     lines = [line.rstrip('\n') for line in open(os.path.join(DIR_WITH_UCD, version, "emoji-data.txt"), 'r')]
@@ -188,7 +204,7 @@ def get_unicode_data(version = LAST_VERSION):
             if not v in EMOJI_PROPERTIES:
                 continue
             for i in range(start, end + 1):
-                if characters[i] != None:
+                if characters[i] != None and not characters[i].reserved:
                     characters[i].props[v] = True
     return (characters, blocks)
 
@@ -484,12 +500,14 @@ def write_categories_data(characters, changed, categories_names, file):
     size = 0
     cats = {}
     for cp in characters:
+        if cp.gc == 'cn':
+            continue
         if not cp.gc in cats:
             cats[cp.gc] = []
         cats[cp.gc].append(cp.cp)
     sorted_by_len = []
     for k, v in cats.items():
-        size += emit_trie_or_table(f, "__cat_{}".format(k), v)
+        size += emit_trie_or_table(f, "__cat_{}".format(k), set(v))
         sorted_by_len.append((len(v), k))
     meta_cats = {
         "cased_letter" : ['lu', 'lt', 'll'],
@@ -540,10 +558,15 @@ def write_categories_data(characters, changed, categories_names, file):
                 f.write("cat == category::{0} ||".format(cat))
         f.write("false;}")
 
+    f.write("""
+        template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::unassigned, int> = 0>
+        constexpr bool cp_is(char32_t c) {
+            return cp_category(c) == category::unassigned;
+        }
+    """
+    )
 
     #changed characters
-
-
     print("total size : {}".format(size / 1024.0))
     with_data = []
     modified = dict([(cp.cp, cp.gc) for cp in characters])
@@ -713,65 +736,76 @@ def write_binary_properties(characters, f):
 
     for prop in props:
         if not prop in custom_impl:
-            emit_binary_data(f, "__prop_{}_data".format(prop), characters, lambda c : c.props[prop])
+            emit_binary_data(f, "__prop_{}_data".format(prop), characters, lambda c : prop in c.props and c.props[prop])
 
     for prop in props:
         if not prop in custom_impl and not prop in details:
             f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return __prop_{0}_data.lookup(c); }}".format(prop))
 
-def write_regex_support(f, characters, categories_names, scripts_names):
-    lines = [line.rstrip('\n') for line in open(BINARY_PROPS_FILE, 'r')]
-    values = [["any"], ["ascii"], ["assigned"]]
-    known  = set()
+    return [prop for prop in props if not prop in custom_impl and not prop in details]
 
-    for line in lines:
-        values.append([n.strip().lower().replace(" ", "_").replace("-", "_") for n in line.split(";")])
-    for cat in categories_names:
-        values.append(cat)
-    for script in scripts_names:
-        values.append(script)
-    values.sort(key = lambda x: x[0])
+
+def write_name_data(charactersn, f):
+# Range Rule Prefix String
+# AC00..D7A3 NR1 “hangul syllable”
+# 3400..4DB5 NR2 “cjk unified ideograph-”
+# 4E00..9FEA NR2 “cjk unified ideograph-”
+# 20000..2A6D6 NR2 “cjk unified ideograph-”
+# 2A700..2B734 NR2 “cjk unified ideograph-”
+# 2B740..2B81D NR2 “cjk unified ideograph-”
+# 2B820..2CEA1 NR2 “cjk unified ideograph-”
+# 2CEB0..2EBE0 NR2 “cjk unified ideograph-”
+# 17000..187EC NR2 “tangut ideograph-”
+# 1B170..1B2FB NR2 “nushu character-”
+# F900..FA6D* NR2 “cjk compatibility ideograph-”
+# FA70..FAD9 NR2 “cjk compatibility ideograph-”
+# 2F800..2FA1D NR2 “cjk compatibility ideograph-”
+    pass
+
+def write_regex_support(f, characters, supported_properties, categories_names, scripts_names):
+    all = list(set(supported_properties
+        + ["any", "ascii", "assigned"]
+        + [cat[0] for cat in categories_names]
+        + [script[0] for script in scripts_names]))
+
+    all.sort()
 
     f.write("enum class __binary_prop {")
-    for v in values:
-        if not v[0] in known:
-            f.write("{} ,".format(v[0]))
-            known.add(v[0])
-            for alias in v[1:]:
-                if not alias in known:
-                    f.write("{} = {} ,".format(alias, v[0]))
-                    known.add(alias)
+    for p in all:
+        f.write("{} ,".format(p))
     f.write("__max };\n")
 
     f.write("""
         template<uni::__binary_prop p>
         constexpr bool get_binary_prop(char32_t) = delete;
         //Forward declared - defined in unicode.h
+        template<uni::version v  = uni::version::standard_unicode_version>
         constexpr script cp_script(char32_t cp);
     """)
 
-    cats = []
-    for cp in characters:
-        if not cp.gc in cats:
-            cats.append(cp.gc)
-
-    for cat in cats:
+    for prop in supported_properties:
         f.write("""
         template<>
         constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
-            return __cat_{0}.lookup(c);
+            return cp_is<property::{0}>(c);
         }}
-    """.format(cat))
+    """.format(prop))
+
+    for cat in categories_names:
+        f.write("""
+        template<>
+        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+            return cp_is<category::{0}>(c);
+        }}
+    """.format(cat[0]))
 
     for script in scripts_names:
-        if len(script) < 2:
-            continue
         f.write("""
         template<>
         constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
             return cp_script(c) == script::{0};
         }}
-    """.format(script[1]))
+    """.format(script[0]))
 
 
 
@@ -798,6 +832,8 @@ if __name__ == "__main__":
         for o in old:
             try:
                 c = new[o.cp]
+                if c.reserved:
+                    continue
                 if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
                     changed[v].append(o)
                     continue
@@ -822,21 +858,26 @@ namespace uni {
         print("Age data")
         write_age_data(characters, f)
 
-        print("Script data")
-        write_script_data(characters, changed, scripts_names, f)
-        print("Block data")
-        write_blocks_data(block_names, blocks, f)
         print("Category data")
         write_categories_data(characters, changed, categories_name,f)
+
+        characters = list(filter(lambda c : not c.reserved, characters))
+
+        print("Block data")
+        write_blocks_data(block_names, blocks, f)
+
+        print("Script data")
+        write_script_data(characters, changed, scripts_names, f)
+
 
 
         print("Numeric Data")
         write_numeric_data(characters, f)
 
-        #write_regex_support(f, characters, categories_name, scripts_names)
-
         print("Binary properties")
-        write_binary_properties(characters, f)
+        supported_properties = write_binary_properties(characters, f)
+
+        write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
 
         emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
 
