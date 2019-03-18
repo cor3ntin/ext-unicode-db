@@ -277,4 +277,4 @@ static_assert(uni::cp_category(U'🦝') == uni::category::so);
 static_assert(uni::cp_is<uni::category::lowercase_letter>('a'));
 static_assert(uni::cp_is<uni::category::letter>('a'));
 
-static_assert(uni::get_binary_prop<uni::__binary_prop_from_string("Emoji")>(U'🤩'));
+static_assert(uni::__get_binary_prop<uni::__binary_prop_from_string("Emoji")>(U'🤩'));

@@ -778,7 +778,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
 
     f.write("""
         template<uni::__binary_prop p>
-        constexpr bool get_binary_prop(char32_t) = delete;
+        constexpr bool __get_binary_prop(char32_t) = delete;
         //Forward declared - defined in unicode.h
         template<uni::version v  = uni::version::standard_unicode_version>
         constexpr script cp_script(char32_t cp);
@@ -787,7 +787,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for prop in supported_properties:
         f.write("""
         template<>
-        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
             return cp_is<property::{0}>(c);
         }}
     """.format(prop[0]))
@@ -796,7 +796,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for cat in categories_names:
         f.write("""
         template<>
-        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
             return cp_is<category::{0}>(c);
         }}
     """.format(cat[0]))
@@ -804,7 +804,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for script in scripts_names:
         f.write("""
         template<>
-        constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
             return cp_script(c) == script::{0};
         }}
     """.format(script[0]))
