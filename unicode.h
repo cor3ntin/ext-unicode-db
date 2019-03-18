@@ -3,11 +3,7 @@
 #    pragma once
 #    include "props.h"
 #endif
-#include <cstring>
 #include <string_view>
-#include <optional>
-#include <ratio>
-#include <cmath>
 
 namespace uni {
 

@@ -13803,11 +13803,7 @@ static constexpr __bool_trie<32, 991, 1, 0, 142, 255, 1, 0, 1471, 1, 0, 154> __p
 #    pragma once
 #    include "props.h"
 #endif
-#include <cstring>
 #include <string_view>
-#include <optional>
-#include <ratio>
-#include <cmath>
 
 namespace uni {
 
