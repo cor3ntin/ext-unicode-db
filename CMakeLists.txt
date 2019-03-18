@@ -68,7 +68,7 @@ add_library(std_ext_uni STATIC
     props.h
     unicode.h
     base.h
-	unicode.cpp
+    unicode.cpp
     ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp
 )
 
@@ -80,8 +80,8 @@ target_compile_options(std_ext_uni PUBLIC -std=c++17)
 
 target_include_directories(std_ext_uni PUBLIC
     ${PROJECT_BINARY_DIR}/singleheader
-	${PROJECT_SOURCE_DIR}
-	${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(std_ext_uni)

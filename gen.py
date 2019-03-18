@@ -671,6 +671,13 @@ def write_binary_properties(characters, f):
         "xo_nfd", # Expands_On_NFD is deprecated
         "xo_nfkc", # Expands_On_NFKC is deprecated
         "xo_nfkd", # Expands_On_NFKD is deprecated
+
+        "cwcf",  # Changes_When_Casefolded
+        "cwcm",  # Changes_When_Casemapped
+        "cwkcf", # Changes_When_NFKC_Casefolded
+        "cwl",   # Changes_When_Lowercased
+        "cwt",   # Changes_When_Titlecased
+        "cwu",   # Changes_When_Uppercased
     ]
 
     details = [
@@ -695,14 +702,7 @@ def write_binary_properties(characters, f):
         "lower",
         "upper",
         "math",
-        "nchar",
-
-        "cwcf",  # Changes_When_Casefolded
-        "cwcm",  # Changes_When_Casemapped
-        "cwkcf", # Changes_When_NFKC_Casefolded
-        "cwl",   # Changes_When_Lowercased
-        "cwt",   # Changes_When_Titlecased
-        "cwu",   # Changes_When_Uppercased
+        "nchar"
     ]
 
     props = []
@@ -742,7 +742,7 @@ def write_binary_properties(characters, f):
         if not prop in custom_impl and not prop in details:
             f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return __prop_{0}_data.lookup(c); }}".format(prop))
 
-    return [prop for prop in props if not prop in custom_impl and not prop in details]
+    return [prop for prop in values if not prop[0] in custom_impl and not prop[0] in details and not prop[0] in unsupported_props]
 
 
 def write_name_data(charactersn, f):
@@ -763,17 +763,18 @@ def write_name_data(charactersn, f):
     pass
 
 def write_regex_support(f, characters, supported_properties, categories_names, scripts_names):
-    all = list(set(supported_properties
-        + ["any", "ascii", "assigned"]
-        + [cat[0] for cat in categories_names]
-        + [script[0] for script in scripts_names]))
+    all = supported_properties + [["any"], ["ascii"], ["assigned"]] + categories_names + scripts_names
 
-    all.sort()
+    d = collections.OrderedDict()
+    for p in all:
+        d[p[0]] = p
+
 
     f.write("enum class __binary_prop {")
-    for p in all:
+    for p in d.keys():
         f.write("{} ,".format(p))
-    f.write("__max };\n")
+    f.write("unknown };\n")
+
 
     f.write("""
         template<uni::__binary_prop p>
@@ -789,7 +790,8 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         constexpr bool get_binary_prop<__binary_prop::{0}>(char32_t c) {{
             return cp_is<property::{0}>(c);
         }}
-    """.format(prop))
+    """.format(prop[0]))
+
 
     for cat in categories_names:
         f.write("""
@@ -807,7 +809,11 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         }}
     """.format(script[0]))
 
+    names = []
+    for idx, (_, aliases) in enumerate(d.items()):
+        names = names + [(n, idx) for n in aliases]
 
+    write_string_array(f, "__binary_prop_names", names)
 
 
 def emit_binary_data(f, name, characters, pred):

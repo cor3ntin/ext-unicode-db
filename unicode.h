@@ -66,6 +66,16 @@ constexpr script __script_from_string(const std::string_view s) {
     return script::unknown;
 }
 
+constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
+    for(std::size_t i = 0; i < __binary_prop_names.size(); ++i) {
+        const auto& c = __binary_prop_names[i];
+        const auto res = __pronamecomp(s, c.name);
+        if(res == 0)
+            return __binary_prop(c.value);
+    }
+    return __binary_prop::unknown;
+}
+
 template<uni::version v = uni::version::standard_unicode_version>
 constexpr script cp_script(char32_t cp) {
     static_assert(v >= uni::version::minimum_version,
@@ -266,3 +276,5 @@ static_assert(uni::cp_is<uni::property::alphabetic>(U'ß'));
 static_assert(uni::cp_category(U'🦝') == uni::category::so);
 static_assert(uni::cp_is<uni::category::lowercase_letter>('a'));
 static_assert(uni::cp_is<uni::category::letter>('a'));
+
+static_assert(uni::get_binary_prop<uni::__binary_prop_from_string("Emoji")>(U'🤩'));
