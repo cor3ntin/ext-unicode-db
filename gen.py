@@ -7,13 +7,13 @@ import re
 import collections
 #from intbitset import intbitset
 
-DIR = os.path.dirname(os.path.realpath(__file__))
+DIR_WITH_UCD = os.path.realpath(sys.argv[2])
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
 SUPPORTED_VERSIONS = ["11.0", "10.0"] # "9.0", "8.0", "7.0"]
 MIN_VERSION = "10.0"
-PROPS_VALUE_FILE = os.path.join(DIR, "ucd", "PropertyValueAliases.txt")
-BINARY_PROPS_FILE = os.path.join(DIR, "ucd", "binary_props.txt")
+PROPS_VALUE_FILE = os.path.join(DIR_WITH_UCD, "PropertyValueAliases.txt")
+BINARY_PROPS_FILE = os.path.join(DIR_WITH_UCD, "binary_props.txt")
 
 EMOJI_PROPERTIES  = ["emoji", "emoji_presentation", "emoji_modifier", "emoji_modifier_base", "emoji_component", "extended_pictographic"]
 
@@ -158,7 +158,7 @@ class ucd_block:
         self.name    = block.get('name')
 
 def get_unicode_data(version = LAST_VERSION):
-    root = etree.parse(os.path.join(DIR, "ucd", version, "ucd.nounihan.flat.xml")).getroot()
+    root = etree.parse(os.path.join(DIR_WITH_UCD, version, "ucd.nounihan.flat.xml")).getroot()
     repertoire = root.find("{http://www.unicode.org/ns/2003/ucd/1.0}repertoire")
     characters = [None] * (0x110000)
     zfound = False
@@ -178,7 +178,7 @@ def get_unicode_data(version = LAST_VERSION):
         blocks.append(ucd_block(elem))
 
     regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")
-    lines = [line.rstrip('\n') for line in open(os.path.join(DIR, "ucd", version, "emoji-data.txt"), 'r')]
+    lines = [line.rstrip('\n') for line in open(os.path.join(DIR_WITH_UCD, version, "emoji-data.txt"), 'r')]
     for line in lines:
         m = regex.match(line)
         if m:

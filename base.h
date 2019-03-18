@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <array>
 #include <algorithm>
+#include <string_view>
 namespace uni {
 
 template<class ForwardIt, class T, class Compare>
