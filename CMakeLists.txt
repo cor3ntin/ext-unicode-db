@@ -60,7 +60,7 @@ add_library(std_ext_uni STATIC
     props.h
     unicode.h
     base.h
-    props.cpp
+    unicode.cpp
     ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp
 )
 
