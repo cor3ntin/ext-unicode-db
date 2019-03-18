@@ -94,7 +94,7 @@ struct __bool_trie {
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0)
                 return false;
-            int32_t i = ((c >> 6) - 0x20);
+            std::size_t i = ((c >> 6) - 0x20);
             auto child = 0;
             if(i >= r2_t_f && i < r2_t_f + r2_s)
                 child = r2[i - r2_t_f];
@@ -103,13 +103,13 @@ struct __bool_trie {
         } else {
             if constexpr(r6_s == 0)
                 return false;
-            int32_t i4 = (c >> 12) - 0x10;
+            std::size_t i4 = (c >> 12) - 0x10;
             auto child = 0;
             if(i4 >= r4_t_f && i4 < r4_t_f + r4_s)
                 child = r4[i4 - r4_t_f ];
 
 
-            int32_t i5 = (child << 6) + ((c >> 6) & 0x3f);
+            std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
             auto leaf = 0;
             if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
                 leaf = r5.begin()[i5 - r5_t_f];
@@ -11783,7 +11783,7 @@ constexpr category cp_category(char32_t cp) {
 }
 
 constexpr uni::version __age_from_string(std::string_view a) {
-    for(auto i = 0; i < __age_strings.size(); ++i) {
+    for(std::size_t i = 0; i < __age_strings.size(); ++i) {
         const auto res = __pronamecomp(a, __age_strings[i]);
         if(res == 0)
             return uni::version(i);
@@ -11792,7 +11792,7 @@ constexpr uni::version __age_from_string(std::string_view a) {
 }
 
 constexpr category __category_from_string(const std::string_view s) {
-    for(auto i = 0; i < __categories_names.size(); ++i) {
+    for(std::size_t i = 0; i < __categories_names.size(); ++i) {
         const auto& c = __categories_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -11802,7 +11802,7 @@ constexpr category __category_from_string(const std::string_view s) {
 }
 
 constexpr block __block_from_string(const std::string_view s) {
-    for(auto i = 0; i < __blocks_names.size(); ++i) {
+    for(std::size_t i = 0; i < __blocks_names.size(); ++i) {
         const auto& c = __blocks_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -11812,7 +11812,7 @@ constexpr block __block_from_string(const std::string_view s) {
 }
 
 constexpr script __script_from_string(const std::string_view s) {
-    for(auto i = 0; i < __scripts_names.size(); ++i) {
+    for(std::size_t i = 0; i < __scripts_names.size(); ++i) {
         const auto& c = __scripts_names[i];
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -11851,10 +11851,10 @@ struct script_extensions_view {
             m_script = __get_cp_script<v>(m_c, idx);
         }
 
-        bool operator==(sentinel s) const {
+        bool operator==(sentinel) const {
             return m_script == script::unknown;
         };
-        bool operator!=(sentinel s) const {
+        bool operator!=(sentinel) const {
             return m_script != script::unknown;
         };
         bool operator==(iterator it) const {
