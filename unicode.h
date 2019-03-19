@@ -161,14 +161,22 @@ constexpr version cp_age(char32_t cp) {
 }
 
 constexpr block cp_block(char32_t cp) {
-    if(cp > 0x10FFFF)
-        return block::no_block;
-    auto it = uni::upper_bound(__block_data.begin(), __block_data.end(), cp,
-                               [](char32_t cp, const __block_data_t& b) { return cp < b.first; });
-    if(it == __block_data.begin())
+    const auto end = __block_data._data.end();
+    auto it = uni::upper_bound(__block_data._data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        char32_t c = (v >> 8);
+        return cp < c;
+    });
+    if(it == end)
         return block::no_block;
     it--;
-    return it->b;
+    char32_t c = ((*it) >> 8);
+    auto offset = (*it) & 0xFF;
+    if(offset == 0)
+        return block::no_block;
+    offset--;
+
+    const auto d = std::distance(__block_data._data.begin(), it);
+    return uni::block((d - offset) + 1);
 }
 
 template<>

@@ -162,7 +162,7 @@ class ucd_block:
     def __init__(self, block):
         self.first   = cp_code(block.get('first-cp'))
         self.last    = cp_code(block.get('last-cp'))
-        self.name    = block.get('name')
+        self.name    = block.get('name').lower().replace("-", "_").replace(" ", "_")
 
 def get_unicode_data(version = LAST_VERSION):
     doc = etree.iterparse(os.path.join(DIR_WITH_UCD, version, "ucd.nounihan.flat.xml"), events=['end'])
@@ -298,31 +298,45 @@ def write_script_data(characters, changed, scripts_names, file):
 
 
 def write_blocks_data(blocks_names, blocks, file):
-    f.write("enum class block {")
-    for block in blocks_names:
-        f.write(block[0] + ",")
-        if block[1] != block[0]:
-            f.write(block[1] + " = " + block[0] +",")
+    aliases = dict([(block[0], block[1:]) for block in blocks_names])
+    aliases.update(dict([(block[1], block) for block in blocks_names]))
+    all = set()
+
+    f.write("enum class block { ")
+    names = []
+
+    # no_block needs to be first
+    for i, block in enumerate(["no_block"] + [block.name for block in blocks]):
+        f.write(block + ",")
+        all.add(block)
+        names.append((block, i))
+        if block in aliases:
+            for alias in aliases[block]:
+                if not alias or alias in all:
+                    continue
+                f.write(alias + " = " + block +",")
+                all.add(alias)
+                names.append((alias, i))
     f.write("__max };\n")
 
-    write_string_array(f, "__blocks_names",  [(b[0], idx) for idx, b in enumerate(blocks_names)]
-                                           + [(b[1], idx) for idx, b in enumerate(blocks_names)]
-                                           + [(b[2], idx) for idx, b in enumerate(blocks_names)])
+    write_string_array(f, "__blocks_names", names)
 
-    f.write("\nstruct __block_data_t { uint32_t first; block b;};\n")
-    f.write("static constexpr const std::array __block_data = {")
+    ## Blocks are stored as a compact range where
+    ##  * if the low bit is 0, the range is not assigned to a block
+    ##  * otherwise the low bit is an offset to substract from the index of the range entry to get the
+    ##  value of the block as specified by the enum
+    f.write("static constexpr const _compact_range __block_data = {")
+    prev = -1
+    offset = 0;
+    for i, b in enumerate(blocks):
+        if (b.first != prev + 1):
+            f.write("{},".format(to_hex(((prev + 1) << 8), 10)))
+            offset = offset + 1
+        f.write("{}{}".format(to_hex(((b.first) << 8) | (offset + 1), 10), "," if i < len(blocks) - 1 else ""))
 
 
-    known  = dict([(cp.cp, cp.block) for cp in characters])
-    prev  = ""
-    size = 0
-    for cp in range(0, 0x10FFFF):
-        block = known[cp] if cp in known else 'no_block'
-        if prev != block:
-            f.write("__block_data_t{{ {}, block::{} }},".format(to_hex(cp, 6), block))
-            size = size + 1
-            prev = block
-    f.write("__block_data_t{0x110000, block::no_block} };\n")
+        prev = b.last
+    f.write("};\n")
 
 
 def compute_trie(rawdata, chunksize):
