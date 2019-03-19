@@ -447,11 +447,11 @@ def construct_range_data(data):
     return len(elems) * 4, elems
 
 def emit_bool_ranges(f, name, range_data):
-    f.write("static constexpr __range_array<{}> {} = {{ {{".format(len(range_data), name))
+    f.write("static constexpr __range_array {} = {{".format(name))
     for idx, e in enumerate(range_data):
-        f.write("__range_array_elem{{ {}, {} }} /*{}*/".format(to_hex(e[0], 6), 1 if e[1] else 0, e[2]))
+        f.write("{}".format(to_hex((e[0] << 8) | (1 if e[1] else 0), 10)))
         if idx != len(range_data) - 1: f.write(",")
-    f.write("}};")
+    f.write("};")
 
 
 def emit_trie_or_table(f, name, data):

@@ -158,26 +158,24 @@ struct flat_array {
 };
 
 
-struct __range_array_elem {
-    char32_t c : 24;
-    bool b = 1;
-};
-template<std::size_t size>
+template<auto N>
 struct __range_array {
-    std::array<__range_array_elem, size> data;
-
-    constexpr bool lookup(char32_t u) const {
-        if((char32_t)u > 0x10FFFF)
-            return false;
-        auto it =
-            uni::upper_bound(data.begin(), data.end(), u,
-                             [](char32_t cp, const __range_array_elem& e) { return cp < e.c; });
-        if(it == data.end())
+    std::array<std::uint32_t, N> _data;
+    constexpr bool lookup(char32_t cp) const {
+        const auto end = _data.end();
+        auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+            char32_t c = (v >> 8);
+            return cp < c;
+        });
+        if(it == end)
             return false;
         it--;
-        return it->b;
+        return (*it) & 0xFF;
     }
 };
+
+template<class... U>
+__range_array(U...)->__range_array<sizeof...(U)>;
 
 
 constexpr char __propcharnorm(char a) {

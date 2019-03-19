@@ -159,26 +159,24 @@ struct flat_array {
 };
 
 
-struct __range_array_elem {
-    char32_t c : 24;
-    bool b = 1;
-};
-template<std::size_t size>
+template<auto N>
 struct __range_array {
-    std::array<__range_array_elem, size> data;
-
-    constexpr bool lookup(char32_t u) const {
-        if((char32_t)u > 0x10FFFF)
-            return false;
-        auto it =
-            uni::upper_bound(data.begin(), data.end(), u,
-                             [](char32_t cp, const __range_array_elem& e) { return cp < e.c; });
-        if(it == data.end())
+    std::array<std::uint32_t, N> _data;
+    constexpr bool lookup(char32_t cp) const {
+        const auto end = _data.end();
+        auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+            char32_t c = (v >> 8);
+            return cp < c;
+        });
+        if(it == end)
             return false;
         it--;
-        return it->b;
+        return (*it) & 0xFF;
     }
 };
+
+template<class... U>
+__range_array(U...)->__range_array<sizeof...(U)>;
 
 
 constexpr char __propcharnorm(char a) {
@@ -774,18 +772,10 @@ static constexpr const std::array __categories_names = {
     __string_with_idx{"zl", 35},
     __string_with_idx{"zp", 36},
     __string_with_idx{"zs", 37}};
-static constexpr __range_array<4> __cat_cc = {
-    {__range_array_elem{0x0000, 1} /*32*/, __range_array_elem{0x0020, 0} /*95*/,
-     __range_array_elem{0x007F, 1} /*33*/, __range_array_elem{0x00A0, 0} /*1113951*/}};
-static constexpr __range_array<15> __cat_zs = {
-    {__range_array_elem{0x0000, 0} /*32*/, __range_array_elem{0x0020, 1} /*1*/,
-     __range_array_elem{0x0021, 0} /*127*/, __range_array_elem{0x00A0, 1} /*1*/,
-     __range_array_elem{0x00A1, 0} /*5599*/, __range_array_elem{0x1680, 1} /*1*/,
-     __range_array_elem{0x1681, 0} /*2431*/, __range_array_elem{0x2000, 1} /*11*/,
-     __range_array_elem{0x200B, 0} /*36*/, __range_array_elem{0x202F, 1} /*1*/,
-     __range_array_elem{0x2030, 0} /*47*/, __range_array_elem{0x205F, 1} /*1*/,
-     __range_array_elem{0x2060, 0} /*4000*/, __range_array_elem{0x3000, 1} /*1*/,
-     __range_array_elem{0x3001, 0} /*1101822*/}};
+static constexpr __range_array __cat_cc = {0x00000001, 0x00002000, 0x00007F01, 0x0000A000};
+static constexpr __range_array __cat_zs = {
+    0x00000000, 0x00002001, 0x00002100, 0x0000A001, 0x0000A100, 0x00168001, 0x00168100, 0x00200001,
+    0x00200B00, 0x00202F01, 0x00203000, 0x00205F01, 0x00206000, 0x00300001, 0x00300100};
 static constexpr __bool_trie<32, 991, 1, 0, 51, 255, 1, 0, 482, 4, 26, 39> __cat_po{
     {0x8c00d4ee00000000, 0x0000000010000001, 0x80c0008200000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -886,49 +876,13 @@ static constexpr __bool_trie<32, 991, 1, 0, 51, 255, 1, 0, 482, 4, 26, 39> __cat
      0x00000007dc000000, 0x000300000000003e, 0x0180000000000000, 0x001f000000000000,
      0x0000c00000000000, 0x0020000000000000, 0x0f80000000000000, 0x0000000000000010,
      0x0000000007800000, 0x0000000000000f80, 0x00000000c0000000}};
-static constexpr __range_array<43> __cat_sc = {{__range_array_elem{0x0000, 0} /*36*/,
-                                                __range_array_elem{0x0024, 1} /*1*/,
-                                                __range_array_elem{0x0025, 0} /*125*/,
-                                                __range_array_elem{0x00A2, 1} /*4*/,
-                                                __range_array_elem{0x00A6, 0} /*1257*/,
-                                                __range_array_elem{0x058F, 1} /*1*/,
-                                                __range_array_elem{0x0590, 0} /*123*/,
-                                                __range_array_elem{0x060B, 1} /*1*/,
-                                                __range_array_elem{0x060C, 0} /*498*/,
-                                                __range_array_elem{0x07FE, 1} /*2*/,
-                                                __range_array_elem{0x0800, 0} /*498*/,
-                                                __range_array_elem{0x09F2, 1} /*2*/,
-                                                __range_array_elem{0x09F4, 0} /*7*/,
-                                                __range_array_elem{0x09FB, 1} /*1*/,
-                                                __range_array_elem{0x09FC, 0} /*245*/,
-                                                __range_array_elem{0x0AF1, 1} /*1*/,
-                                                __range_array_elem{0x0AF2, 0} /*263*/,
-                                                __range_array_elem{0x0BF9, 1} /*1*/,
-                                                __range_array_elem{0x0BFA, 0} /*581*/,
-                                                __range_array_elem{0x0E3F, 1} /*1*/,
-                                                __range_array_elem{0x0E40, 0} /*2459*/,
-                                                __range_array_elem{0x17DB, 1} /*1*/,
-                                                __range_array_elem{0x17DC, 0} /*2244*/,
-                                                __range_array_elem{0x20A0, 1} /*32*/,
-                                                __range_array_elem{0x20C0, 0} /*34680*/,
-                                                __range_array_elem{0xA838, 1} /*1*/,
-                                                __range_array_elem{0xA839, 0} /*21955*/,
-                                                __range_array_elem{0xFDFC, 1} /*1*/,
-                                                __range_array_elem{0xFDFD, 0} /*108*/,
-                                                __range_array_elem{0xFE69, 1} /*1*/,
-                                                __range_array_elem{0xFE6A, 0} /*154*/,
-                                                __range_array_elem{0xFF04, 1} /*1*/,
-                                                __range_array_elem{0xFF05, 0} /*219*/,
-                                                __range_array_elem{0xFFE0, 1} /*2*/,
-                                                __range_array_elem{0xFFE2, 0} /*3*/,
-                                                __range_array_elem{0xFFE5, 1} /*2*/,
-                                                __range_array_elem{0xFFE7, 0} /*8182*/,
-                                                __range_array_elem{0x11FDD, 1} /*4*/,
-                                                __range_array_elem{0x11FE1, 0} /*49950*/,
-                                                __range_array_elem{0x1E2FF, 1} /*1*/,
-                                                __range_array_elem{0x1E300, 0} /*2480*/,
-                                                __range_array_elem{0x1ECB0, 1} /*1*/,
-                                                __range_array_elem{0x1ECB1, 0} /*987982*/}};
+static constexpr __range_array __cat_sc = {
+    0x00000000, 0x00002401, 0x00002500, 0x0000A201, 0x0000A600, 0x00058F01, 0x00059000, 0x00060B01,
+    0x00060C00, 0x0007FE01, 0x00080000, 0x0009F201, 0x0009F400, 0x0009FB01, 0x0009FC00, 0x000AF101,
+    0x000AF200, 0x000BF901, 0x000BFA00, 0x000E3F01, 0x000E4000, 0x0017DB01, 0x0017DC00, 0x0020A001,
+    0x0020C000, 0x00A83801, 0x00A83900, 0x00FDFC01, 0x00FDFD00, 0x00FE6901, 0x00FE6A00, 0x00FF0401,
+    0x00FF0500, 0x00FFE001, 0x00FFE200, 0x00FFE501, 0x00FFE700, 0x011FDD01, 0x011FE100, 0x01E2FF01,
+    0x01E30000, 0x01ECB001, 0x01ECB100};
 static constexpr __bool_trie<32, 962, 28, 2, 19, 0, 0, 0, 0, 0, 0, 0> __cat_ps{
     {0x0000010000000000, 0x0800000008000000, 0x0000000000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -1659,47 +1613,13 @@ static constexpr __bool_trie<32, 991, 1, 0, 145, 255, 1, 0, 1279, 1, 0, 104> __c
      0x0008000000000000, 0x0000000010000000, 0x0000000100000000, 0x0000000080000000}};
 static constexpr flat_array<12> __cat_pi{{0x00AB, 0x2018, 0x201B, 0x201C, 0x201F, 0x2039, 0x2E02,
                                           0x2E04, 0x2E09, 0x2E0C, 0x2E1C, 0x2E20}};
-static constexpr __range_array<41> __cat_cf = {{__range_array_elem{0x0000, 0} /*173*/,
-                                                __range_array_elem{0x00AD, 1} /*1*/,
-                                                __range_array_elem{0x00AE, 0} /*1362*/,
-                                                __range_array_elem{0x0600, 1} /*6*/,
-                                                __range_array_elem{0x0606, 0} /*22*/,
-                                                __range_array_elem{0x061C, 1} /*1*/,
-                                                __range_array_elem{0x061D, 0} /*192*/,
-                                                __range_array_elem{0x06DD, 1} /*1*/,
-                                                __range_array_elem{0x06DE, 0} /*49*/,
-                                                __range_array_elem{0x070F, 1} /*1*/,
-                                                __range_array_elem{0x0710, 0} /*466*/,
-                                                __range_array_elem{0x08E2, 1} /*1*/,
-                                                __range_array_elem{0x08E3, 0} /*3883*/,
-                                                __range_array_elem{0x180E, 1} /*1*/,
-                                                __range_array_elem{0x180F, 0} /*2044*/,
-                                                __range_array_elem{0x200B, 1} /*5*/,
-                                                __range_array_elem{0x2010, 0} /*26*/,
-                                                __range_array_elem{0x202A, 1} /*5*/,
-                                                __range_array_elem{0x202F, 0} /*49*/,
-                                                __range_array_elem{0x2060, 1} /*5*/,
-                                                __range_array_elem{0x2065, 0} /*1*/,
-                                                __range_array_elem{0x2066, 1} /*10*/,
-                                                __range_array_elem{0x2070, 0} /*56975*/,
-                                                __range_array_elem{0xFEFF, 1} /*1*/,
-                                                __range_array_elem{0xFF00, 0} /*249*/,
-                                                __range_array_elem{0xFFF9, 1} /*3*/,
-                                                __range_array_elem{0xFFFC, 0} /*4289*/,
-                                                __range_array_elem{0x110BD, 1} /*1*/,
-                                                __range_array_elem{0x110BE, 0} /*15*/,
-                                                __range_array_elem{0x110CD, 1} /*1*/,
-                                                __range_array_elem{0x110CE, 0} /*9058*/,
-                                                __range_array_elem{0x13430, 1} /*9*/,
-                                                __range_array_elem{0x13439, 0} /*34919*/,
-                                                __range_array_elem{0x1BCA0, 1} /*4*/,
-                                                __range_array_elem{0x1BCA4, 0} /*5327*/,
-                                                __range_array_elem{0x1D173, 1} /*8*/,
-                                                __range_array_elem{0x1D17B, 0} /*798342*/,
-                                                __range_array_elem{0xE0001, 1} /*1*/,
-                                                __range_array_elem{0xE0002, 0} /*30*/,
-                                                __range_array_elem{0xE0020, 1} /*96*/,
-                                                __range_array_elem{0xE0080, 0} /*196479*/}};
+static constexpr __range_array __cat_cf = {
+    0x00000000, 0x0000AD01, 0x0000AE00, 0x00060001, 0x00060600, 0x00061C01, 0x00061D00,
+    0x0006DD01, 0x0006DE00, 0x00070F01, 0x00071000, 0x0008E201, 0x0008E300, 0x00180E01,
+    0x00180F00, 0x00200B01, 0x00201000, 0x00202A01, 0x00202F00, 0x00206001, 0x00206500,
+    0x00206601, 0x00207000, 0x00FEFF01, 0x00FF0000, 0x00FFF901, 0x00FFFC00, 0x0110BD01,
+    0x0110BE00, 0x0110CD01, 0x0110CE00, 0x01343001, 0x01343900, 0x01BCA001, 0x01BCA400,
+    0x01D17301, 0x01D17B00, 0x0E000101, 0x0E000200, 0x0E002001, 0x0E008000};
 static constexpr __bool_trie<32, 634, 7, 351, 25, 255, 1, 0, 385, 4, 59, 36> __cat_no{
     {0x0000000000000000, 0x0000000000000000, 0x720c000000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -1773,18 +1693,10 @@ static constexpr __bool_trie<32, 634, 7, 351, 25, 255, 1, 0, 385, 4, 59, 36> __c
      0xfffe000000000000, 0x001eefffffffffff, 0x3fffbffffffffffe, 0x0000000000001fff}};
 static constexpr flat_array<10> __cat_pf{
     {0x00BB, 0x2019, 0x201D, 0x203A, 0x2E03, 0x2E05, 0x2E0A, 0x2E0D, 0x2E1D, 0x2E21}};
-static constexpr __range_array<21> __cat_lt = {
-    {__range_array_elem{0x0000, 0} /*453*/,  __range_array_elem{0x01C5, 1} /*1*/,
-     __range_array_elem{0x01C6, 0} /*2*/,    __range_array_elem{0x01C8, 1} /*1*/,
-     __range_array_elem{0x01C9, 0} /*2*/,    __range_array_elem{0x01CB, 1} /*1*/,
-     __range_array_elem{0x01CC, 0} /*38*/,   __range_array_elem{0x01F2, 1} /*1*/,
-     __range_array_elem{0x01F3, 0} /*7573*/, __range_array_elem{0x1F88, 1} /*8*/,
-     __range_array_elem{0x1F90, 0} /*8*/,    __range_array_elem{0x1F98, 1} /*8*/,
-     __range_array_elem{0x1FA0, 0} /*8*/,    __range_array_elem{0x1FA8, 1} /*8*/,
-     __range_array_elem{0x1FB0, 0} /*12*/,   __range_array_elem{0x1FBC, 1} /*1*/,
-     __range_array_elem{0x1FBD, 0} /*15*/,   __range_array_elem{0x1FCC, 1} /*1*/,
-     __range_array_elem{0x1FCD, 0} /*47*/,   __range_array_elem{0x1FFC, 1} /*1*/,
-     __range_array_elem{0x1FFD, 0} /*1105922*/}};
+static constexpr __range_array __cat_lt = {
+    0x00000000, 0x0001C501, 0x0001C600, 0x0001C801, 0x0001C900, 0x0001CB01, 0x0001CC00,
+    0x0001F201, 0x0001F300, 0x001F8801, 0x001F9000, 0x001F9801, 0x001FA000, 0x001FA801,
+    0x001FB000, 0x001FBC01, 0x001FBD00, 0x001FCC01, 0x001FCD00, 0x001FFC01, 0x001FFD00};
 static constexpr __bool_trie<32, 991, 1, 0, 31, 9, 6, 241, 57, 109, 26, 6> __cat_lm{
     {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -1957,13 +1869,9 @@ static constexpr __bool_trie<32, 991, 1, 0, 72, 255, 1, 0, 449, 7, 56, 57> __cat
      0xf87fffffffffffff, 0x00201fffffffffff, 0x0000fffef8000010, 0x000007dbf9ffff7f,
      0x0000f00000000000, 0x00000000007f0000, 0x00000000000007f0, 0xffffffffffffffff,
      0x0000ffffffffffff}};
-static constexpr __range_array<11> __cat_me = {
-    {__range_array_elem{0x0000, 0} /*1160*/, __range_array_elem{0x0488, 1} /*2*/,
-     __range_array_elem{0x048A, 0} /*5684*/, __range_array_elem{0x1ABE, 1} /*1*/,
-     __range_array_elem{0x1ABF, 0} /*1566*/, __range_array_elem{0x20DD, 1} /*4*/,
-     __range_array_elem{0x20E1, 0} /*1*/, __range_array_elem{0x20E2, 1} /*3*/,
-     __range_array_elem{0x20E5, 0} /*34187*/, __range_array_elem{0xA670, 1} /*3*/,
-     __range_array_elem{0xA673, 0} /*1071500*/}};
+static constexpr __range_array __cat_me = {0x00000000, 0x00048801, 0x00048A00, 0x001ABE01,
+                                           0x001ABF00, 0x0020DD01, 0x0020E100, 0x0020E201,
+                                           0x0020E500, 0x00A67001, 0x00A67300};
 static constexpr __bool_trie<0, 652, 4, 336, 42, 13, 1, 242, 134, 64, 58, 31> __cat_mc{
     {},
     {1,  2,  3, 4,  5,  6,  5,  7, 8,  4,  9, 10, 11, 12, 8,  13, 3,  14, 15, 16, 0,  0, 0,  0,  9,
@@ -2019,20 +1927,11 @@ static constexpr __bool_trie<0, 652, 4, 336, 42, 13, 1, 242, 134, 64, 58, 31> __
      0x00000010f00e0000, 0x0200000000000000, 0x0000000001800000, 0x0000000000800000,
      0x4000800000000000, 0x0012020000000000, 0x0000000000587c00, 0x0060000000000000,
      0xfffffffffffe0000, 0x00000000000000ff, 0x0007e06000000000}};
-static constexpr __range_array<25> __cat_nl = {
-    {__range_array_elem{0x0000, 0} /*5870*/,  __range_array_elem{0x16EE, 1} /*3*/,
-     __range_array_elem{0x16F1, 0} /*2671*/,  __range_array_elem{0x2160, 1} /*35*/,
-     __range_array_elem{0x2183, 0} /*2*/,     __range_array_elem{0x2185, 1} /*4*/,
-     __range_array_elem{0x2189, 0} /*3710*/,  __range_array_elem{0x3007, 1} /*1*/,
-     __range_array_elem{0x3008, 0} /*25*/,    __range_array_elem{0x3021, 1} /*9*/,
-     __range_array_elem{0x302A, 0} /*14*/,    __range_array_elem{0x3038, 1} /*3*/,
-     __range_array_elem{0x303B, 0} /*30379*/, __range_array_elem{0xA6E6, 1} /*10*/,
-     __range_array_elem{0xA6F0, 0} /*23120*/, __range_array_elem{0x10140, 1} /*53*/,
-     __range_array_elem{0x10175, 0} /*460*/,  __range_array_elem{0x10341, 1} /*1*/,
-     __range_array_elem{0x10342, 0} /*8*/,    __range_array_elem{0x1034A, 1} /*1*/,
-     __range_array_elem{0x1034B, 0} /*134*/,  __range_array_elem{0x103D1, 1} /*5*/,
-     __range_array_elem{0x103D6, 0} /*8234*/, __range_array_elem{0x12400, 1} /*111*/,
-     __range_array_elem{0x1246F, 0} /*1039248*/}};
+static constexpr __range_array __cat_nl = {
+    0x00000000, 0x0016EE01, 0x0016F100, 0x00216001, 0x00218300, 0x00218501, 0x00218900,
+    0x00300701, 0x00300800, 0x00302101, 0x00302A00, 0x00303801, 0x00303B00, 0x00A6E601,
+    0x00A6F000, 0x01014001, 0x01017500, 0x01034101, 0x01034200, 0x01034A01, 0x01034B00,
+    0x0103D101, 0x0103D600, 0x01240001, 0x01246F00};
 static constexpr flat_array<1> __cat_zl{{0x2028}};
 static constexpr flat_array<1> __cat_zp{{0x2029}};
 static constexpr flat_array<3> __cat_cs{{0xDB7E, 0xDBFE, 0xDFFE}};
@@ -8016,11 +7915,8 @@ enum class property {
     xid_start = xids,
     __max
 };
-static constexpr __range_array<7> __prop_ahex_data = {
-    {__range_array_elem{0x0000, 0} /*48*/, __range_array_elem{0x0030, 1} /*10*/,
-     __range_array_elem{0x003A, 0} /*7*/, __range_array_elem{0x0041, 1} /*6*/,
-     __range_array_elem{0x0047, 0} /*26*/, __range_array_elem{0x0061, 1} /*6*/,
-     __range_array_elem{0x0067, 0} /*1114008*/}};
+static constexpr __range_array __prop_ahex_data = {0x00000000, 0x00003001, 0x00003A00, 0x00004101,
+                                                   0x00004700, 0x00006101, 0x00006700};
 static constexpr __bool_trie<32, 991, 1, 0, 166, 255, 1, 0, 1407, 1, 0, 125> __prop_alpha_data{
     {0x0000000000000000, 0x07fffffe07fffffe, 0x0420040000000000, 0xff7fffffff7fffff,
      0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
@@ -8238,12 +8134,9 @@ static constexpr __bool_trie<32, 991, 1, 0, 166, 255, 1, 0, 1407, 1, 0, 125> __p
      0x0000000001400000, 0x000000000a000000, 0x0000280000000000, 0x0000000000200000,
      0x0008000000000000, 0x0000000010000000, 0x0000000100000000, 0x0000000080000000,
      0x000000003fffffff}};
-static constexpr __range_array<9> __prop_bidi_c_data = {
-    {__range_array_elem{0x0000, 0} /*1564*/, __range_array_elem{0x061C, 1} /*1*/,
-     __range_array_elem{0x061D, 0} /*6641*/, __range_array_elem{0x200E, 1} /*2*/,
-     __range_array_elem{0x2010, 0} /*26*/, __range_array_elem{0x202A, 1} /*5*/,
-     __range_array_elem{0x202F, 0} /*55*/, __range_array_elem{0x2066, 1} /*4*/,
-     __range_array_elem{0x206A, 0} /*1105813*/}};
+static constexpr __range_array __prop_bidi_c_data = {0x00000000, 0x00061C01, 0x00061D00,
+                                                     0x00200E01, 0x00201000, 0x00202A01,
+                                                     0x00202F00, 0x00206601, 0x00206A00};
 static constexpr __bool_trie<32, 962, 28, 2, 26, 1, 13, 242, 5, 91, 32, 6> __prop_bidi_m_data{
     {0x5000030000000000, 0x2800000028000000, 0x0800080000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -8524,58 +8417,17 @@ static constexpr __bool_trie<32, 39, 102, 851, 15, 1, 15, 240, 38, 69, 21, 28> _
      0x0006000000603c00, 0xf8000000700e001c, 0xffefcfff701dfffe, 0x000000000000ffff,
      0x01f0183f0006f83f, 0x00000fff00000000, 0x77feffff7fffe000, 0xf079ffffffffefbf,
      0xffffc7e7ffffffff, 0xffffffffffffe7fe, 0x070f000000000000, 0x00000000003f0007}};
-static constexpr __range_array<11> __prop_emoji_component_data = {
-    {__range_array_elem{0x0000, 0} /*48*/, __range_array_elem{0x0030, 1} /*10*/,
-     __range_array_elem{0x003A, 0} /*127404*/, __range_array_elem{0x1F1E6, 1} /*26*/,
-     __range_array_elem{0x1F200, 0} /*507*/, __range_array_elem{0x1F3FB, 1} /*5*/,
-     __range_array_elem{0x1F400, 0} /*1456*/, __range_array_elem{0x1F9B0, 1} /*4*/,
-     __range_array_elem{0x1F9B4, 0} /*788076*/, __range_array_elem{0xE0020, 1} /*96*/,
-     __range_array_elem{0xE0080, 0} /*196479*/}};
-static constexpr __range_array<3> __prop_emoji_modifier_data = {
-    {__range_array_elem{0x0000, 0} /*127995*/, __range_array_elem{0x1F3FB, 1} /*5*/,
-     __range_array_elem{0x1F400, 0} /*986111*/}};
-static constexpr __range_array<41> __prop_emoji_modifier_base_data = {
-    {__range_array_elem{0x0000, 0} /*9994*/,
-     __range_array_elem{0x270A, 1} /*4*/,
-     __range_array_elem{0x270E, 0} /*117940*/,
-     __range_array_elem{0x1F3C2, 1} /*3*/,
-     __range_array_elem{0x1F3C5, 0} /*6*/,
-     __range_array_elem{0x1F3CB, 1} /*2*/,
-     __range_array_elem{0x1F3CD, 0} /*117*/,
-     __range_array_elem{0x1F442, 1} /*2*/,
-     __range_array_elem{0x1F444, 0} /*2*/,
-     __range_array_elem{0x1F446, 1} /*11*/,
-     __range_array_elem{0x1F451, 0} /*21*/,
-     __range_array_elem{0x1F466, 1} /*19*/,
-     __range_array_elem{0x1F479, 0} /*8*/,
-     __range_array_elem{0x1F481, 1} /*3*/,
-     __range_array_elem{0x1F484, 0} /*1*/,
-     __range_array_elem{0x1F485, 1} /*3*/,
-     __range_array_elem{0x1F488, 0} /*236*/,
-     __range_array_elem{0x1F574, 1} /*2*/,
-     __range_array_elem{0x1F576, 0} /*31*/,
-     __range_array_elem{0x1F595, 1} /*2*/,
-     __range_array_elem{0x1F597, 0} /*174*/,
-     __range_array_elem{0x1F645, 1} /*3*/,
-     __range_array_elem{0x1F648, 0} /*3*/,
-     __range_array_elem{0x1F64B, 1} /*5*/,
-     __range_array_elem{0x1F650, 0} /*100*/,
-     __range_array_elem{0x1F6B4, 1} /*3*/,
-     __range_array_elem{0x1F6B7, 0} /*610*/,
-     __range_array_elem{0x1F919, 1} /*6*/,
-     __range_array_elem{0x1F91F, 0} /*18*/,
-     __range_array_elem{0x1F931, 1} /*9*/,
-     __range_array_elem{0x1F93A, 0} /*2*/,
-     __range_array_elem{0x1F93C, 1} /*3*/,
-     __range_array_elem{0x1F93F, 0} /*118*/,
-     __range_array_elem{0x1F9B5, 1} /*2*/,
-     __range_array_elem{0x1F9B7, 0} /*1*/,
-     __range_array_elem{0x1F9B8, 1} /*2*/,
-     __range_array_elem{0x1F9BA, 0} /*19*/,
-     __range_array_elem{0x1F9CD, 1} /*3*/,
-     __range_array_elem{0x1F9D0, 0} /*1*/,
-     __range_array_elem{0x1F9D1, 1} /*13*/,
-     __range_array_elem{0x1F9DE, 0} /*984609*/}};
+static constexpr __range_array __prop_emoji_component_data = {
+    0x00000000, 0x00003001, 0x00003A00, 0x01F1E601, 0x01F20000, 0x01F3FB01,
+    0x01F40000, 0x01F9B001, 0x01F9B400, 0x0E002001, 0x0E008000};
+static constexpr __range_array __prop_emoji_modifier_data = {0x00000000, 0x01F3FB01, 0x01F40000};
+static constexpr __range_array __prop_emoji_modifier_base_data = {
+    0x00000000, 0x00270A01, 0x00270E00, 0x01F3C201, 0x01F3C500, 0x01F3CB01, 0x01F3CD00,
+    0x01F44201, 0x01F44400, 0x01F44601, 0x01F45100, 0x01F46601, 0x01F47900, 0x01F48101,
+    0x01F48400, 0x01F48501, 0x01F48800, 0x01F57401, 0x01F57600, 0x01F59501, 0x01F59700,
+    0x01F64501, 0x01F64800, 0x01F64B01, 0x01F65000, 0x01F6B401, 0x01F6B700, 0x01F91901,
+    0x01F91F00, 0x01F93101, 0x01F93A00, 0x01F93C01, 0x01F93F00, 0x01F9B501, 0x01F9B700,
+    0x01F9B801, 0x01F9BA00, 0x01F9CD01, 0x01F9D000, 0x01F9D101, 0x01F9DE00};
 static constexpr __bool_trie<0, 33, 108, 851, 12, 1, 15, 240, 37, 70, 21, 27>
     __prop_emoji_presentation_data{
         {},
@@ -8963,14 +8815,9 @@ static constexpr __bool_trie<32, 991, 1, 0, 74, 255, 1, 0, 449, 7, 56, 58> __pro
      0xf87fffffffffffff, 0x00201fffffffffff, 0x0000fffef8000010, 0x000007dbf9ffff7f,
      0x0000f00000000000, 0x00000000007f0000, 0x00000000000007f0, 0xffffffff00000000,
      0xffffffffffffffff, 0x0000ffffffffffff}};
-static constexpr __range_array<13> __prop_hex_data = {
-    {__range_array_elem{0x0000, 0} /*48*/, __range_array_elem{0x0030, 1} /*10*/,
-     __range_array_elem{0x003A, 0} /*7*/, __range_array_elem{0x0041, 1} /*6*/,
-     __range_array_elem{0x0047, 0} /*26*/, __range_array_elem{0x0061, 1} /*6*/,
-     __range_array_elem{0x0067, 0} /*65193*/, __range_array_elem{0xFF10, 1} /*10*/,
-     __range_array_elem{0xFF1A, 0} /*7*/, __range_array_elem{0xFF21, 1} /*6*/,
-     __range_array_elem{0xFF27, 0} /*26*/, __range_array_elem{0xFF41, 1} /*6*/,
-     __range_array_elem{0xFF47, 0} /*1048760*/}};
+static constexpr __range_array __prop_hex_data = {
+    0x00000000, 0x00003001, 0x00003A00, 0x00004101, 0x00004700, 0x00006101, 0x00006700,
+    0x00FF1001, 0x00FF1A00, 0x00FF2101, 0x00FF2700, 0x00FF4101, 0x00FF4700};
 static constexpr __bool_trie<0, 812, 160, 20, 37, 25, 7, 224, 745, 64, 23, 24> __prop_ideo_data{
     {},
     {1,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0,  2,  0,  3,  0, 0,  0,  0,  0,  0,
@@ -9050,21 +8897,13 @@ static constexpr __bool_trie<0, 812, 160, 20, 37, 25, 7, 224, 745, 64, 23, 24> _
      0x2800050000000000, 0x0000000002800000, 0x0000000000014000, 0x0000000001400000,
      0x000000000a000000, 0x0000280000000000, 0x0000000000200000, 0x0008000000000000,
      0x0000000010000000, 0x0000000100000000, 0x0000000080000000, 0x000000003fffffff}};
-static constexpr __range_array<5> __prop_idsb_data = {
-    {__range_array_elem{0x0000, 0} /*12272*/, __range_array_elem{0x2FF0, 1} /*2*/,
-     __range_array_elem{0x2FF2, 0} /*2*/, __range_array_elem{0x2FF4, 1} /*8*/,
-     __range_array_elem{0x2FFC, 0} /*1101827*/}};
+static constexpr __range_array __prop_idsb_data = {0x00000000, 0x002FF001, 0x002FF200, 0x002FF401,
+                                                   0x002FFC00};
 static constexpr flat_array<2> __prop_idst_data{{0x2FF2, 0x2FF3}};
 static constexpr flat_array<2> __prop_join_c_data{{0x200C, 0x200D}};
-static constexpr __range_array<15> __prop_loe_data = {
-    {__range_array_elem{0x0000, 0} /*3648*/, __range_array_elem{0x0E40, 1} /*5*/,
-     __range_array_elem{0x0E45, 0} /*123*/, __range_array_elem{0x0EC0, 1} /*5*/,
-     __range_array_elem{0x0EC5, 0} /*2800*/, __range_array_elem{0x19B5, 1} /*3*/,
-     __range_array_elem{0x19B8, 0} /*2*/, __range_array_elem{0x19BA, 1} /*1*/,
-     __range_array_elem{0x19BB, 0} /*37114*/, __range_array_elem{0xAAB5, 1} /*2*/,
-     __range_array_elem{0xAAB7, 0} /*2*/, __range_array_elem{0xAAB9, 1} /*1*/,
-     __range_array_elem{0xAABA, 0} /*1*/, __range_array_elem{0xAABB, 1} /*2*/,
-     __range_array_elem{0xAABD, 0} /*1070402*/}};
+static constexpr __range_array __prop_loe_data = {
+    0x00000000, 0x000E4001, 0x000E4500, 0x000EC001, 0x000EC500, 0x0019B501, 0x0019B800, 0x0019BA01,
+    0x0019BB00, 0x00AAB501, 0x00AAB700, 0x00AAB901, 0x00AABA00, 0x00AABB01, 0x00AABD00};
 static constexpr __bool_trie<32, 991, 1, 0, 55, 255, 1, 0, 378, 13, 57, 42> __prop_oalpha_data{
     {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -9167,105 +9006,25 @@ static constexpr __bool_trie<32, 991, 1, 0, 55, 255, 1, 0, 378, 13, 57, 42> __pr
      0xffff03ffffff03ff, 0x00000000000003ff}};
 static constexpr flat_array<7> __prop_odi_data{
     {0x034F, 0x115F, 0x1160, 0x17B4, 0x17B5, 0x3164, 0xFFA0}};
-static constexpr __range_array<49> __prop_ogr_ext_data = {
-    {__range_array_elem{0x0000, 0} /*2494*/,
-     __range_array_elem{0x09BE, 1} /*1*/,
-     __range_array_elem{0x09BF, 0} /*24*/,
-     __range_array_elem{0x09D7, 1} /*1*/,
-     __range_array_elem{0x09D8, 0} /*358*/,
-     __range_array_elem{0x0B3E, 1} /*1*/,
-     __range_array_elem{0x0B3F, 0} /*24*/,
-     __range_array_elem{0x0B57, 1} /*1*/,
-     __range_array_elem{0x0B58, 0} /*102*/,
-     __range_array_elem{0x0BBE, 1} /*1*/,
-     __range_array_elem{0x0BBF, 0} /*24*/,
-     __range_array_elem{0x0BD7, 1} /*1*/,
-     __range_array_elem{0x0BD8, 0} /*234*/,
-     __range_array_elem{0x0CC2, 1} /*1*/,
-     __range_array_elem{0x0CC3, 0} /*18*/,
-     __range_array_elem{0x0CD5, 1} /*2*/,
-     __range_array_elem{0x0CD7, 0} /*103*/,
-     __range_array_elem{0x0D3E, 1} /*1*/,
-     __range_array_elem{0x0D3F, 0} /*24*/,
-     __range_array_elem{0x0D57, 1} /*1*/,
-     __range_array_elem{0x0D58, 0} /*119*/,
-     __range_array_elem{0x0DCF, 1} /*1*/,
-     __range_array_elem{0x0DD0, 0} /*15*/,
-     __range_array_elem{0x0DDF, 1} /*1*/,
-     __range_array_elem{0x0DE0, 0} /*3413*/,
-     __range_array_elem{0x1B35, 1} /*1*/,
-     __range_array_elem{0x1B36, 0} /*1238*/,
-     __range_array_elem{0x200C, 1} /*1*/,
-     __range_array_elem{0x200D, 0} /*4129*/,
-     __range_array_elem{0x302E, 1} /*2*/,
-     __range_array_elem{0x3030, 0} /*53102*/,
-     __range_array_elem{0xFF9E, 1} /*2*/,
-     __range_array_elem{0xFFA0, 0} /*5022*/,
-     __range_array_elem{0x1133E, 1} /*1*/,
-     __range_array_elem{0x1133F, 0} /*24*/,
-     __range_array_elem{0x11357, 1} /*1*/,
-     __range_array_elem{0x11358, 0} /*344*/,
-     __range_array_elem{0x114B0, 1} /*1*/,
-     __range_array_elem{0x114B1, 0} /*12*/,
-     __range_array_elem{0x114BD, 1} /*1*/,
-     __range_array_elem{0x114BE, 0} /*241*/,
-     __range_array_elem{0x115AF, 1} /*1*/,
-     __range_array_elem{0x115B0, 0} /*48053*/,
-     __range_array_elem{0x1D165, 1} /*1*/,
-     __range_array_elem{0x1D166, 0} /*8*/,
-     __range_array_elem{0x1D16E, 1} /*5*/,
-     __range_array_elem{0x1D173, 0} /*798381*/,
-     __range_array_elem{0xE0020, 1} /*96*/,
-     __range_array_elem{0xE0080, 0} /*196479*/}};
-static constexpr __range_array<9> __prop_oidc_data = {
-    {__range_array_elem{0x0000, 0} /*183*/, __range_array_elem{0x00B7, 1} /*1*/,
-     __range_array_elem{0x00B8, 0} /*719*/, __range_array_elem{0x0387, 1} /*1*/,
-     __range_array_elem{0x0388, 0} /*4065*/, __range_array_elem{0x1369, 1} /*9*/,
-     __range_array_elem{0x1372, 0} /*1640*/, __range_array_elem{0x19DA, 1} /*1*/,
-     __range_array_elem{0x19DB, 0} /*1107492*/}};
+static constexpr __range_array __prop_ogr_ext_data = {
+    0x00000000, 0x0009BE01, 0x0009BF00, 0x0009D701, 0x0009D800, 0x000B3E01, 0x000B3F00,
+    0x000B5701, 0x000B5800, 0x000BBE01, 0x000BBF00, 0x000BD701, 0x000BD800, 0x000CC201,
+    0x000CC300, 0x000CD501, 0x000CD700, 0x000D3E01, 0x000D3F00, 0x000D5701, 0x000D5800,
+    0x000DCF01, 0x000DD000, 0x000DDF01, 0x000DE000, 0x001B3501, 0x001B3600, 0x00200C01,
+    0x00200D00, 0x00302E01, 0x00303000, 0x00FF9E01, 0x00FFA000, 0x01133E01, 0x01133F00,
+    0x01135701, 0x01135800, 0x0114B001, 0x0114B100, 0x0114BD01, 0x0114BE00, 0x0115AF01,
+    0x0115B000, 0x01D16501, 0x01D16600, 0x01D16E01, 0x01D17300, 0x0E002001, 0x0E008000};
+static constexpr __range_array __prop_oidc_data = {0x00000000, 0x0000B701, 0x0000B800,
+                                                   0x00038701, 0x00038800, 0x00136901,
+                                                   0x00137200, 0x0019DA01, 0x0019DB00};
 static constexpr flat_array<6> __prop_oids_data{{0x1885, 0x1886, 0x2118, 0x212E, 0x309B, 0x309C}};
-static constexpr __range_array<41> __prop_olower_data = {
-    {__range_array_elem{0x0000, 0} /*170*/,
-     __range_array_elem{0x00AA, 1} /*1*/,
-     __range_array_elem{0x00AB, 0} /*15*/,
-     __range_array_elem{0x00BA, 1} /*1*/,
-     __range_array_elem{0x00BB, 0} /*501*/,
-     __range_array_elem{0x02B0, 1} /*9*/,
-     __range_array_elem{0x02B9, 0} /*7*/,
-     __range_array_elem{0x02C0, 1} /*2*/,
-     __range_array_elem{0x02C2, 0} /*30*/,
-     __range_array_elem{0x02E0, 1} /*5*/,
-     __range_array_elem{0x02E5, 0} /*96*/,
-     __range_array_elem{0x0345, 1} /*1*/,
-     __range_array_elem{0x0346, 0} /*52*/,
-     __range_array_elem{0x037A, 1} /*1*/,
-     __range_array_elem{0x037B, 0} /*6577*/,
-     __range_array_elem{0x1D2C, 1} /*63*/,
-     __range_array_elem{0x1D6B, 0} /*13*/,
-     __range_array_elem{0x1D78, 1} /*1*/,
-     __range_array_elem{0x1D79, 0} /*34*/,
-     __range_array_elem{0x1D9B, 1} /*37*/,
-     __range_array_elem{0x1DC0, 0} /*689*/,
-     __range_array_elem{0x2071, 1} /*1*/,
-     __range_array_elem{0x2072, 0} /*13*/,
-     __range_array_elem{0x207F, 1} /*1*/,
-     __range_array_elem{0x2080, 0} /*16*/,
-     __range_array_elem{0x2090, 1} /*13*/,
-     __range_array_elem{0x209D, 0} /*211*/,
-     __range_array_elem{0x2170, 1} /*16*/,
-     __range_array_elem{0x2180, 0} /*848*/,
-     __range_array_elem{0x24D0, 1} /*26*/,
-     __range_array_elem{0x24EA, 0} /*1938*/,
-     __range_array_elem{0x2C7C, 1} /*2*/,
-     __range_array_elem{0x2C7E, 0} /*31262*/,
-     __range_array_elem{0xA69C, 1} /*2*/,
-     __range_array_elem{0xA69E, 0} /*210*/,
-     __range_array_elem{0xA770, 1} /*1*/,
-     __range_array_elem{0xA771, 0} /*135*/,
-     __range_array_elem{0xA7F8, 1} /*2*/,
-     __range_array_elem{0xA7FA, 0} /*866*/,
-     __range_array_elem{0xAB5C, 1} /*4*/,
-     __range_array_elem{0xAB60, 0} /*1070239*/}};
+static constexpr __range_array __prop_olower_data = {
+    0x00000000, 0x0000AA01, 0x0000AB00, 0x0000BA01, 0x0000BB00, 0x0002B001, 0x0002B900,
+    0x0002C001, 0x0002C200, 0x0002E001, 0x0002E500, 0x00034501, 0x00034600, 0x00037A01,
+    0x00037B00, 0x001D2C01, 0x001D6B00, 0x001D7801, 0x001D7900, 0x001D9B01, 0x001DC000,
+    0x00207101, 0x00207200, 0x00207F01, 0x00208000, 0x00209001, 0x00209D00, 0x00217001,
+    0x00218000, 0x0024D001, 0x0024EA00, 0x002C7C01, 0x002C7E00, 0x00A69C01, 0x00A69E00,
+    0x00A77001, 0x00A77100, 0x00A7F801, 0x00A7FA00, 0x00AB5C01, 0x00AB6000};
 static constexpr __bool_trie<32, 893, 96, 3, 21, 2, 13, 241, 107, 80, 5, 16> __prop_omath_data{
     {0x0000000000000000, 0x0000000040000000, 0x0000000000000000, 0x0000000000000000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -9322,13 +9081,9 @@ static constexpr __bool_trie<32, 893, 96, 3, 21, 2, 13, 241, 107, 80, 5, 16> __p
      0xffffffffffffffef, 0x7bffffffdfdfe7bf, 0xfffffffffffdfc5f, 0xffffff3fffffffff,
      0xf7fffffff7fffffd, 0xffdfffffffdfffff, 0xffff7fffffff7fff, 0xfffffdfffffffdff,
      0xffffffffffffcff7, 0x0af7fe96ffffffef, 0x5ef7f796aa96ea84, 0x0ffffbee0ffffbff}};
-static constexpr __range_array<11> __prop_oupper_data = {
-    {__range_array_elem{0x0000, 0} /*8544*/, __range_array_elem{0x2160, 1} /*16*/,
-     __range_array_elem{0x2170, 0} /*838*/, __range_array_elem{0x24B6, 1} /*26*/,
-     __range_array_elem{0x24D0, 0} /*117856*/, __range_array_elem{0x1F130, 1} /*26*/,
-     __range_array_elem{0x1F14A, 0} /*6*/, __range_array_elem{0x1F150, 1} /*26*/,
-     __range_array_elem{0x1F16A, 0} /*6*/, __range_array_elem{0x1F170, 1} /*26*/,
-     __range_array_elem{0x1F18A, 0} /*986741*/}};
+static constexpr __range_array __prop_oupper_data = {0x00000000, 0x00216001, 0x00217000, 0x0024B601,
+                                                     0x0024D000, 0x01F13001, 0x01F14A00, 0x01F15001,
+                                                     0x01F16A00, 0x01F17001, 0x01F18A00};
 static constexpr __bool_trie<32, 890, 96, 6, 15, 0, 0, 0, 0, 0, 0, 0> __prop_pat_syn_data{
     {0xfc00fffe00000000, 0x7800000178000001, 0x88435afe00000000, 0x0080000000800000,
      0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -9379,42 +9134,14 @@ static constexpr flat_array<11> __prop_pat_ws_data{
     {0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0020, 0x0085, 0x200E, 0x200F, 0x2028, 0x2029}};
 static constexpr flat_array<11> __prop_pcm_data{
     {0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605, 0x06DD, 0x070F, 0x08E2, 0x110BD, 0x110CD}};
-static constexpr __range_array<27> __prop_qmark_data = {
-    {__range_array_elem{0x0000, 0} /*34*/,
-     __range_array_elem{0x0022, 1} /*1*/,
-     __range_array_elem{0x0023, 0} /*4*/,
-     __range_array_elem{0x0027, 1} /*1*/,
-     __range_array_elem{0x0028, 0} /*131*/,
-     __range_array_elem{0x00AB, 1} /*1*/,
-     __range_array_elem{0x00AC, 0} /*15*/,
-     __range_array_elem{0x00BB, 1} /*1*/,
-     __range_array_elem{0x00BC, 0} /*8028*/,
-     __range_array_elem{0x2018, 1} /*8*/,
-     __range_array_elem{0x2020, 0} /*25*/,
-     __range_array_elem{0x2039, 1} /*2*/,
-     __range_array_elem{0x203B, 0} /*3591*/,
-     __range_array_elem{0x2E42, 1} /*1*/,
-     __range_array_elem{0x2E43, 0} /*457*/,
-     __range_array_elem{0x300C, 1} /*4*/,
-     __range_array_elem{0x3010, 0} /*13*/,
-     __range_array_elem{0x301D, 1} /*3*/,
-     __range_array_elem{0x3020, 0} /*52769*/,
-     __range_array_elem{0xFE41, 1} /*4*/,
-     __range_array_elem{0xFE45, 0} /*189*/,
-     __range_array_elem{0xFF02, 1} /*1*/,
-     __range_array_elem{0xFF03, 0} /*4*/,
-     __range_array_elem{0xFF07, 1} /*1*/,
-     __range_array_elem{0xFF08, 0} /*90*/,
-     __range_array_elem{0xFF62, 1} /*2*/,
-     __range_array_elem{0xFF64, 0} /*1048731*/}};
-static constexpr __range_array<7> __prop_radical_data = {
-    {__range_array_elem{0x0000, 0} /*11904*/, __range_array_elem{0x2E80, 1} /*26*/,
-     __range_array_elem{0x2E9A, 0} /*1*/, __range_array_elem{0x2E9B, 1} /*89*/,
-     __range_array_elem{0x2EF4, 0} /*12*/, __range_array_elem{0x2F00, 1} /*214*/,
-     __range_array_elem{0x2FD6, 0} /*1101865*/}};
-static constexpr __range_array<3> __prop_ri_data = {{__range_array_elem{0x0000, 0} /*127462*/,
-                                                     __range_array_elem{0x1F1E6, 1} /*26*/,
-                                                     __range_array_elem{0x1F200, 0} /*986623*/}};
+static constexpr __range_array __prop_qmark_data = {
+    0x00000000, 0x00002201, 0x00002300, 0x00002701, 0x00002800, 0x0000AB01, 0x0000AC00,
+    0x0000BB01, 0x0000BC00, 0x00201801, 0x00202000, 0x00203901, 0x00203B00, 0x002E4201,
+    0x002E4300, 0x00300C01, 0x00301000, 0x00301D01, 0x00302000, 0x00FE4101, 0x00FE4500,
+    0x00FF0201, 0x00FF0300, 0x00FF0701, 0x00FF0800, 0x00FF6201, 0x00FF6400};
+static constexpr __range_array __prop_radical_data = {
+    0x00000000, 0x002E8001, 0x002E9A00, 0x002E9B01, 0x002EF400, 0x002F0001, 0x002FD600};
+static constexpr __range_array __prop_ri_data = {0x00000000, 0x01F1E601, 0x01F20000};
 static constexpr flat_array<46> __prop_sd_data{
     {0x0069,  0x006A,  0x012F,  0x0249,  0x0268,  0x029D,  0x02B2,  0x03F3,  0x0456,  0x0458,
      0x1D62,  0x1D96,  0x1DA4,  0x1DA8,  0x1E2D,  0x1ECB,  0x2071,  0x2148,  0x2149,  0x2C7C,
@@ -9657,23 +9384,12 @@ static constexpr __bool_trie<0, 793, 176, 23, 34, 15, 16, 225, 496, 64, 16, 18> 
      0x0000000002800000, 0x0000000000014000, 0x0000000001400000, 0x000000000a000000,
      0x0000280000000000, 0x0000000000200000, 0x0008000000000000, 0x0000000010000000,
      0x0000000100000000, 0x0000000080000000}};
-static constexpr __range_array<7> __prop_vs_data = {
-    {__range_array_elem{0x0000, 0} /*6155*/, __range_array_elem{0x180B, 1} /*3*/,
-     __range_array_elem{0x180E, 0} /*58866*/, __range_array_elem{0xFE00, 1} /*16*/,
-     __range_array_elem{0xFE10, 0} /*852720*/, __range_array_elem{0xE0100, 1} /*240*/,
-     __range_array_elem{0xE01F0, 0} /*196111*/}};
-static constexpr __range_array<21> __prop_wspace_data = {
-    {__range_array_elem{0x0000, 0} /*9*/,    __range_array_elem{0x0009, 1} /*5*/,
-     __range_array_elem{0x000E, 0} /*18*/,   __range_array_elem{0x0020, 1} /*1*/,
-     __range_array_elem{0x0021, 0} /*100*/,  __range_array_elem{0x0085, 1} /*1*/,
-     __range_array_elem{0x0086, 0} /*26*/,   __range_array_elem{0x00A0, 1} /*1*/,
-     __range_array_elem{0x00A1, 0} /*5599*/, __range_array_elem{0x1680, 1} /*1*/,
-     __range_array_elem{0x1681, 0} /*2431*/, __range_array_elem{0x2000, 1} /*11*/,
-     __range_array_elem{0x200B, 0} /*29*/,   __range_array_elem{0x2028, 1} /*2*/,
-     __range_array_elem{0x202A, 0} /*5*/,    __range_array_elem{0x202F, 1} /*1*/,
-     __range_array_elem{0x2030, 0} /*47*/,   __range_array_elem{0x205F, 1} /*1*/,
-     __range_array_elem{0x2060, 0} /*4000*/, __range_array_elem{0x3000, 1} /*1*/,
-     __range_array_elem{0x3001, 0} /*1101822*/}};
+static constexpr __range_array __prop_vs_data = {0x00000000, 0x00180B01, 0x00180E00, 0x00FE0001,
+                                                 0x00FE1000, 0x0E010001, 0x0E01F000};
+static constexpr __range_array __prop_wspace_data = {
+    0x00000000, 0x00000901, 0x00000E00, 0x00002001, 0x00002100, 0x00008501, 0x00008600,
+    0x0000A001, 0x0000A100, 0x00168001, 0x00168100, 0x00200001, 0x00200B00, 0x00202801,
+    0x00202A00, 0x00202F01, 0x00203000, 0x00205F01, 0x00206000, 0x00300001, 0x00300100};
 static constexpr __bool_trie<32, 991, 1, 0, 160, 255, 1, 0, 1407, 1, 0, 130> __prop_xidc_data{
     {0x03ff000000000000, 0x07fffffe87fffffe, 0x04a0040000000000, 0xff7fffffff7fffff,
      0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
