@@ -13872,7 +13872,7 @@ constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
     return __binary_prop::unknown;
 }
 
-template<uni::version v = uni::version::standard_unicode_version>
+template<uni::version v>
 constexpr script cp_script(char32_t cp) {
     static_assert(v >= uni::version::minimum_version,
                   "This version of the Unicode Database is not supported");
@@ -13917,12 +13917,15 @@ struct script_extensions_view {
 
     private:
         char32_t m_c;
-        script m_script;
         int idx = 1;
+        script m_script;
     };
 
     iterator begin() const {
         return iterator{c};
+    }
+    sentinel end() const {
+        return sentinel{};
     }
 
 private:
