@@ -279,4 +279,23 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
     return numeric_value(res, d);
 }
 
+
+// More regex support for ctre
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
+    return cp_is_ascii(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::assigned>(char32_t c) {
+    return cp_is_assigned(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
+    return cp_is_valid(c);
+}
+
+
 }    // namespace uni

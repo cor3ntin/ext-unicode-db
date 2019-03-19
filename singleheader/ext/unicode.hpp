@@ -9528,7 +9528,6 @@ constexpr block cp_block(char32_t cp) {
     if(it == end)
         return block::no_block;
     it--;
-    char32_t c = ((*it) >> 8);
     auto offset = (*it) & 0xFF;
     if(offset == 0)
         return block::no_block;
@@ -9638,5 +9637,24 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
     _get_numeric_value(cp, __numeric_data_d, d);
     return numeric_value(res, d);
 }
+
+
+// More regex support for ctre
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
+    return cp_is_ascii(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::assigned>(char32_t c) {
+    return cp_is_assigned(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
+    return cp_is_valid(c);
+}
+
 
 }    // namespace uni

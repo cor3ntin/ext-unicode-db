@@ -25,7 +25,6 @@ TEST_CASE("Verify that all code point have the block as in the DB") {
             expected = it->second.block;
         else
             continue;
-        // std::cout << c << " " << int(uni::cp_block(c)) << " " << int(expected) << "\n";
         REQUIRE(uni::cp_block(c) == expected);
     }
 }
