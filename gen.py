@@ -213,7 +213,9 @@ def get_unicode_data(version = LAST_VERSION):
 
 def write_script_data(characters, changed, scripts_names, file):
     f.write("enum class script {")
+    indexes = {}
     for i, script in enumerate(scripts_names):
+        indexes[script[0]] = i
         f.write(script[0] + ", //{}\n".format(i))
         if script[1] != script[0]:
             f.write(script[1] + " = " + script[0] +",")
@@ -222,20 +224,19 @@ def write_script_data(characters, changed, scripts_names, file):
     write_string_array(f, "__scripts_names", [(script[0], idx) for idx, script in enumerate(scripts_names)]
                                            + [(script[1], idx) for idx, script in enumerate(scripts_names)])
 
-    f.write("struct __script_data_t {char32_t first; script s;};")
     f.write("template <auto N> struct __script_data;")
 
     def write_block(idx, characters, changed):
         f.write("template <> struct __script_data<{}> {{".format(idx))
-        f.write("static constexpr const std::array scripts_data= {")
+        f.write("static constexpr const _compact_range scripts_data= {")
         prev = ''
         block = dict([(cp.cp, cp.scx) for cp in characters])
         for cp in range(0x10FFFF):
             script = block[cp][idx] if (cp in block and len(block[cp])) > idx else 'zzzz'
             if script != prev:
-                f.write("__script_data_t{{ {}, script::{} }},".format(to_hex(cp, 6), script))
+                f.write("{},".format(to_hex((cp << 8) | indexes[script], 10)))
             prev = script
-        f.write("__script_data_t{0x110000, script::zzzz }")
+        f.write("0xFFFFFFFF")
         f.write("};")
 
         modified = block
@@ -283,16 +284,11 @@ def write_script_data(characters, changed, scripts_names, file):
     if(cp > 0x10FFFF)
         return script::unknown;
 
-    constexpr const auto end = __script_data<N>::scripts_data.end();
-    auto it = uni::upper_bound(__script_data<N>::scripts_data.begin(), end, cp,
-                               [](char32_t cp, const __script_data_t& s) { return cp < s.first; });
-    if(it == end)
-        return script::unknown;
-    it--;
+    uni::script sc = static_cast<uni::script>(__script_data<N>::scripts_data.value(cp, uint8_t(script::unknown)));
     if constexpr(v < uni::version::v12_0) {
-        return __script_data<N>::older_cp_script(cp, it->s);
+        return __script_data<N>::older_cp_script(cp, sc);
     }
-    return it->s;
+    return sc;
     }
     """)
 

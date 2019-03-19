@@ -67,6 +67,23 @@ constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
     first = uni::lower_bound(first, last, value);
     return (!(first == last) && !(value < *first));
 }
+template<auto N>
+struct _compact_range {
+    std::array<std::uint32_t, N> _data;
+    constexpr uint8_t value(char32_t cp, uint8_t default_value) const {
+        const auto end = _data.end();
+        auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+            char32_t c = (v >> 8);
+            return cp < c;
+        });
+        if(it == end)
+            return default_value;
+        it--;
+        return *(it)&0xFF;
+    }
+};
+template<class... U>
+_compact_range(U...)->_compact_range<sizeof...(U)>;
 
 template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
          std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
@@ -181,12 +198,12 @@ constexpr int __propcharcomp(char a, char b) {
 }
 constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
     // workaround, iterators in std::string_view are not constexpr in libc++ (for now)
-    const char * a = sa.begin();
-    const char * b = sb.begin();
-    
-    const char * ae = sa.end();
-    const char * be = sb.end();
-    
+    const char* a = sa.begin();
+    const char* b = sb.begin();
+
+    const char* ae = sa.end();
+    const char* be = sb.end();
+
     for(; a != ae && b != be; a++, b++) {
         auto res = __propcharcomp(*a, *b);
         if(res != 0)
@@ -256,5 +273,3 @@ constexpr numeric_value cp_numeric_value(char32_t cp);
 
 
 }    // namespace uni
-
-
