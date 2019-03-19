@@ -69,12 +69,9 @@ TEST_CASE("Verify that all code point have the script extensions as in the DB") 
         std::vector<uni::script> extensions;
         auto v = uni::cp_script_extensions(c);
         for(auto s : v) {
-            std::cout << "scripts " << std::hex << c << std::dec << " " << int(s) << "\n";
             extensions.push_back(s);
         }
-        std::sort(expected.begin(), expected.end());
-        std::sort(extensions.begin(), extensions.end());
-
-        REQUIRE(expected == extensions);
+        using namespace Catch::Matchers;
+        REQUIRE_THAT(expected, UnorderedEquals(extensions));
     }
 }
