@@ -85,7 +85,7 @@ constexpr script cp_script(char32_t cp) {
 
 template<uni::version v = uni::version::standard_unicode_version>
 struct script_extensions_view {
-    script_extensions_view(char32_t c) : c(c){};
+    constexpr script_extensions_view(char32_t c) : c(c){};
 
     struct sentinel {};
     struct iterator {
@@ -93,29 +93,29 @@ struct script_extensions_view {
         using value_type = script;
         using iterator_category = std::forward_iterator_tag;
 
-        iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
+        constexpr iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
             if(m_script == script::unknown)
                 m_script = __cp_script<0, v>(m_c);
         }
-        script operator*() const {
+        constexpr script operator*() const {
             return m_script;
         };
 
-        void operator++() {
+        constexpr void operator++() {
             idx++;
             m_script = __get_cp_script<v>(m_c, idx);
         }
 
-        bool operator==(sentinel) const {
+        constexpr bool operator==(sentinel) const {
             return m_script == script::unknown;
         };
-        bool operator!=(sentinel) const {
+        constexpr bool operator!=(sentinel) const {
             return m_script != script::unknown;
         };
-        bool operator==(iterator it) const {
+        constexpr bool operator==(iterator it) const {
             return m_script == it.m_script && m_c == it.m_c;
         };
-        bool operator!=(iterator it) const {
+        constexpr bool operator!=(iterator it) const {
             return !(*this == it);
         };
 
@@ -125,10 +125,10 @@ struct script_extensions_view {
         int idx = 1;
     };
 
-    iterator begin() const {
+    constexpr iterator begin() const {
         return iterator{c};
     }
-    sentinel end() const {
+    constexpr sentinel end() const {
         return {};
     }
 
