@@ -177,8 +177,10 @@ def get_unicode_data(version = LAST_VERSION):
             if f != None and l != None: # Handle range
                 f = cp_code(f)
                 l = cp_code(l)
+                template =  ucd_cp(c, elem)
                 for c in range(f, l):
-                    characters[c] = ucd_cp(c, elem)
+                    characters[c] = template
+                    characters[c].cp = c
                 continue
             c = elem.get("cp")
             if c == None:
