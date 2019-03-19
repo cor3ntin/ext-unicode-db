@@ -593,9 +593,12 @@ def write_categories_data(characters, changed, categories_names, file):
 def write_age_data(characters, f):
     ages = list(set([float(cp.age) for cp in characters if cp.age != 'unassigned']))
     ages.sort()
+    indexes = {}
     f.write("enum class version : uint8_t {")
     f.write("unassigned,")
-    for age in ages:
+    indexes["unassigned"] = 0
+    for i, age in enumerate(ages):
+        indexes[age_name(age)] = i+1;
         f.write(age_name(age) + ",")
     f.write("standard_unicode_version = {},".format(age_name(STANDARD_VERSION)))
     f.write("minimum_version = {},".format(age_name(MIN_VERSION)))
@@ -608,18 +611,17 @@ def write_age_data(characters, f):
         f.write('"{}"{}'.format(age, "," if idx < len(ages) - 1 else ""))
     f.write("};\n")
 
-    f.write("\nstruct __age_data_t { char32_t first; version a;};\n")
-    f.write("static constexpr std::array __age_data = {")
+    f.write("static constexpr _compact_range __age_data = {")
     known  = dict([(cp.cp, age_name(cp.age)) for cp in characters])
     prev  = ""
     size = 0
     for cp in range(0, 0x10FFFF):
         age = known[cp] if cp in known else 'unassigned'
         if prev != age:
-            f.write("__age_data_t{{ {}, version::{} }},".format(to_hex(cp, 6), age))
+            f.write("{},".format(to_hex((cp << 8) | indexes[age], 10)))
             size = size + 1
             prev = age
-    f.write("__age_data_t{0x110000, version::unassigned} };\n")
+    f.write("0xFFFFFFFF};\n")
     print(size)
 
 def write_numeric_data(characters, f):

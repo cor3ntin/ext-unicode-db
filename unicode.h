@@ -157,12 +157,7 @@ constexpr auto cp_script_extensions(char32_t cp) {
 
 
 constexpr version cp_age(char32_t cp) {
-    auto it = uni::upper_bound(__age_data.begin(), __age_data.end(), cp,
-                               [](char32_t cp, const __age_data_t& a) { return cp < a.first; });
-    if(it == __age_data.begin())
-        return version::unassigned;
-    it--;
-    return it->a;
+    return static_cast<version>(uni::__age_data.value(cp, uint8_t(version::unassigned)));
 }
 
 constexpr block cp_block(char32_t cp) {
