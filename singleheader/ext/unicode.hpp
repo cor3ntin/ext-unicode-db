@@ -2454,7 +2454,7 @@ static constexpr std::array __cat_version_data_v10_0{
     std::pair{0x111C9, category::po}, std::pair{0x11A07, category::mc},
     std::pair{0x11A08, category::mc}};
 template<version v>
-constexpr category __get_category_for_version(char32_t cp, category c) {
+constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {
     if constexpr(v <= uni::version::v11_0) {
         const auto it =
             uni::lower_bound(__cat_version_data_v11_0.begin(), __cat_version_data_v11_0.end(), cp,
@@ -6963,14 +6963,7 @@ static constexpr __bool_trie<32, 991, 1, 0, 55, 255, 1, 0, 378, 13, 57, 42> __pr
      0xffff03ffffff03ff, 0x00000000000003ff}};
 static constexpr flat_array<7> __prop_odi_data{
     {0x034F, 0x115F, 0x1160, 0x17B4, 0x17B5, 0x3164, 0xFFA0}};
-static constexpr __range_array __prop_ogr_ext_data = {
-    0x00000000, 0x0009BE01, 0x0009BF00, 0x0009D701, 0x0009D800, 0x000B3E01, 0x000B3F00,
-    0x000B5701, 0x000B5800, 0x000BBE01, 0x000BBF00, 0x000BD701, 0x000BD800, 0x000CC201,
-    0x000CC300, 0x000CD501, 0x000CD700, 0x000D3E01, 0x000D3F00, 0x000D5701, 0x000D5800,
-    0x000DCF01, 0x000DD000, 0x000DDF01, 0x000DE000, 0x001B3501, 0x001B3600, 0x00200C01,
-    0x00200D00, 0x00302E01, 0x00303000, 0x00FF9E01, 0x00FFA000, 0x01133E01, 0x01133F00,
-    0x01135701, 0x01135800, 0x0114B001, 0x0114B100, 0x0114BD01, 0x0114BE00, 0x0115AF01,
-    0x0115B000, 0x01D16501, 0x01D16600, 0x01D16E01, 0x01D17300, 0x0E002001, 0x0E008000};
+
 static constexpr __range_array __prop_oidc_data = {0x00000000, 0x0000B701, 0x0000B800,
                                                    0x00038701, 0x00038800, 0x00136901,
                                                    0x00137200, 0x0019DA01, 0x0019DB00};
@@ -10142,7 +10135,7 @@ constexpr block cp_block(char32_t cp) {
     if(it == end)
         return block::no_block;
     it--;
-    char32_t c = ((*it) >> 8);
+    //char32_t c = ((*it) >> 8);
     auto offset = (*it) & 0xFF;
     if(offset == 0)
         return block::no_block;
