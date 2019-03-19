@@ -85,6 +85,25 @@ struct _compact_range {
 template<class... U>
 _compact_range(U...)->_compact_range<sizeof...(U)>;
 
+
+template<auto N>
+struct _compact_list {
+    std::array<std::uint32_t, N> _data;
+    constexpr uint8_t value(char32_t cp, uint8_t default_value) const {
+        const auto end = _data.end();
+        auto it = uni::lower_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+            char32_t c = (v >> 8);
+            return cp < c;
+        });
+        if(it == end || (*it >> 8) != cp)
+            return default_value;
+        return *(it)&0xFF;
+    }
+};
+template<class... U>
+_compact_list(U...)->_compact_list<sizeof...(U)>;
+
+
 template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
          std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
          int16_t r5_t_b, std::size_t r6_s>

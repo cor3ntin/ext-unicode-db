@@ -253,21 +253,18 @@ def write_script_data(characters, changed, scripts_names, file):
             modified.update(dict(old))
 
         for version, d in data:
-            f.write("static constexpr const std::array scripts_data_compat_{} = {{".format(version))
+            f.write("static constexpr const _compact_list scripts_data_compat_{} = {{".format(version))
             for i, (cp, script) in enumerate(d):
-                f.write("std::pair<char32_t, script>{{ {}, script::{} }} {}".format(cp, script[idx], "," if i < len(d) - 1 else ""))
+                f.write("{}{}".format(to_hex((cp << 8) | indexes[script[idx]], 10), "," if i < len(d) - 1 else ""))
             f.write("};")
-        f.write("template <uni::version v> constexpr script older_cp_script(char32_t cp, script c) {")
+        f.write("template <uni::version v> constexpr script older_cp_script(char32_t cp, script sc) {")
         for version, _ in data:
             f.write("""
                 if constexpr(v <= uni::version::{0}) {{
-                    const auto it = uni::lower_bound(scripts_data_compat_{0}.begin(), scripts_data_compat_{0}.end(), cp,
-                        [](const auto & e, char32_t cp) {{ return e.first < cp; }});
-                    if (it != scripts_data_compat_{0}.end() && cp == it->first)
-                    c = it->second;
+                    sc = static_cast<uni::script>(scripts_data_compat_{0}.value(cp, uint8_t(sc)));
                 }}
-    """.format(version))
-        f.write("return c;}")
+            """.format(version))
+        f.write("return sc;}")
         f.write("};")
 
     l = max([len(cp.scx) for cp in characters])
