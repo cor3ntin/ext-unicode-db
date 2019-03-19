@@ -268,9 +268,11 @@ constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
 constexpr numeric_value cp_numeric_value(char32_t cp) {
     long long res = 0;
     if(!(_get_numeric_value(cp, __numeric_data64, res) ||
-         _get_numeric_value(cp, __numeric_data32, res) ||
-         _get_numeric_value(cp, __numeric_data16, res) ||
-         _get_numeric_value(cp, __numeric_data8, res))) {
+             _get_numeric_value(cp, __numeric_data32, res) ||
+             _get_numeric_value(cp, __numeric_data16, res) || [&res, cp]() -> bool {
+           res = __numeric_data8.value(cp, 255);
+           return res != 255;
+       }())) {
         return {};
     }
     uint16_t d = 1;

@@ -652,20 +652,28 @@ def write_numeric_data(characters, f):
         d = int(cp.nv[1] if len(cp.nv) == 2 else '1')
         if d != 1:
             dvalues.append((cp.cp, d))
-        if abs(n > 2147483647):
+        if abs(n) > 2147483647:
             values["64"].append((cp.cp, n))
-        elif abs(n > 32767):
+        elif abs(n) > 32767:
             values["32"].append((cp.cp, n))
-        elif abs(n > 127):
+        elif n < 0 or n >= 127 :
             values["16"].append((cp.cp, n))
         else:
             values["8"].append((cp.cp, n))
 
     for s, characters in values.items():
-        f.write("static constexpr std::array __numeric_data{} = {{ ".format(s))
-        for cp in characters:
-            f.write("std::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
-        f.write("std::pair<char32_t, int{}_t>{{0x110000, 0}} }};\n".format(s))
+        if s == '8' :
+            f.write("static constexpr _compact_list __numeric_data8 = {")
+        else:
+            f.write("static constexpr std::array __numeric_data{} = {{ ".format(s))
+
+
+        for idx, cp in enumerate(characters):
+            if s == '8' :
+                f.write("{}{}".format(to_hex(((cp[0] << 8) | cp[1]) , 10), ',' if idx < len(characters) - 1 else ''))
+            else:
+                f.write("std::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
+        f.write("};")
 
     f.write("static constexpr std::array __numeric_data_d = {")
     for cp in dvalues:

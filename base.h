@@ -67,10 +67,10 @@ constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
     first = uni::lower_bound(first, last, value);
     return (!(first == last) && !(value < *first));
 }
-template<auto N>
+template<typename T, auto N>
 struct _compact_range {
     std::array<std::uint32_t, N> _data;
-    constexpr uint8_t value(char32_t cp, uint8_t default_value) const {
+    constexpr T value(char32_t cp, T default_value) const {
         const auto end = _data.end();
         auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
@@ -82,14 +82,14 @@ struct _compact_range {
         return *(it)&0xFF;
     }
 };
-template<class... U>
-_compact_range(U...)->_compact_range<sizeof...(U)>;
+template<class T, class... U>
+_compact_range(T, U...)->_compact_range<T, sizeof...(U) + 1>;
 
 
-template<auto N>
+template<typename T, auto N>
 struct _compact_list {
     std::array<std::uint32_t, N> _data;
-    constexpr uint8_t value(char32_t cp, uint8_t default_value) const {
+    constexpr T value(char32_t cp, T default_value) const {
         const auto end = _data.end();
         auto it = uni::lower_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
@@ -100,8 +100,8 @@ struct _compact_list {
         return *(it)&0xFF;
     }
 };
-template<class... U>
-_compact_list(U...)->_compact_list<sizeof...(U)>;
+template<class T, class... U>
+_compact_list(T, U...)->_compact_list<T, sizeof...(U) + 1>;
 
 
 template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
