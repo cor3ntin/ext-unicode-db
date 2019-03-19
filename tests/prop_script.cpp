@@ -61,7 +61,7 @@ TEST_CASE("Verify that all code point have the script as in the DB") {
 
 TEST_CASE("Verify that all code point have the script extensions as in the DB") {
 
-    for(char32_t c = 0x485; c <= 0x10FFFF + 1; ++c) {
+    for(char32_t c = 0; c <= 0x10FFFF + 1; ++c) {
         auto it = codes.find(c);
         if(it == codes.end())
             continue;
