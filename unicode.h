@@ -169,7 +169,6 @@ constexpr block cp_block(char32_t cp) {
     if(it == end)
         return block::no_block;
     it--;
-    char32_t c = ((*it) >> 8);
     auto offset = (*it) & 0xFF;
     if(offset == 0)
         return block::no_block;
