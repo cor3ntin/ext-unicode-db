@@ -297,7 +297,7 @@ def write_script_data(characters, changed, scripts_names, file):
     """)
 
     f.write("template<uni::version v = uni::version::standard_unicode_version>")
-    f.write("script __get_cp_script(char32_t cp, int idx) {")
+    f.write("constexpr script __get_cp_script(char32_t cp, int idx) {")
     f.write("switch(idx) {")
     for i in range(l):
         f.write("case {0}: return __cp_script<{0}, v>(cp);".format(i))

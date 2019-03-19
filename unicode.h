@@ -101,9 +101,17 @@ struct script_extensions_view {
             return m_script;
         };
 
-        constexpr void operator++() {
+        constexpr iterator& operator++(int) {
             idx++;
             m_script = __get_cp_script<v>(m_c, idx);
+            return this;
+        }
+
+        constexpr iterator operator++() {
+            auto c = *this;
+            idx++;
+            m_script = __get_cp_script<v>(m_c, idx);
+            return c;
         }
 
         constexpr bool operator==(sentinel) const {
@@ -268,16 +276,3 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
 }
 
 }    // namespace uni
-
-
-static_assert(uni::cp_script('C') == uni::script::latin);
-static_assert(uni::cp_block(U'🎉') == uni::block::misc_pictographs);
-static_assert(!uni::cp_is<uni::property::xid_start>('1'));
-static_assert(uni::cp_is<uni::property::xid_continue>('1'));
-static_assert(uni::cp_age(U'🤩') == uni::version::v10_0);
-static_assert(uni::cp_is<uni::property::alphabetic>(U'ß'));
-static_assert(uni::cp_category(U'🦝') == uni::category::so);
-static_assert(uni::cp_is<uni::category::lowercase_letter>('a'));
-static_assert(uni::cp_is<uni::category::letter>('a'));
-
-static_assert(uni::__get_binary_prop<uni::__binary_prop_from_string("Emoji")>(U'🤩'));
