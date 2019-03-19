@@ -1,5 +1,3 @@
-#include "unicode.h"
+#include "ext/unicode.hpp"
 
-void dummy_symbol() {
-	
-}
+void dummy_symbol() {}

@@ -16,7 +16,15 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
             auto category = uni::__category_from_string(cp.attribute("gc").value());
             auto block = uni::__block_from_string(cp.attribute("blk").value());
             auto script = uni::__script_from_string(cp.attribute("sc").value());
-            db[code] = {code, age, category, block, script};
+
+            std::istringstream iss(cp.attribute("scx").value());
+            std::vector<std::string> results((std::istream_iterator<std::string>(iss)),
+                                             std::istream_iterator<std::string>());
+            std::vector<uni::script> exts;
+            for(auto&& x : results) {
+                exts.push_back(uni::__script_from_string(x));
+            }
+            db[code] = {code, age, category, block, script, exts};
         } catch(...) {    // stoi...
         }
     }

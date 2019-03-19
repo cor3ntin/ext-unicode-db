@@ -19,7 +19,7 @@ TEST_CASE("Verify that all code point have the same age as in the DB") {
 
 TEST_CASE("Verify that all code point have the block as in the DB") {
 
-    for(char32_t c = 907; c <= 0x10FFFF + 1; ++c) {
+    for(char32_t c = 0; c <= 0x10FFFF + 1; ++c) {
         auto expected = uni::block::no_block;
         if(auto it = codes.find(c); it != codes.end())
             expected = it->second.block;
@@ -32,14 +32,15 @@ TEST_CASE("Verify that all code point have the block as in the DB") {
 
 TEST_CASE("Verify that all code point have the same category as in the DB") {
 
-    for(char32_t c = 0x856; c <= 0x10FFFF + 1; ++c) {
+    for(char32_t c = 0; c <= 0x10FFFF + 1; ++c) {
         auto expected = uni::category::unassigned;
         if(auto it = codes.find(c); it != codes.end())
             expected = it->second.category;
         else
             continue;
-        std::cout << "cat " << std::hex << c << std::dec << " " << int(uni::cp_category(c)) << " "
-                  << int(expected) << "\n";
+        // std::cout << "cat " << std::hex << c << std::dec << " " << int(uni::cp_category(c)) << "
+        // "
+        //          << int(expected) << "\n";
         REQUIRE(uni::cp_category(c) == expected);
     }
 }
@@ -48,8 +49,6 @@ TEST_CASE("Verify that all code point have the same category as in the DB") {
 TEST_CASE("Verify that all code point have the script as in the DB") {
 
     REQUIRE(uni::cp_script(0x1312D) == uni::script::egyp);
-
-
     for(char32_t c = 0; c <= 0x10FFFF + 1; ++c) {
         auto expected = uni::script::unknown;
         if(auto it = codes.find(c); it != codes.end())
@@ -57,5 +56,25 @@ TEST_CASE("Verify that all code point have the script as in the DB") {
         else
             continue;
         REQUIRE(uni::cp_script(c) == expected);
+    }
+}
+
+TEST_CASE("Verify that all code point have the script extensions as in the DB") {
+
+    for(char32_t c = 0x485; c <= 0x10FFFF + 1; ++c) {
+        auto it = codes.find(c);
+        if(it == codes.end())
+            continue;
+        auto expected = it->second.extensions;
+        std::vector<uni::script> extensions;
+        auto v = uni::cp_script_extensions(c);
+        for(auto s : v) {
+            std::cout << "scripts " << std::hex << c << std::dec << " " << int(s) << "\n";
+            extensions.push_back(s);
+        }
+        std::sort(expected.begin(), expected.end());
+        std::sort(extensions.begin(), extensions.end());
+
+        REQUIRE(expected == extensions);
     }
 }

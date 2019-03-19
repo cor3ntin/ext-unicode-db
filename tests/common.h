@@ -32,6 +32,7 @@ struct cp_test_data {
     uni::category category;
     uni::block block;
     uni::script script;
+    std::vector<uni::script> extensions;
 };
 
 std::unordered_map<char32_t, cp_test_data> load_test_data();

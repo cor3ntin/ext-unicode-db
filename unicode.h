@@ -89,7 +89,11 @@ struct script_extensions_view {
 
     struct sentinel {};
     struct iterator {
-        iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, idx)) {
+
+        using value_type = script;
+        using iterator_category = std::forward_iterator_tag;
+
+        iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
             if(m_script == script::unknown)
                 m_script = __cp_script<0, v>(m_c);
         }
@@ -123,6 +127,9 @@ struct script_extensions_view {
 
     iterator begin() const {
         return iterator{c};
+    }
+    sentinel end() const {
+        return {};
     }
 
 private:

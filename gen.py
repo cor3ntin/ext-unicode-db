@@ -226,7 +226,7 @@ def write_script_data(characters, changed, scripts_names, file):
     def write_block(idx, characters, changed):
         f.write("template <> struct __script_data<{}> {{".format(idx))
         f.write("static constexpr const std::array scripts_data= {")
-        prev = 'zzzz'
+        prev = ''
         block = dict([(cp.cp, cp.scx) for cp in characters])
         for cp in range(0x10FFFF):
             script = block[cp][idx] if (cp in block and len(block[cp])) > idx else 'zzzz'
