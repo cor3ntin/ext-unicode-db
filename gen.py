@@ -7,7 +7,7 @@ import re
 import collections
 #from intbitset import intbitset
 
-DIR_WITH_UCD = os.path.realpath(sys.argv[2])
+DIR_WITH_UCD = os.path.realpath(sys.argv[3])
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
 SUPPORTED_VERSIONS = ["11.0", "10.0"] # "9.0", "8.0", "7.0"]
@@ -590,7 +590,7 @@ def write_categories_data(characters, changed, categories_names, file):
         modified.update(old)
         with_data.append(k)
 
-    f.write("template <version v> constexpr category __get_category_for_version(char32_t cp, category c) {")
+    f.write("template <version v> constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {")
     for v in with_data:
         f.write("""
             if constexpr( v<= uni::version::{0} ) {{
@@ -721,7 +721,8 @@ def write_binary_properties(characters, f):
         "lower",
         "upper",
         "math",
-        "nchar"
+        "nchar",
+        "gr_ext"
     ]
 
     props = []
@@ -761,7 +762,7 @@ def write_binary_properties(characters, f):
         if not prop in custom_impl and not prop in details:
             f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return __prop_{0}_data.lookup(c); }}".format(prop))
 
-    return [prop for prop in values if not prop[0] in custom_impl and not prop[0] in details and not prop[0] in unsupported_props]
+    return [prop for prop in values if not prop[0] in details and not prop[0] in unsupported_props]
 
 
 def write_name_data(charactersn, f):
@@ -799,7 +800,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         template<uni::__binary_prop p>
         constexpr bool __get_binary_prop(char32_t) = delete;
         //Forward declared - defined in unicode.h
-        template<uni::version v  = uni::version::standard_unicode_version>
+        template<uni::version v>
         constexpr script cp_script(char32_t cp);
     """)
 
@@ -894,20 +895,26 @@ namespace uni {
         print("Script data")
         write_script_data(characters, changed, scripts_names, f)
 
-
-
         print("Numeric Data")
         write_numeric_data(characters, f)
 
         print("Binary properties")
         supported_properties = write_binary_properties(characters, f)
 
-        write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
-
         emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
 
-
         f.write("}//namespace uni")
+
+    with open(sys.argv[2], "w") as f:
+        f.write("""
+#ifndef UNI_SINGLE_HEADER
+#pragma once
+#include "unicode.h"
+#endif
+namespace uni {
+""")
+        write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
+        f.write("}//namespace uni\n\n")
 
 
 

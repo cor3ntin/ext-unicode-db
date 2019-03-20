@@ -2454,7 +2454,7 @@ static constexpr std::array __cat_version_data_v10_0{
     std::pair{0x111C9, category::po}, std::pair{0x11A07, category::mc},
     std::pair{0x11A08, category::mc}};
 template<version v>
-constexpr category __get_category_for_version(char32_t cp, category c) {
+constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {
     if constexpr(v <= uni::version::v11_0) {
         const auto it =
             uni::lower_bound(__cat_version_data_v11_0.begin(), __cat_version_data_v11_0.end(), cp,
@@ -6046,118 +6046,6 @@ static constexpr __bool_trie<32, 991, 1, 0, 165, 255, 1, 0, 1407, 1, 0, 170> __p
      0x0000000000014000, 0x0000000001400000, 0x000000000a000000, 0x0000280000000000,
      0x0000000000200000, 0x0008000000000000, 0x0000000010000000, 0x0000000100000000,
      0x0000000080000000, 0x000000003fffffff}};
-static constexpr __bool_trie<32, 991, 1, 0, 74, 255, 1, 0, 449, 7, 56, 58> __prop_gr_ext_data{
-    {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
-     0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
-     0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
-     0xffffffffffffffff, 0x0000ffffffffffff, 0x0000000000000000, 0x0000000000000000,
-     0x0000000000000000, 0x0000000000000000, 0x00000000000003f8, 0x0000000000000000,
-     0x0000000000000000, 0x0000000000000000, 0xbffffffffffe0000, 0x00000000000000b6,
-     0x0000000007ff0000, 0x00010000fffff800, 0x0000000000000000, 0x00003d9f9fc00000,
-     0xffff000000020000, 0x00000000000007ff, 0x0001ffc000000000, 0x200ff80000000000},
-    {1,  2,  3,  4,  5,  6,  7,  8,  9,  8,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 2,  21, 22,
-     23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  33, 2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  34, 35, 36, 37, 38, 2,  39, 2,  40, 2,  2,  2,  41,
-     42, 43, 2,  44, 45, 46, 47, 48, 2,  2,  49, 2,  2,  2,  50, 2,  2,  2,  2,  2,  2,  2,  2,  51,
-     2,  2,  52, 2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  53, 2,  54, 2,  55, 2,  2,  2,  2,  2,  2,  2,  2,  56, 2,  57, 2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  58, 59, 60, 2,  2,  2,  2,  61, 2,  2,  62, 63, 64, 65, 66, 67,
-     68, 69, 70, 2,  2,  2,  71, 2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  72, 2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  73,
-     2,  2,  2,  2,  2,  59, 2},
-    {0x00003eeffbc00000, 0x000000000e000000, 0x0000000000000000, 0xfffffffbfff80000,
-     0x1400000000000007, 0x0000000c00fe21fe, 0x5000000000000002, 0x4000000c0080201e,
-     0x1000000000000006, 0x0023000000023986, 0xfc00000c000021be, 0xd000000000000002,
-     0x0000000c00c0201e, 0x4000000000000004, 0x0000000000802001, 0xc000000000000011,
-     0x0000000c00603dc1, 0x9000000000000002, 0x0000000c00603044, 0x5800000000000003,
-     0x0000000c0080201e, 0x00000000805c8400, 0x07f2000000000000, 0x0000000000007f80,
-     0x1ff2000000000000, 0x0000000000003f00, 0x02a0000003000000, 0x7ffe000000000000,
-     0x1ffffffffeffe0df, 0x0000000000000040, 0x66fde00000000000, 0x001e0001c3000000,
-     0x0000000020002064, 0x00000000e0000000, 0x001c0000001c0000, 0x000c0000000c0000,
-     0x3fb0000000000000, 0x00000000200ffe40, 0x0000000000003800, 0x0000020000000060,
-     0x0e04018700000000, 0x0000000009800000, 0x9ff81fe57f400000, 0x7fff000000000000,
-     0x17f000000000000f, 0x000ff80000000004, 0x00003b3c00000003, 0x0003a34000000000,
-     0x00cff00000000000, 0x031021fdfff70000, 0xfbffffffffffffff, 0x0000000000001000,
-     0x0001ffffffff0000, 0x0003800000000000, 0x8000000000000000, 0xffffffff00000000,
-     0x0000fc0000000000, 0x0000000006000000, 0x3ff7800000000000, 0x00000000c0000000,
-     0x0003000000000000, 0x0000006000000844, 0x8003ffff00000030, 0x00003fc000000000,
-     0x000000000003ff80, 0x33c8000000000007, 0x0000002000000000, 0x00667e0000000000,
-     0x1000000000001008, 0xc19d000000000000, 0x0040300000000002, 0x0000212000000000,
-     0x0000000040000000, 0x0000ffff0000ffff},
-    {1, 2, 2, 2, 2, 3, 2, 2, 2, 2, 4, 2, 5, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-    {1,  0,  0,  0,  2,  0, 3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  4,  0,  0,  5,  0,  0,  0,  0,  0,  0,  0,  0,  6,  0,  0,
-     0,  0,  0,  0,  0,  0, 7,  0,  0,  8,  9,  10, 0,  11, 12, 13, 14, 15, 0,  0,  16, 17, 18, 0,
-     0,  19, 20, 21, 22, 0, 0,  23, 24, 25, 26, 27, 0,  28, 0,  0,  0,  29, 0,  0,  0,  0,  0,  0,
-     30, 31, 32, 33, 0,  0, 0,  0,  0,  34, 0,  35, 0,  36, 37, 38, 0,  0,  0,  0,  39, 0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  40, 41, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 42, 43, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  44, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 45, 46, 0,  0,  47, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  48, 49, 50, 0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  51, 0,  0,  0,  41, 0,  0,
-     0,  0,  0,  0,  52, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  53, 0, 54, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     0,  0,  0,  0,  0,  0, 0,  0,  0,  55, 56, 0,  0,  56, 56, 56, 57},
-    {0x0000000000000000, 0x2000000000000000, 0x0000000100000000, 0x07c0000000000000,
-     0x870000000000f06e, 0x0000006000000000, 0x000000f000000000, 0x000000000001ffc0,
-     0xff00000000000002, 0x800000000000007f, 0x0678000000000003, 0x001fef8000000007,
-     0x0008000000000000, 0x7fc0000000000003, 0x0000000000001e00, 0x40d3800000000000,
-     0x000007f880000000, 0x5800000000000003, 0x001f1fc000800001, 0xff00000000000000,
-     0x000000004000005c, 0xa5f9000000000000, 0x000000000000000d, 0xb03c800000000000,
-     0x0000000030000001, 0xa7f8000000000000, 0x0000000000000001, 0x00bf280000000000,
-     0x00000fbce0000000, 0x06ff800000000000, 0x000000010cf00000, 0x79f80000000007fe,
-     0x000000000e7e0080, 0x00000000037ffc00, 0xbf7f000000000000, 0x006dfcfffffc0000,
-     0xb47e000000000000, 0x00000000000000bf, 0x0000000000a30000, 0x0018000000000000,
-     0x001f000000000000, 0x007f000000000000, 0x0000000000008000, 0x0000000000078000,
-     0x0000000060000000, 0xf807c3a000000000, 0x00003c0000000fe7, 0x000000000000001c,
-     0xf87fffffffffffff, 0x00201fffffffffff, 0x0000fffef8000010, 0x000007dbf9ffff7f,
-     0x0000f00000000000, 0x00000000007f0000, 0x00000000000007f0, 0xffffffff00000000,
-     0xffffffffffffffff, 0x0000ffffffffffff}};
 static constexpr __range_array __prop_hex_data = {
     0x00000000, 0x00003001, 0x00003A00, 0x00004101, 0x00004700, 0x00006101, 0x00006700,
     0x00FF1001, 0x00FF1A00, 0x00FF2101, 0x00FF2700, 0x00FF4101, 0x00FF4700};
@@ -7222,10 +7110,6 @@ constexpr bool cp_is<property::gr_base>(char32_t c) {
     return __prop_gr_base_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::gr_ext>(char32_t c) {
-    return __prop_gr_ext_data.lookup(c);
-}
-template<>
 constexpr bool cp_is<property::hex>(char32_t c) {
     return __prop_hex_data.lookup(c);
 }
@@ -7305,13 +7189,540 @@ template<>
 constexpr bool cp_is<property::xids>(char32_t c) {
     return __prop_xids_data.lookup(c);
 }
+static constexpr __bool_trie<32, 991, 1, 0, 149, 255, 1, 0, 1471, 1, 0, 158> __prop_assigned{
+    {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xfcffffffffffffff, 0xfffffffbffffd7f0, 0xffffffffffffffff,
+     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xfffeffffffffffff, 0xfffffffffe7fffff, 0xfffffffffffee7ff, 0x001f87ffffff00ff,
+     0xffffffffdfffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+     0xffffffffffffbfff, 0xffffffffffffe7ff, 0x0003ffffffffffff, 0xe7ffffffffffffff},
+    {1,   2,   3,   4,  4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14,  15,  16, 17, 18,  19,
+     20,  21,  22,  23, 24,  25,  26,  4,   27,  28,  29,  4,   4,   4,  30,  4,   4,  4,  4,   4,
+     31,  32,  33,  34, 35,  36,  37,  4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  38, 39,  40,
+     41,  4,   42,  43, 39,  44,  45,  46,  47,  48,  49,  50,  51,  52, 53,  4,   54, 4,  55,  56,
+     57,  58,  59,  4,  4,   4,   60,  4,   4,   4,   4,   61,  62,  63, 64,  4,   65, 66, 67,  4,
+     4,   68,  4,   4,  4,   4,   4,   4,   4,   4,   4,   69,  70,  4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     71,  72,  4,   73, 74,  4,   75,  76,  77,  78,  79,  4,   80,  81, 82,  4,   4,  4,  83,  4,
+     84,  85,  4,   86, 4,   87,  88,  74,  4,   4,   89,  4,   4,   4,  4,   90,  53, 91, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  92,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 93,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 94, 4,   95,
+     96,  97,  98,  93, 99,  53,  53,  53,  53,  53,  53,  100, 101, 53, 53,  53,  53, 53, 53,  102,
+     103, 102, 104, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 105, 53,  53, 53, 53,  53,
+     53,  53,  106, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 107, 53,  108, 109, 53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  110, 53, 111, 53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  112, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  113, 53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  114, 53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     110, 53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  113, 53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  115, 53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  116, 53,  99,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  117, 118, 53,  119, 53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  120, 121, 4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   122, 123, 4,   4,   4,   4,   124, 4,   4,  125, 4,   4,  4,  126, 127,
+     125, 4,   128, 4,  129, 4,   130, 131, 132, 4,   133, 134, 135, 4,  136, 4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
+     4,   4,   4,   4,  4,   4,   4,   4,   4,   88,  137, 53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
+     53,  53,  53,  4,  4,   4,   4,   4,   138, 4,   139, 140, 141, 4,  142, 4,   4,  4,  4,   4,
+     143, 144, 145, 36, 146, 4,   147, 84,  4,   89,  148},
+    {0x7fff3fffffffffff, 0x000007ff4fffffff, 0x3fdfffff00000000, 0xfffffffffff80000,
+     0xffffffffffffffff, 0xf3c5fdfffff99fef, 0x7fffffcfb080799f, 0xd36dfdfffff987ee,
+     0x007fffc05e023987, 0xf3edfdfffffbbfee, 0xfe03ffcf00013bbf, 0xf3edfdfffff99fee,
+     0x00ffffcfb0c0399f, 0xc3ffc718d63dc7ec, 0x07ffffc000813dc7, 0xe3fffdfffffddfff,
+     0xff80ffcf07603ddf, 0xf3effdfffffddfff, 0x0006ffcf40603ddf, 0xfffffffffffddfef,
+     0xffffffcffff0fddf, 0x2ffbfffffc7fffec, 0x001cffc0ff5f847f, 0x87fffffffffffffe,
+     0x000000000fffffff, 0x3fffffaffffff7d6, 0x00000000f3ff3f5f, 0xfffe1ffffffffeff,
+     0xdffffffffeffffff, 0x0000000007ffdfff, 0xffffffffffff20bf, 0xffffffff3d7f3dff,
+     0x7f3dffffffff3dff, 0xffffffffff7fff3d, 0xffffffffff3dffff, 0x1fffffffe7ffffff,
+     0xffffffff03ffffff, 0x3f3fffffffffffff, 0xffffffff1fffffff, 0x01ffffffffffffff,
+     0x007fffff001fdfff, 0x000ddfff000fffff, 0x03ff03ff3fffffff, 0xffffffff03ff7fff,
+     0xffff07ffffffffff, 0x003fffffffffffff, 0x0fff0fff7fffffff, 0x001f3ffffffffff1,
+     0xffff0fffffffffff, 0xffffffffc7ff03ff, 0xffffffffcfffffff, 0x9fffffff7fffffff,
+     0x7fff3fff03ff03ff, 0x0000000000000000, 0x1fffffffffff0fff, 0xf00fffffffffffff,
+     0xf8ffffffffffffff, 0xffffffffffffe3ff, 0xe7ffffffffff01ff, 0x07ffffffffff00ff,
+     0xfbffffffffffffff, 0xffffffff3f3fffff, 0x3fffffffaaff3f3f, 0xffdfffffffffffff,
+     0x7fdcffffefcfffdf, 0xfff3ffdfffffffff, 0xffffffff1fff7fff, 0x0001ffffffff0000,
+     0xffffffffffff0fff, 0x0000007fffffffff, 0xffffffff000007ff, 0xffcfffffffffffff,
+     0xffffffffff3fffff, 0xffff7fffffffffff, 0xffffffff7fffffff, 0xfe0fffffffffffff,
+     0xffff20bfffffffff, 0x800180ffffffffff, 0x7f7f7f7f007fffff, 0xffffffff7f7f7f7f,
+     0x000000000000ffff, 0xfffffffffbffffff, 0x000fffffffffffff, 0x0fff0000003fffff,
+     0xfffffffffffffffe, 0xfffffffffe7fffff, 0xfffeffffffffffe0, 0x07ffffffffff7fff,
+     0xffff000fffffffff, 0x7fffffffffffffff, 0x0000000000000028, 0x000000000000000a,
+     0x0000050000000000, 0x0000000000002800, 0x0010000000000000, 0x00000000000003ab,
+     0x0000000028000000, 0xa000000000741400, 0x00000140a0000001, 0x0001400000000000,
+     0x0000000000000014, 0x00003e8000000050, 0x8000000000000000, 0x000000000000143e,
+     0x000000000000001e, 0x000000000a000000, 0x0282800000000000, 0x0500000000000000,
+     0xd000000000000000, 0x000000000001f400, 0x5000000000000000, 0x0000000000001400,
+     0x0000000000050000, 0x0000000000000050, 0x0000000000500000, 0x0000140000000000,
+     0x000a500000000000, 0x0000000280000000, 0x0140000000001450, 0x0050000000000000,
+     0x0400001000000000, 0x0000420000101404, 0xffffffffffff1fff, 0xffffffffffff007f,
+     0x00000fffffffffff, 0x00ffffffffffffff, 0xff8000000000007c, 0x03ff0fffffffffff,
+     0xffffffff03ffc03f, 0x1fffffff800fffff, 0x7fffffffc3ffbfff, 0x007fffffffffffff,
+     0xfffffffff3ff3fff, 0x007ffffff8000007, 0xffff7f7f007e7e7e, 0xffff00ffffffffff,
+     0x03ff3fffffffffff, 0x0ffffffffffff87f, 0xffff3fffffffffff, 0x0000000003ffffff,
+     0x5f7fffffe0f8007f, 0xffffffffffffffdb, 0xfffffffffff80003, 0xffffffffffff0000,
+     0xfffffffffffcffff, 0x3fff0000000000ff, 0xffdf0f7ffff7ffff, 0x9fffffffffffffff,
+     0x3e007f7f1cfcfcfc},
+    {1,  2,  3, 4,  5,  6, 7, 8, 5, 5, 9, 5, 10, 11, 12, 13, 5, 14, 15, 5, 5, 16, 5, 5, 5, 17,
+     18, 19, 5, 20, 21, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 22,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
+     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5},
+    {1,   2,   3,   4,   2,   5,   6,   7,   7,   8,   9,   10,  11,  12,  13,  2,   2,   14,  15,
+     16,  17,  7,   7,   2,   2,   2,   2,   18,  19,  7,   7,   20,  21,  22,  23,  24,  7,   25,
+     26,  27,  28,  29,  30,  31,  32,  33,  7,   2,   34,  35,  36,  37,  7,   7,   7,   7,   38,
+     7,   7,   16,  39,  7,   40,  2,   41,  2,   42,  43,  44,  2,   45,  46,  7,   47,  48,  49,
+     50,  7,   7,   2,   51,  2,   52,  7,   7,   53,  54,  2,   55,  56,  57,  58,  7,   7,   7,
+     59,  7,   60,  61,  7,   7,   62,  63,  2,   64,  65,  56,  7,   7,   7,   7,   66,  67,  68,
+     7,   69,  70,  71,  7,   7,   7,   7,   72,  7,   7,   7,   73,  2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   39,  7,   2,   74,  2,   2,   2,   75,  7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   76,  7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   77,  7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,
+     2,   2,   2,   2,   2,   56,  78,  7,   79,  2,   80,  81,  7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   2,   82,  7,   2,   83,  84,  85,  2,   2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   86,  2,   2,   2,   2,   2,   2,   2,   2,
+     2,   2,   2,   35,  7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   2,   2,   2,   2,   87,  88,  2,   2,   2,   2,   2,   59,  7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   89,  90,  7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   91,  92,  2,   2,
+     93,  2,   94,  7,   95,  2,   96,  7,   7,   2,   97,  98,  99,  100, 101, 2,   2,   2,   2,
+     102, 2,   2,   2,   2,   103, 2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   104, 7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     105, 7,   7,   7,   106, 107, 7,   7,   7,   7,   7,   108, 7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   109, 2,   110,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   111, 112, 7,   113, 7,   7,   7,   114,
+     115, 116, 117, 7,   7,   7,   7,   118, 2,   119, 120, 121, 122, 123, 124, 125, 126, 7,   7,
+     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   127, 2,   128, 2,
+     129, 130, 131, 132, 7,   133, 134, 135, 136, 2,   137, 138, 7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   139, 140, 7,   141, 142,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   143, 7,   144, 7,   7,   7,   7,
+     145, 146, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   147, 7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   148, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   149, 7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   150, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   151, 7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   152, 7,   7,   7,   153, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     154, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   155, 7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   54,  7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   156, 2,   7,   7,   2,   2,   2,   157, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+     7,   7,   7,   7,   7,   7,   7,   7},
+    {0xb7ffff7fffffefff, 0x000000003fff3fff, 0xffffffffffffffff, 0x07ffffffffffffff,
+     0xff8fffffffffff87, 0x000000010fff7fff, 0x3fffffffffff0000, 0x0000000000000000,
+     0xffffffff1fffffff, 0x0fffffff0001ffff, 0xffffe00fffffffff, 0x07ffffffffff07ff,
+     0xffffffffbfffffff, 0x00000000003fff0f, 0xffff03ff3fffffff, 0x0fffffffff0fffff,
+     0xffff00ffffffffff, 0x0000800fffffffff, 0x007fffffffffffff, 0x000000ff003fffff,
+     0x91bffffffffffd3f, 0xffffffffffbfffff, 0x0000ff807fffffff, 0xf837ffff00000000,
+     0x83ffffff8fffffff, 0xf0ffffffffffffff, 0xfffffffffffcffff, 0x873ffffffeeff06f,
+     0xffffffff01ff01ff, 0x00000000ffffffff, 0x007ff87fffffffff, 0xfe3fffffffffffff,
+     0xff07ffffff3fffff, 0x0000fe001e03ffff, 0x00000000000001ff, 0x0007ffffffffffff,
+     0xfc07ffffffffffff, 0x03ff00ffffffffff, 0x7fffffff00000000, 0x0000000003ffffff,
+     0x007fffff00000000, 0x8000fffffffc3fff, 0x03ff01ffffff2003, 0xffdfffffffffffff,
+     0x007fffffffff007f, 0x001ffffeffff3fff, 0x7ffffffffffbffff, 0xffff03ffbfffbd7f,
+     0x03ff07ffffffffff, 0xfbedfdfffff99fef, 0x001f1fcfe081399f, 0x00000000ebffffff,
+     0x0000000003ff00ff, 0xff3fffffffffffff, 0x000000003fffffff, 0x00001fff03ff001f,
+     0x01ffffffffffffff, 0x00000000000003ff, 0xffff0fffe7ffffff, 0x0fffffffffffffff,
+     0xffffffff00000000, 0x8007ffffffffffff, 0xfffffcff00000000, 0x0000001ffcffffff,
+     0xffffffffffff00ff, 0x00000007ffffffff, 0xff7ffffffffffdff, 0xffff1fffffff003f,
+     0x007ffefffffcffff, 0xb47ffffffffffb7f, 0xfffffdbf03ff00ff, 0x000003ff01fb7fff,
+     0x01ffffff00000000, 0x8003ffffffffffff, 0x001f7fffffffffff, 0x000000000000000f,
+     0x01ff7fffffffffff, 0x000000000000007f, 0x0000c3ff7fffffff, 0x003f3fffffff0000,
+     0xe0fffffbfbff003f, 0x000000000000ffff, 0x0000000007ffffff, 0xffffffffffff87ff,
+     0x00000000ffff80ff, 0x0000000f00000000, 0x00ffffffffffffff, 0x000000007fffffff,
+     0xffff00f000070000, 0x1fff07ffffffffff, 0x0000000ff3ff01ff, 0x003fffffffffffff,
+     0xfffffe7fffffffff, 0x000001ffffffffff, 0x000000000000003f, 0x000fffff00000000,
+     0x01ffffff007fffff, 0xffffffffffdfffff, 0xebffde64dfffffff, 0xffffffffffffffef,
+     0x7bffffffdfdfe7bf, 0xfffffffffffdfc5f, 0xffffff3fffffffff, 0xffffffffffffcfff,
+     0x0000fffef8000fff, 0x000007dbf9ffff7f, 0x3fff1fffffffffff, 0x000000000000c3ff,
+     0x83ffffffffffffff, 0x00000000007fff9f, 0x00000000c3ff0fff, 0xfffe000000000000,
+     0x001fffffffffffff, 0x3ffffffffffffffe, 0x0af7fe96ffffffef, 0x5ef7f796aa96ea84,
+     0x0ffffbee0ffffbff, 0x0003000000000000, 0xffff0fffffffffff, 0xfffe7fff000fffff,
+     0x003ffffffffefffe, 0xffffffffffff1fff, 0xffff1fffffffffff, 0x00001fffffffffff,
+     0xffffffc000000000, 0x0fffffffffff0007, 0x0000003f000301ff, 0x07ff1fff003fffff,
+     0x000fffffffffffff, 0x00000fff01ffffff, 0xffffffffffff0fff, 0xffffffff03ff00ff,
+     0x00003fffffff00ff, 0xffffffffffffefff, 0xfc7bffffffffffff, 0xffffc7e7ffffffff,
+     0xffffffffffffe7ff, 0x070f3fff000fffff, 0x00000000003f0007, 0x0000000000000003,
+     0x0000001400000000, 0x0000000500000000, 0x0000000280000000, 0x0000050000000000,
+     0x000000001400140a, 0x2800050000000000, 0x0000000002800000, 0x0000000000014000,
+     0x0000000001400000, 0x000000000a000000, 0x0000280000000000, 0x0000000000200000,
+     0x0008000000000000, 0x0000000010000000, 0x0000000100000000, 0x0000000080000000,
+     0xffffffff00000002, 0x0000ffffffffffff}};
+}    // namespace uni
+#ifndef UNI_SINGLE_HEADER
+#    pragma once
+#    include "props.h"
+#endif
+#include <string_view>
+
+namespace uni {
+
+enum class property;
+
+
+template<uni::version v>
+constexpr category cp_category(char32_t cp) {
+    static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return category::cn;
+    }
+    if(cp > 0x10FFFF)
+        return category::unassigned;
+    return __get_category<uni::version::latest_version>(cp);
+}
+
+constexpr uni::version __age_from_string(std::string_view a) {
+    for(std::size_t i = 0; i < __age_strings.size(); ++i) {
+        const auto res = __pronamecomp(a, __age_strings[i]);
+        if(res == 0)
+            return uni::version(i);
+    }
+    return uni::version::unassigned;
+}
+
+constexpr category __category_from_string(const std::string_view s) {
+    for(std::size_t i = 0; i < __categories_names.size(); ++i) {
+        const auto& c = __categories_names[i];
+        const auto res = __pronamecomp(s, c.name);
+        if(res == 0)
+            return category(c.value);
+    }
+    return category::unassigned;
+}
+
+constexpr block __block_from_string(const std::string_view s) {
+    for(std::size_t i = 0; i < __blocks_names.size(); ++i) {
+        const auto& c = __blocks_names[i];
+        const auto res = __pronamecomp(s, c.name);
+        if(res == 0)
+            return block(c.value);
+    }
+    return block::no_block;
+}
+
+constexpr script __script_from_string(const std::string_view s) {
+    for(std::size_t i = 0; i < __scripts_names.size(); ++i) {
+        const auto& c = __scripts_names[i];
+        const auto res = __pronamecomp(s, c.name);
+        if(res == 0)
+            return script(c.value);
+    }
+    return script::unknown;
+}
+
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr script cp_script(char32_t cp) {
+    static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return script::zzzz;
+    }
+    return __cp_script<0, v>(cp);
+}
+
+template<uni::version v = uni::version::standard_unicode_version>
+struct script_extensions_view {
+    constexpr script_extensions_view(char32_t c) : c(c){};
+
+    struct sentinel {};
+    struct iterator {
+
+        using value_type = script;
+        using iterator_category = std::forward_iterator_tag;
+
+        constexpr iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
+            if(m_script == script::unknown)
+                m_script = __cp_script<0, v>(m_c);
+        }
+        constexpr script operator*() const {
+            return m_script;
+        };
+
+        constexpr iterator& operator++(int) {
+            idx++;
+            m_script = __get_cp_script<v>(m_c, idx);
+            return this;
+        }
+
+        constexpr iterator operator++() {
+            auto c = *this;
+            idx++;
+            m_script = __get_cp_script<v>(m_c, idx);
+            return c;
+        }
+
+        constexpr bool operator==(sentinel) const {
+            return m_script == script::unknown;
+        };
+        constexpr bool operator!=(sentinel) const {
+            return m_script != script::unknown;
+        };
+        constexpr bool operator==(iterator it) const {
+            return m_script == it.m_script && m_c == it.m_c;
+        };
+        constexpr bool operator!=(iterator it) const {
+            return !(*this == it);
+        };
+
+    private:
+        char32_t m_c;
+        script m_script;
+        int idx = 1;
+    };
+
+    constexpr iterator begin() const {
+        return iterator{c};
+    }
+    constexpr sentinel end() const {
+        return {};
+    }
+
+private:
+    char32_t c;
+};
+
+template<uni::version v = uni::version::standard_unicode_version>
+constexpr auto cp_script_extensions(char32_t cp) {
+    static_assert(v >= uni::version::minimum_version,
+                  "This version of the Unicode Database is not supported");
+    if constexpr(v != uni::version::latest_version) {
+        if(cp_age(cp) > v)
+            return script::zzzz;
+    }
+    return script_extensions_view<v>(cp);
+}
+
+
+constexpr version cp_age(char32_t cp) {
+    return static_cast<version>(uni::__age_data.value(cp, uint8_t(version::unassigned)));
+}
+
+constexpr block cp_block(char32_t cp) {
+    const auto end = __block_data._data.end();
+    auto it = uni::upper_bound(__block_data._data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        char32_t c = (v >> 8);
+        return cp < c;
+    });
+    if(it == end)
+        return block::no_block;
+    it--;
+    auto offset = (*it) & 0xFF;
+    if(offset == 0)
+        return block::no_block;
+    offset--;
+
+    const auto d = std::distance(__block_data._data.begin(), it);
+    return uni::block((d - offset) + 1);
+}
+
+template<>
+constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
+    return (char32_t(cp) & 0xfffe) == 0xfffe || (char32_t(cp) >= 0xfdd0 && char32_t(cp) <= 0xfdef);
+}
+
+// http://unicode.org/reports/tr44/#Lowercase
+template<>
+constexpr bool cp_is<property::lowercase>(char32_t cp) {
+    return uni::__cat_ll.lookup(char32_t(cp)) || uni::__prop_olower_data.lookup(char32_t(cp));
+}
+
+// http://unicode.org/reports/tr44/#Uppercase
+template<>
+constexpr bool cp_is<property::uppercase>(char32_t cp) {
+    return uni::__cat_lu.lookup(char32_t(cp)) || uni::__prop_oupper_data.lookup(char32_t(cp));
+}
+
+// http://unicode.org/reports/tr44/#Cased
+template<>
+constexpr bool cp_is<property::cased>(char32_t cp) {
+    return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
+           uni::__cat_lt.lookup(char32_t(cp));
+}
+
+// http://unicode.org/reports/tr44/#Math
+template<>
+constexpr bool cp_is<property::math>(char32_t cp) {
+    return uni::__cat_sm.lookup(char32_t(cp)) || __prop_omath_data.lookup(cp);
+}
+
+// http://unicode.org/reports/tr44/#Case_Ignorable
+template<>
+constexpr bool cp_is<property::case_ignorable>(char32_t) {
+    return false;
+}
+
+
+// http://unicode.org/reports/tr44/#Grapheme_Extend
+template<>
+constexpr bool cp_is<property::grapheme_extend>(char32_t cp) {
+    return uni::__cat_me.lookup(char32_t(cp)) || uni::__cat_mn.lookup(char32_t(cp)) ||
+           __prop_ogr_ext_data.lookup(cp);
+}
+
+constexpr bool cp_is_valid(char32_t cp) {
+    return char32_t(cp) <= 0x10FFFF;
+}
+constexpr bool cp_is_assigned(char32_t cp) {
+    return uni::__prop_assigned.lookup(char32_t(cp));
+}
+
+constexpr bool cp_is_ascii(char32_t cp) {
+    return char32_t(cp) <= 0x7F;
+}
+
+template<>
+constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
+    const auto c = char32_t(cp);
+    const bool maybe = uni::__prop_odi_data.lookup(cp) || uni::__cat_cf.lookup(cp) ||
+                       uni::__prop_vs_data.lookup(cp);
+    if(!maybe)
+        return false;
+    // ignore (Interlinear annotation format characters
+    if(c >= 0xFFF9 && c <= 0xFFFB) {
+        return false;
+    }
+    // Ignore Egyptian hieroglyph format characters
+    else if(c >= 0x13430 && c <= 0x13438) {
+        return false;
+    } else if(uni::__prop_wspace_data.lookup(cp))
+        return false;
+    else if(uni::__prop_pcm_data.lookup(cp))
+        return false;
+    return true;
+}
+
+// http://www.unicode.org/reports/tr31/#D1
+template<>
+constexpr bool cp_is<property::id_start>(char32_t cp) {
+    const bool maybe =
+        cp_is<category::letter>(cp) || __cat_nl.lookup(cp) || __prop_oids_data.lookup(cp);
+    if(!maybe)
+        return false;
+    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
+}
+
+template<>
+constexpr bool cp_is<property::id_continue>(char32_t cp) {
+    const bool maybe = cp_is<category::letter>(cp) || __cat_nl.lookup(cp) ||
+                       __prop_oids_data.lookup(cp) || __cat_mn.lookup(cp) || __cat_mc.lookup(cp) ||
+                       __cat_nd.lookup(cp) || __cat_pc.lookup(cp) || __prop_oidc_data.lookup(cp);
+    if(!maybe)
+        return false;
+    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
+}
+
+template<typename Array, typename Res = long long>
+constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
+    auto it = uni::lower_bound(array.begin(), array.end(), cp,
+                               [](const auto& d, char32_t cp) { return d.first < cp; });
+    if(it == array.end() || it->first != cp)
+        return false;
+    res = it->second;
+    return true;
+}
+
+constexpr numeric_value cp_numeric_value(char32_t cp) {
+    long long res = 0;
+    if(!(_get_numeric_value(cp, __numeric_data64, res) ||
+             _get_numeric_value(cp, __numeric_data32, res) ||
+             _get_numeric_value(cp, __numeric_data16, res) || [&res, cp]() -> bool {
+           res = __numeric_data8.value(cp, 255);
+           return res != 255;
+       }())) {
+        return {};
+    }
+    uint16_t d = 1;
+    _get_numeric_value(cp, __numeric_data_d, d);
+    return numeric_value(res, d);
+}
+
+
+}    // namespace uni
+
+#ifndef UNI_SINGLE_HEADER
+#    pragma once
+#    include "unicode.h"
+#endif
+namespace uni {
 enum class __binary_prop {
     ahex,
     alpha,
     bidi_c,
     bidi_m,
+    cased,
+    ci,
     dash,
     dep,
+    di,
     dia,
     emoji,
     emoji_component,
@@ -7323,11 +7734,16 @@ enum class __binary_prop {
     gr_base,
     gr_ext,
     hex,
+    idc,
     ideo,
+    ids,
     idsb,
     idst,
     join_c,
     loe,
+    lower,
+    math,
+    nchar,
     pat_syn,
     pat_ws,
     pcm,
@@ -7338,6 +7754,7 @@ enum class __binary_prop {
     sterm,
     term,
     uideo,
+    upper,
     vs,
     wspace,
     xidc,
@@ -7543,7 +7960,7 @@ enum class __binary_prop {
 template<uni::__binary_prop p>
 constexpr bool __get_binary_prop(char32_t) = delete;
 // Forward declared - defined in unicode.h
-template<uni::version v = uni::version::standard_unicode_version>
+template<uni::version v>
 constexpr script cp_script(char32_t cp);
 
 template<>
@@ -7567,6 +7984,16 @@ constexpr bool __get_binary_prop<__binary_prop::bidi_m>(char32_t c) {
 }
 
 template<>
+constexpr bool __get_binary_prop<__binary_prop::cased>(char32_t c) {
+    return cp_is<property::cased>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::ci>(char32_t c) {
+    return cp_is<property::ci>(c);
+}
+
+template<>
 constexpr bool __get_binary_prop<__binary_prop::dash>(char32_t c) {
     return cp_is<property::dash>(c);
 }
@@ -7574,6 +8001,11 @@ constexpr bool __get_binary_prop<__binary_prop::dash>(char32_t c) {
 template<>
 constexpr bool __get_binary_prop<__binary_prop::dep>(char32_t c) {
     return cp_is<property::dep>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::di>(char32_t c) {
+    return cp_is<property::di>(c);
 }
 
 template<>
@@ -7632,8 +8064,18 @@ constexpr bool __get_binary_prop<__binary_prop::hex>(char32_t c) {
 }
 
 template<>
+constexpr bool __get_binary_prop<__binary_prop::idc>(char32_t c) {
+    return cp_is<property::idc>(c);
+}
+
+template<>
 constexpr bool __get_binary_prop<__binary_prop::ideo>(char32_t c) {
     return cp_is<property::ideo>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::ids>(char32_t c) {
+    return cp_is<property::ids>(c);
 }
 
 template<>
@@ -7654,6 +8096,21 @@ constexpr bool __get_binary_prop<__binary_prop::join_c>(char32_t c) {
 template<>
 constexpr bool __get_binary_prop<__binary_prop::loe>(char32_t c) {
     return cp_is<property::loe>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::lower>(char32_t c) {
+    return cp_is<property::lower>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::math>(char32_t c) {
+    return cp_is<property::math>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::nchar>(char32_t c) {
+    return cp_is<property::nchar>(c);
 }
 
 template<>
@@ -7704,6 +8161,11 @@ constexpr bool __get_binary_prop<__binary_prop::term>(char32_t c) {
 template<>
 constexpr bool __get_binary_prop<__binary_prop::uideo>(char32_t c) {
     return cp_is<property::uideo>(c);
+}
+
+template<>
+constexpr bool __get_binary_prop<__binary_prop::upper>(char32_t c) {
+    return cp_is<property::upper>(c);
 }
 
 template<>
@@ -8686,740 +9148,478 @@ constexpr bool __get_binary_prop<__binary_prop::zzzz>(char32_t c) {
     return cp_script(c) == script::zzzz;
 }
 static constexpr const std::array __binary_prop_names = {
-    __string_with_idx{"adlam", 77},
-    __string_with_idx{"adlm", 77},
-    __string_with_idx{"aghb", 78},
+    __string_with_idx{"adlam", 86},
+    __string_with_idx{"adlm", 86},
+    __string_with_idx{"aghb", 87},
     __string_with_idx{"ahex", 0},
-    __string_with_idx{"ahom", 79},
+    __string_with_idx{"ahom", 88},
     __string_with_idx{"alpha", 1},
     __string_with_idx{"alphabetic", 1},
-    __string_with_idx{"anatolian_hieroglyphs", 126},
-    __string_with_idx{"any", 36},
-    __string_with_idx{"arab", 80},
-    __string_with_idx{"arabic", 80},
-    __string_with_idx{"armenian", 82},
-    __string_with_idx{"armi", 81},
-    __string_with_idx{"armn", 82},
-    __string_with_idx{"ascii", 37},
+    __string_with_idx{"anatolian_hieroglyphs", 135},
+    __string_with_idx{"any", 45},
+    __string_with_idx{"arab", 89},
+    __string_with_idx{"arabic", 89},
+    __string_with_idx{"armenian", 91},
+    __string_with_idx{"armi", 90},
+    __string_with_idx{"armn", 91},
+    __string_with_idx{"ascii", 46},
     __string_with_idx{"ascii_hex_digit", 0},
-    __string_with_idx{"assigned", 38},
-    __string_with_idx{"avestan", 83},
-    __string_with_idx{"avst", 83},
-    __string_with_idx{"bali", 84},
-    __string_with_idx{"balinese", 84},
-    __string_with_idx{"bamu", 85},
-    __string_with_idx{"bamum", 85},
-    __string_with_idx{"bass", 86},
-    __string_with_idx{"bassa_vah", 86},
-    __string_with_idx{"batak", 87},
-    __string_with_idx{"batk", 87},
-    __string_with_idx{"beng", 88},
-    __string_with_idx{"bengali", 88},
-    __string_with_idx{"bhaiksuki", 89},
-    __string_with_idx{"bhks", 89},
+    __string_with_idx{"assigned", 47},
+    __string_with_idx{"avestan", 92},
+    __string_with_idx{"avst", 92},
+    __string_with_idx{"bali", 93},
+    __string_with_idx{"balinese", 93},
+    __string_with_idx{"bamu", 94},
+    __string_with_idx{"bamum", 94},
+    __string_with_idx{"bass", 95},
+    __string_with_idx{"bassa_vah", 95},
+    __string_with_idx{"batak", 96},
+    __string_with_idx{"batk", 96},
+    __string_with_idx{"beng", 97},
+    __string_with_idx{"bengali", 97},
+    __string_with_idx{"bhaiksuki", 98},
+    __string_with_idx{"bhks", 98},
     __string_with_idx{"bidi_c", 2},
     __string_with_idx{"bidi_control", 2},
     __string_with_idx{"bidi_m", 3},
     __string_with_idx{"bidi_mirrored", 3},
-    __string_with_idx{"bopo", 90},
-    __string_with_idx{"bopomofo", 90},
-    __string_with_idx{"brah", 91},
-    __string_with_idx{"brahmi", 91},
-    __string_with_idx{"brai", 92},
-    __string_with_idx{"braille", 92},
-    __string_with_idx{"bugi", 93},
-    __string_with_idx{"buginese", 93},
-    __string_with_idx{"buhd", 94},
-    __string_with_idx{"buhid", 94},
-    __string_with_idx{"c", 39},
-    __string_with_idx{"cakm", 95},
-    __string_with_idx{"canadian_aboriginal", 96},
-    __string_with_idx{"cans", 96},
-    __string_with_idx{"cari", 97},
-    __string_with_idx{"carian", 97},
-    __string_with_idx{"cased_letter", 46},
-    __string_with_idx{"caucasian_albanian", 78},
-    __string_with_idx{"cc", 40},
-    __string_with_idx{"cf", 41},
-    __string_with_idx{"chakma", 95},
-    __string_with_idx{"cham", 98},
-    __string_with_idx{"cher", 99},
-    __string_with_idx{"cherokee", 99},
-    __string_with_idx{"close_punctuation", 63},
-    __string_with_idx{"cn", 42},
-    __string_with_idx{"co", 43},
-    __string_with_idx{"common", 229},
-    __string_with_idx{"connector_punctuation", 61},
-    __string_with_idx{"control", 40},
-    __string_with_idx{"copt", 100},
-    __string_with_idx{"coptic", 100},
-    __string_with_idx{"cprt", 101},
-    __string_with_idx{"cs", 44},
-    __string_with_idx{"cuneiform", 225},
-    __string_with_idx{"currency_symbol", 69},
-    __string_with_idx{"cypriot", 101},
-    __string_with_idx{"cyrillic", 102},
-    __string_with_idx{"cyrl", 102},
-    __string_with_idx{"dash", 4},
-    __string_with_idx{"dash_punctuation", 62},
-    __string_with_idx{"decimal_number", 57},
-    __string_with_idx{"dep", 5},
-    __string_with_idx{"deprecated", 5},
-    __string_with_idx{"deseret", 105},
-    __string_with_idx{"deva", 103},
-    __string_with_idx{"devanagari", 103},
-    __string_with_idx{"dia", 6},
-    __string_with_idx{"diacritic", 6},
-    __string_with_idx{"dogr", 104},
-    __string_with_idx{"dogra", 104},
-    __string_with_idx{"dsrt", 105},
-    __string_with_idx{"dupl", 106},
-    __string_with_idx{"duployan", 106},
-    __string_with_idx{"egyp", 107},
-    __string_with_idx{"egyptian_hieroglyphs", 107},
-    __string_with_idx{"elba", 108},
-    __string_with_idx{"elbasan", 108},
-    __string_with_idx{"elym", 109},
-    __string_with_idx{"elymaic", 109},
-    __string_with_idx{"emoji", 7},
-    __string_with_idx{"emoji_component", 8},
-    __string_with_idx{"emoji_modifier", 9},
-    __string_with_idx{"emoji_modifier_base", 10},
-    __string_with_idx{"emoji_presentation", 11},
-    __string_with_idx{"enclosing_mark", 54},
-    __string_with_idx{"ethi", 110},
-    __string_with_idx{"ethiopic", 110},
-    __string_with_idx{"ext", 12},
-    __string_with_idx{"extended_pictographic", 13},
-    __string_with_idx{"extender", 12},
-    __string_with_idx{"final_punctuation", 64},
-    __string_with_idx{"format", 41},
-    __string_with_idx{"geor", 111},
-    __string_with_idx{"georgian", 111},
-    __string_with_idx{"glag", 112},
-    __string_with_idx{"glagolitic", 112},
-    __string_with_idx{"gong", 113},
-    __string_with_idx{"gonm", 114},
-    __string_with_idx{"goth", 115},
-    __string_with_idx{"gothic", 115},
-    __string_with_idx{"gr_base", 14},
-    __string_with_idx{"gr_ext", 15},
-    __string_with_idx{"gran", 116},
-    __string_with_idx{"grantha", 116},
-    __string_with_idx{"grapheme_base", 14},
-    __string_with_idx{"grapheme_extend", 15},
-    __string_with_idx{"greek", 117},
-    __string_with_idx{"grek", 117},
-    __string_with_idx{"gujarati", 118},
-    __string_with_idx{"gujr", 118},
-    __string_with_idx{"gunjala_gondi", 113},
-    __string_with_idx{"gurmukhi", 119},
-    __string_with_idx{"guru", 119},
-    __string_with_idx{"han", 121},
-    __string_with_idx{"hang", 120},
-    __string_with_idx{"hangul", 120},
-    __string_with_idx{"hani", 121},
-    __string_with_idx{"hanifi_rohingya", 188},
-    __string_with_idx{"hano", 122},
-    __string_with_idx{"hanunoo", 122},
-    __string_with_idx{"hatr", 123},
-    __string_with_idx{"hatran", 123},
-    __string_with_idx{"hebr", 124},
-    __string_with_idx{"hebrew", 124},
-    __string_with_idx{"hex", 16},
-    __string_with_idx{"hex_digit", 16},
-    __string_with_idx{"hira", 125},
-    __string_with_idx{"hiragana", 125},
-    __string_with_idx{"hluw", 126},
-    __string_with_idx{"hmng", 127},
-    __string_with_idx{"hmnp", 128},
-    __string_with_idx{"hrkt", 129},
-    __string_with_idx{"hung", 130},
-    __string_with_idx{"ideo", 17},
-    __string_with_idx{"ideographic", 17},
-    __string_with_idx{"ids_binary_operator", 18},
-    __string_with_idx{"ids_trinary_operator", 19},
-    __string_with_idx{"idsb", 18},
-    __string_with_idx{"idst", 19},
-    __string_with_idx{"imperial_aramaic", 81},
-    __string_with_idx{"inherited", 228},
-    __string_with_idx{"initial_punctuation", 65},
-    __string_with_idx{"inscriptional_pahlavi", 182},
-    __string_with_idx{"inscriptional_parthian", 186},
-    __string_with_idx{"ital", 131},
-    __string_with_idx{"java", 132},
-    __string_with_idx{"javanese", 132},
-    __string_with_idx{"join_c", 20},
-    __string_with_idx{"join_control", 20},
-    __string_with_idx{"kaithi", 139},
-    __string_with_idx{"kali", 133},
-    __string_with_idx{"kana", 134},
-    __string_with_idx{"kannada", 138},
-    __string_with_idx{"katakana", 134},
-    __string_with_idx{"katakana_or_hiragana", 129},
-    __string_with_idx{"kayah_li", 133},
-    __string_with_idx{"khar", 135},
-    __string_with_idx{"kharoshthi", 135},
-    __string_with_idx{"khmer", 136},
-    __string_with_idx{"khmr", 136},
-    __string_with_idx{"khoj", 137},
-    __string_with_idx{"khojki", 137},
-    __string_with_idx{"khudawadi", 197},
-    __string_with_idx{"knda", 138},
-    __string_with_idx{"kthi", 139},
-    __string_with_idx{"l", 45},
-    __string_with_idx{"lana", 140},
-    __string_with_idx{"lao", 141},
-    __string_with_idx{"laoo", 141},
-    __string_with_idx{"latin", 142},
-    __string_with_idx{"latn", 142},
-    __string_with_idx{"lc", 46},
-    __string_with_idx{"lepc", 143},
-    __string_with_idx{"lepcha", 143},
-    __string_with_idx{"letter", 45},
-    __string_with_idx{"letter_number", 58},
-    __string_with_idx{"limb", 144},
-    __string_with_idx{"limbu", 144},
-    __string_with_idx{"lina", 145},
-    __string_with_idx{"linb", 146},
-    __string_with_idx{"line_separator", 74},
-    __string_with_idx{"linear_a", 145},
-    __string_with_idx{"linear_b", 146},
-    __string_with_idx{"lisu", 147},
-    __string_with_idx{"ll", 47},
-    __string_with_idx{"lm", 48},
-    __string_with_idx{"lo", 49},
-    __string_with_idx{"loe", 21},
-    __string_with_idx{"logical_order_exception", 21},
-    __string_with_idx{"lowercase_letter", 47},
-    __string_with_idx{"lt", 50},
-    __string_with_idx{"lu", 51},
-    __string_with_idx{"lyci", 148},
-    __string_with_idx{"lycian", 148},
-    __string_with_idx{"lydi", 149},
-    __string_with_idx{"lydian", 149},
-    __string_with_idx{"m", 52},
-    __string_with_idx{"mahajani", 150},
-    __string_with_idx{"mahj", 150},
-    __string_with_idx{"maka", 151},
-    __string_with_idx{"makasar", 151},
-    __string_with_idx{"malayalam", 159},
-    __string_with_idx{"mand", 152},
-    __string_with_idx{"mandaic", 152},
-    __string_with_idx{"mani", 153},
-    __string_with_idx{"manichaean", 153},
-    __string_with_idx{"marc", 154},
-    __string_with_idx{"marchen", 154},
-    __string_with_idx{"mark", 52},
-    __string_with_idx{"masaram_gondi", 114},
-    __string_with_idx{"math_symbol", 71},
-    __string_with_idx{"mc", 53},
-    __string_with_idx{"me", 54},
-    __string_with_idx{"medefaidrin", 155},
-    __string_with_idx{"medf", 155},
-    __string_with_idx{"meetei_mayek", 163},
-    __string_with_idx{"mend", 156},
-    __string_with_idx{"mende_kikakui", 156},
-    __string_with_idx{"merc", 157},
-    __string_with_idx{"mero", 158},
-    __string_with_idx{"meroitic_cursive", 157},
-    __string_with_idx{"meroitic_hieroglyphs", 158},
-    __string_with_idx{"miao", 185},
-    __string_with_idx{"mlym", 159},
-    __string_with_idx{"mn", 55},
-    __string_with_idx{"modi", 160},
-    __string_with_idx{"modifier_letter", 48},
-    __string_with_idx{"modifier_symbol", 70},
-    __string_with_idx{"mong", 161},
-    __string_with_idx{"mongolian", 161},
-    __string_with_idx{"mro", 162},
-    __string_with_idx{"mroo", 162},
-    __string_with_idx{"mtei", 163},
-    __string_with_idx{"mult", 164},
-    __string_with_idx{"multani", 164},
-    __string_with_idx{"myanmar", 165},
-    __string_with_idx{"mymr", 165},
-    __string_with_idx{"n", 56},
-    __string_with_idx{"nabataean", 168},
-    __string_with_idx{"nand", 166},
-    __string_with_idx{"nandinagari", 166},
-    __string_with_idx{"narb", 167},
-    __string_with_idx{"nbat", 168},
-    __string_with_idx{"nd", 57},
-    __string_with_idx{"new_tai_lue", 209},
-    __string_with_idx{"newa", 169},
-    __string_with_idx{"nko", 170},
-    __string_with_idx{"nkoo", 170},
-    __string_with_idx{"nl", 58},
-    __string_with_idx{"no", 59},
-    __string_with_idx{"nonspacing_mark", 55},
-    __string_with_idx{"nshu", 171},
-    __string_with_idx{"number", 56},
-    __string_with_idx{"nushu", 171},
-    __string_with_idx{"nyiakeng_puachue_hmong", 128},
-    __string_with_idx{"ogam", 172},
-    __string_with_idx{"ogham", 172},
-    __string_with_idx{"ol_chiki", 173},
-    __string_with_idx{"olck", 173},
-    __string_with_idx{"old_hungarian", 130},
-    __string_with_idx{"old_italic", 131},
-    __string_with_idx{"old_north_arabian", 167},
-    __string_with_idx{"old_permic", 180},
-    __string_with_idx{"old_persian", 224},
-    __string_with_idx{"old_sogdian", 200},
-    __string_with_idx{"old_south_arabian", 191},
-    __string_with_idx{"old_turkic", 174},
-    __string_with_idx{"open_punctuation", 67},
-    __string_with_idx{"oriya", 175},
-    __string_with_idx{"orkh", 174},
-    __string_with_idx{"orya", 175},
-    __string_with_idx{"osage", 176},
-    __string_with_idx{"osge", 176},
-    __string_with_idx{"osma", 177},
-    __string_with_idx{"osmanya", 177},
-    __string_with_idx{"other", 39},
-    __string_with_idx{"other_letter", 49},
-    __string_with_idx{"other_number", 59},
-    __string_with_idx{"other_punctuation", 66},
-    __string_with_idx{"other_symbol", 72},
-    __string_with_idx{"p", 60},
-    __string_with_idx{"pahawh_hmong", 127},
-    __string_with_idx{"palm", 178},
-    __string_with_idx{"palmyrene", 178},
-    __string_with_idx{"paragraph_separator", 75},
-    __string_with_idx{"pat_syn", 22},
-    __string_with_idx{"pat_ws", 23},
-    __string_with_idx{"pattern_syntax", 22},
-    __string_with_idx{"pattern_white_space", 23},
-    __string_with_idx{"pau_cin_hau", 179},
-    __string_with_idx{"pauc", 179},
-    __string_with_idx{"pc", 61},
-    __string_with_idx{"pcm", 24},
-    __string_with_idx{"pd", 62},
-    __string_with_idx{"pe", 63},
-    __string_with_idx{"perm", 180},
-    __string_with_idx{"pf", 64},
-    __string_with_idx{"phag", 181},
-    __string_with_idx{"phags_pa", 181},
-    __string_with_idx{"phli", 182},
-    __string_with_idx{"phlp", 183},
-    __string_with_idx{"phnx", 184},
-    __string_with_idx{"phoenician", 184},
-    __string_with_idx{"pi", 65},
-    __string_with_idx{"plrd", 185},
-    __string_with_idx{"po", 66},
-    __string_with_idx{"prepended_concatenation_mark", 24},
-    __string_with_idx{"private_use", 43},
-    __string_with_idx{"prti", 186},
-    __string_with_idx{"ps", 67},
-    __string_with_idx{"psalter_pahlavi", 183},
-    __string_with_idx{"punctuation", 60},
-    __string_with_idx{"qmark", 25},
-    __string_with_idx{"quotation_mark", 25},
-    __string_with_idx{"radical", 26},
-    __string_with_idx{"regional_indicator", 27},
-    __string_with_idx{"rejang", 187},
-    __string_with_idx{"ri", 27},
-    __string_with_idx{"rjng", 187},
-    __string_with_idx{"rohg", 188},
-    __string_with_idx{"runic", 189},
-    __string_with_idx{"runr", 189},
-    __string_with_idx{"s", 68},
-    __string_with_idx{"samaritan", 190},
-    __string_with_idx{"samr", 190},
-    __string_with_idx{"sarb", 191},
-    __string_with_idx{"saur", 192},
-    __string_with_idx{"saurashtra", 192},
-    __string_with_idx{"sc", 69},
-    __string_with_idx{"sd", 28},
-    __string_with_idx{"sentence_terminal", 29},
-    __string_with_idx{"separator", 73},
-    __string_with_idx{"sgnw", 193},
-    __string_with_idx{"sharada", 195},
-    __string_with_idx{"shavian", 194},
-    __string_with_idx{"shaw", 194},
-    __string_with_idx{"shrd", 195},
-    __string_with_idx{"sidd", 196},
-    __string_with_idx{"siddham", 196},
-    __string_with_idx{"signwriting", 193},
-    __string_with_idx{"sind", 197},
-    __string_with_idx{"sinh", 198},
-    __string_with_idx{"sinhala", 198},
-    __string_with_idx{"sk", 70},
-    __string_with_idx{"sm", 71},
-    __string_with_idx{"so", 72},
-    __string_with_idx{"soft_dotted", 28},
-    __string_with_idx{"sogd", 199},
-    __string_with_idx{"sogdian", 199},
-    __string_with_idx{"sogo", 200},
-    __string_with_idx{"sora", 201},
-    __string_with_idx{"sora_sompeng", 201},
-    __string_with_idx{"soyo", 202},
-    __string_with_idx{"soyombo", 202},
-    __string_with_idx{"space", 33},
-    __string_with_idx{"space_separator", 76},
-    __string_with_idx{"spacing_mark", 53},
-    __string_with_idx{"sterm", 29},
-    __string_with_idx{"sund", 203},
-    __string_with_idx{"sundanese", 203},
-    __string_with_idx{"surrogate", 44},
-    __string_with_idx{"sylo", 204},
-    __string_with_idx{"syloti_nagri", 204},
-    __string_with_idx{"symbol", 68},
-    __string_with_idx{"syrc", 205},
-    __string_with_idx{"syriac", 205},
-    __string_with_idx{"tagalog", 215},
-    __string_with_idx{"tagb", 206},
-    __string_with_idx{"tagbanwa", 206},
-    __string_with_idx{"tai_le", 208},
-    __string_with_idx{"tai_tham", 140},
-    __string_with_idx{"tai_viet", 212},
-    __string_with_idx{"takr", 207},
-    __string_with_idx{"takri", 207},
-    __string_with_idx{"tale", 208},
-    __string_with_idx{"talu", 209},
-    __string_with_idx{"tamil", 210},
-    __string_with_idx{"taml", 210},
-    __string_with_idx{"tang", 211},
-    __string_with_idx{"tangut", 211},
-    __string_with_idx{"tavt", 212},
-    __string_with_idx{"telu", 213},
-    __string_with_idx{"telugu", 213},
-    __string_with_idx{"term", 30},
-    __string_with_idx{"terminal_punctuation", 30},
-    __string_with_idx{"tfng", 214},
-    __string_with_idx{"tglg", 215},
-    __string_with_idx{"thaa", 216},
-    __string_with_idx{"thaana", 216},
-    __string_with_idx{"thai", 217},
-    __string_with_idx{"tibetan", 218},
-    __string_with_idx{"tibt", 218},
-    __string_with_idx{"tifinagh", 214},
-    __string_with_idx{"tirh", 219},
-    __string_with_idx{"tirhuta", 219},
-    __string_with_idx{"titlecase_letter", 50},
-    __string_with_idx{"ugar", 220},
-    __string_with_idx{"ugaritic", 220},
-    __string_with_idx{"uideo", 31},
-    __string_with_idx{"unassigned", 42},
-    __string_with_idx{"unified_ideograph", 31},
-    __string_with_idx{"unknown", 230},
-    __string_with_idx{"uppercase_letter", 51},
-    __string_with_idx{"vai", 221},
-    __string_with_idx{"vaii", 221},
-    __string_with_idx{"variation_selector", 32},
-    __string_with_idx{"vs", 32},
-    __string_with_idx{"wancho", 223},
-    __string_with_idx{"wara", 222},
-    __string_with_idx{"warang_citi", 222},
-    __string_with_idx{"wcho", 223},
-    __string_with_idx{"white_space", 33},
-    __string_with_idx{"wspace", 33},
-    __string_with_idx{"xid_continue", 34},
-    __string_with_idx{"xid_start", 35},
-    __string_with_idx{"xidc", 34},
-    __string_with_idx{"xids", 35},
-    __string_with_idx{"xpeo", 224},
-    __string_with_idx{"xsux", 225},
-    __string_with_idx{"yi", 226},
-    __string_with_idx{"yiii", 226},
-    __string_with_idx{"z", 73},
-    __string_with_idx{"zanabazar_square", 227},
-    __string_with_idx{"zanb", 227},
-    __string_with_idx{"zinh", 228},
-    __string_with_idx{"zl", 74},
-    __string_with_idx{"zp", 75},
-    __string_with_idx{"zs", 76},
-    __string_with_idx{"zyyy", 229},
-    __string_with_idx{"zzzz", 230}};
-static constexpr __bool_trie<32, 991, 1, 0, 149, 255, 1, 0, 1471, 1, 0, 158> __prop_assigned{
-    {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffffff, 0xfcffffffffffffff, 0xfffffffbffffd7f0, 0xffffffffffffffff,
-     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xfffeffffffffffff, 0xfffffffffe7fffff, 0xfffffffffffee7ff, 0x001f87ffffff00ff,
-     0xffffffffdfffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-     0xffffffffffffbfff, 0xffffffffffffe7ff, 0x0003ffffffffffff, 0xe7ffffffffffffff},
-    {1,   2,   3,   4,  4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14,  15,  16, 17, 18,  19,
-     20,  21,  22,  23, 24,  25,  26,  4,   27,  28,  29,  4,   4,   4,  30,  4,   4,  4,  4,   4,
-     31,  32,  33,  34, 35,  36,  37,  4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  38, 39,  40,
-     41,  4,   42,  43, 39,  44,  45,  46,  47,  48,  49,  50,  51,  52, 53,  4,   54, 4,  55,  56,
-     57,  58,  59,  4,  4,   4,   60,  4,   4,   4,   4,   61,  62,  63, 64,  4,   65, 66, 67,  4,
-     4,   68,  4,   4,  4,   4,   4,   4,   4,   4,   4,   69,  70,  4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     71,  72,  4,   73, 74,  4,   75,  76,  77,  78,  79,  4,   80,  81, 82,  4,   4,  4,  83,  4,
-     84,  85,  4,   86, 4,   87,  88,  74,  4,   4,   89,  4,   4,   4,  4,   90,  53, 91, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  92,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 93,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 94, 4,   95,
-     96,  97,  98,  93, 99,  53,  53,  53,  53,  53,  53,  100, 101, 53, 53,  53,  53, 53, 53,  102,
-     103, 102, 104, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 105, 53,  53, 53, 53,  53,
-     53,  53,  106, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 107, 53,  108, 109, 53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  110, 53, 111, 53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  112, 53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  113, 53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  114, 53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     110, 53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  113, 53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  115, 53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  116, 53,  99,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  117, 118, 53,  119, 53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  120, 121, 4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   122, 123, 4,   4,   4,   4,   124, 4,   4,  125, 4,   4,  4,  126, 127,
-     125, 4,   128, 4,  129, 4,   130, 131, 132, 4,   133, 134, 135, 4,  136, 4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   4,   4,   4,   4,   4,  4,   4,   4,  4,  4,   4,
-     4,   4,   4,   4,  4,   4,   4,   4,   4,   88,  137, 53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  53, 53,  53,  53,  53,  53,  53,  53,  53,  53,  53, 53,  53,  53, 53, 53,  53,
-     53,  53,  53,  4,  4,   4,   4,   4,   138, 4,   139, 140, 141, 4,  142, 4,   4,  4,  4,   4,
-     143, 144, 145, 36, 146, 4,   147, 84,  4,   89,  148},
-    {0x7fff3fffffffffff, 0x000007ff4fffffff, 0x3fdfffff00000000, 0xfffffffffff80000,
-     0xffffffffffffffff, 0xf3c5fdfffff99fef, 0x7fffffcfb080799f, 0xd36dfdfffff987ee,
-     0x007fffc05e023987, 0xf3edfdfffffbbfee, 0xfe03ffcf00013bbf, 0xf3edfdfffff99fee,
-     0x00ffffcfb0c0399f, 0xc3ffc718d63dc7ec, 0x07ffffc000813dc7, 0xe3fffdfffffddfff,
-     0xff80ffcf07603ddf, 0xf3effdfffffddfff, 0x0006ffcf40603ddf, 0xfffffffffffddfef,
-     0xffffffcffff0fddf, 0x2ffbfffffc7fffec, 0x001cffc0ff5f847f, 0x87fffffffffffffe,
-     0x000000000fffffff, 0x3fffffaffffff7d6, 0x00000000f3ff3f5f, 0xfffe1ffffffffeff,
-     0xdffffffffeffffff, 0x0000000007ffdfff, 0xffffffffffff20bf, 0xffffffff3d7f3dff,
-     0x7f3dffffffff3dff, 0xffffffffff7fff3d, 0xffffffffff3dffff, 0x1fffffffe7ffffff,
-     0xffffffff03ffffff, 0x3f3fffffffffffff, 0xffffffff1fffffff, 0x01ffffffffffffff,
-     0x007fffff001fdfff, 0x000ddfff000fffff, 0x03ff03ff3fffffff, 0xffffffff03ff7fff,
-     0xffff07ffffffffff, 0x003fffffffffffff, 0x0fff0fff7fffffff, 0x001f3ffffffffff1,
-     0xffff0fffffffffff, 0xffffffffc7ff03ff, 0xffffffffcfffffff, 0x9fffffff7fffffff,
-     0x7fff3fff03ff03ff, 0x0000000000000000, 0x1fffffffffff0fff, 0xf00fffffffffffff,
-     0xf8ffffffffffffff, 0xffffffffffffe3ff, 0xe7ffffffffff01ff, 0x07ffffffffff00ff,
-     0xfbffffffffffffff, 0xffffffff3f3fffff, 0x3fffffffaaff3f3f, 0xffdfffffffffffff,
-     0x7fdcffffefcfffdf, 0xfff3ffdfffffffff, 0xffffffff1fff7fff, 0x0001ffffffff0000,
-     0xffffffffffff0fff, 0x0000007fffffffff, 0xffffffff000007ff, 0xffcfffffffffffff,
-     0xffffffffff3fffff, 0xffff7fffffffffff, 0xffffffff7fffffff, 0xfe0fffffffffffff,
-     0xffff20bfffffffff, 0x800180ffffffffff, 0x7f7f7f7f007fffff, 0xffffffff7f7f7f7f,
-     0x000000000000ffff, 0xfffffffffbffffff, 0x000fffffffffffff, 0x0fff0000003fffff,
-     0xfffffffffffffffe, 0xfffffffffe7fffff, 0xfffeffffffffffe0, 0x07ffffffffff7fff,
-     0xffff000fffffffff, 0x7fffffffffffffff, 0x0000000000000028, 0x000000000000000a,
-     0x0000050000000000, 0x0000000000002800, 0x0010000000000000, 0x00000000000003ab,
-     0x0000000028000000, 0xa000000000741400, 0x00000140a0000001, 0x0001400000000000,
-     0x0000000000000014, 0x00003e8000000050, 0x8000000000000000, 0x000000000000143e,
-     0x000000000000001e, 0x000000000a000000, 0x0282800000000000, 0x0500000000000000,
-     0xd000000000000000, 0x000000000001f400, 0x5000000000000000, 0x0000000000001400,
-     0x0000000000050000, 0x0000000000000050, 0x0000000000500000, 0x0000140000000000,
-     0x000a500000000000, 0x0000000280000000, 0x0140000000001450, 0x0050000000000000,
-     0x0400001000000000, 0x0000420000101404, 0xffffffffffff1fff, 0xffffffffffff007f,
-     0x00000fffffffffff, 0x00ffffffffffffff, 0xff8000000000007c, 0x03ff0fffffffffff,
-     0xffffffff03ffc03f, 0x1fffffff800fffff, 0x7fffffffc3ffbfff, 0x007fffffffffffff,
-     0xfffffffff3ff3fff, 0x007ffffff8000007, 0xffff7f7f007e7e7e, 0xffff00ffffffffff,
-     0x03ff3fffffffffff, 0x0ffffffffffff87f, 0xffff3fffffffffff, 0x0000000003ffffff,
-     0x5f7fffffe0f8007f, 0xffffffffffffffdb, 0xfffffffffff80003, 0xffffffffffff0000,
-     0xfffffffffffcffff, 0x3fff0000000000ff, 0xffdf0f7ffff7ffff, 0x9fffffffffffffff,
-     0x3e007f7f1cfcfcfc},
-    {1,  2,  3, 4,  5,  6, 7, 8, 5, 5, 9, 5, 10, 11, 12, 13, 5, 14, 15, 5, 5, 16, 5, 5, 5, 17,
-     18, 19, 5, 20, 21, 5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 22,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5, 5,  5, 5, 5, 5,
-     5,  5,  5, 5,  5,  5, 5, 5, 5, 5, 5, 5, 5,  5,  5,  5,  5, 5,  5,  5, 5},
-    {1,   2,   3,   4,   2,   5,   6,   7,   7,   8,   9,   10,  11,  12,  13,  2,   2,   14,  15,
-     16,  17,  7,   7,   2,   2,   2,   2,   18,  19,  7,   7,   20,  21,  22,  23,  24,  7,   25,
-     26,  27,  28,  29,  30,  31,  32,  33,  7,   2,   34,  35,  36,  37,  7,   7,   7,   7,   38,
-     7,   7,   16,  39,  7,   40,  2,   41,  2,   42,  43,  44,  2,   45,  46,  7,   47,  48,  49,
-     50,  7,   7,   2,   51,  2,   52,  7,   7,   53,  54,  2,   55,  56,  57,  58,  7,   7,   7,
-     59,  7,   60,  61,  7,   7,   62,  63,  2,   64,  65,  56,  7,   7,   7,   7,   66,  67,  68,
-     7,   69,  70,  71,  7,   7,   7,   7,   72,  7,   7,   7,   73,  2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   39,  7,   2,   74,  2,   2,   2,   75,  7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   76,  7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   2,   77,  7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,
-     2,   2,   2,   2,   2,   56,  78,  7,   79,  2,   80,  81,  7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   2,   82,  7,   2,   83,  84,  85,  2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   86,  2,   2,   2,   2,   2,   2,   2,   2,
-     2,   2,   2,   35,  7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   2,   2,   2,   2,   87,  88,  2,   2,   2,   2,   2,   59,  7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   89,  90,  7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   91,  92,  2,   2,
-     93,  2,   94,  7,   95,  2,   96,  7,   7,   2,   97,  98,  99,  100, 101, 2,   2,   2,   2,
-     102, 2,   2,   2,   2,   103, 2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   104, 7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     105, 7,   7,   7,   106, 107, 7,   7,   7,   7,   7,   108, 7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   109, 2,   110,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   111, 112, 7,   113, 7,   7,   7,   114,
-     115, 116, 117, 7,   7,   7,   7,   118, 2,   119, 120, 121, 122, 123, 124, 125, 126, 7,   7,
-     2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   127, 2,   128, 2,
-     129, 130, 131, 132, 7,   133, 134, 135, 136, 2,   137, 138, 7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   139, 140, 7,   141, 142,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   143, 7,   144, 7,   7,   7,   7,
-     145, 146, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   147, 7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   148, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   149, 7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   150, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   151, 7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   152, 7,   7,   7,   153, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     154, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   155, 7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   2,   2,   2,   2,   2,   2,   2,   2,   54,  7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   156, 2,   7,   7,   2,   2,   2,   157, 7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
-     7,   7,   7,   7,   7,   7,   7,   7},
-    {0xb7ffff7fffffefff, 0x000000003fff3fff, 0xffffffffffffffff, 0x07ffffffffffffff,
-     0xff8fffffffffff87, 0x000000010fff7fff, 0x3fffffffffff0000, 0x0000000000000000,
-     0xffffffff1fffffff, 0x0fffffff0001ffff, 0xffffe00fffffffff, 0x07ffffffffff07ff,
-     0xffffffffbfffffff, 0x00000000003fff0f, 0xffff03ff3fffffff, 0x0fffffffff0fffff,
-     0xffff00ffffffffff, 0x0000800fffffffff, 0x007fffffffffffff, 0x000000ff003fffff,
-     0x91bffffffffffd3f, 0xffffffffffbfffff, 0x0000ff807fffffff, 0xf837ffff00000000,
-     0x83ffffff8fffffff, 0xf0ffffffffffffff, 0xfffffffffffcffff, 0x873ffffffeeff06f,
-     0xffffffff01ff01ff, 0x00000000ffffffff, 0x007ff87fffffffff, 0xfe3fffffffffffff,
-     0xff07ffffff3fffff, 0x0000fe001e03ffff, 0x00000000000001ff, 0x0007ffffffffffff,
-     0xfc07ffffffffffff, 0x03ff00ffffffffff, 0x7fffffff00000000, 0x0000000003ffffff,
-     0x007fffff00000000, 0x8000fffffffc3fff, 0x03ff01ffffff2003, 0xffdfffffffffffff,
-     0x007fffffffff007f, 0x001ffffeffff3fff, 0x7ffffffffffbffff, 0xffff03ffbfffbd7f,
-     0x03ff07ffffffffff, 0xfbedfdfffff99fef, 0x001f1fcfe081399f, 0x00000000ebffffff,
-     0x0000000003ff00ff, 0xff3fffffffffffff, 0x000000003fffffff, 0x00001fff03ff001f,
-     0x01ffffffffffffff, 0x00000000000003ff, 0xffff0fffe7ffffff, 0x0fffffffffffffff,
-     0xffffffff00000000, 0x8007ffffffffffff, 0xfffffcff00000000, 0x0000001ffcffffff,
-     0xffffffffffff00ff, 0x00000007ffffffff, 0xff7ffffffffffdff, 0xffff1fffffff003f,
-     0x007ffefffffcffff, 0xb47ffffffffffb7f, 0xfffffdbf03ff00ff, 0x000003ff01fb7fff,
-     0x01ffffff00000000, 0x8003ffffffffffff, 0x001f7fffffffffff, 0x000000000000000f,
-     0x01ff7fffffffffff, 0x000000000000007f, 0x0000c3ff7fffffff, 0x003f3fffffff0000,
-     0xe0fffffbfbff003f, 0x000000000000ffff, 0x0000000007ffffff, 0xffffffffffff87ff,
-     0x00000000ffff80ff, 0x0000000f00000000, 0x00ffffffffffffff, 0x000000007fffffff,
-     0xffff00f000070000, 0x1fff07ffffffffff, 0x0000000ff3ff01ff, 0x003fffffffffffff,
-     0xfffffe7fffffffff, 0x000001ffffffffff, 0x000000000000003f, 0x000fffff00000000,
-     0x01ffffff007fffff, 0xffffffffffdfffff, 0xebffde64dfffffff, 0xffffffffffffffef,
-     0x7bffffffdfdfe7bf, 0xfffffffffffdfc5f, 0xffffff3fffffffff, 0xffffffffffffcfff,
-     0x0000fffef8000fff, 0x000007dbf9ffff7f, 0x3fff1fffffffffff, 0x000000000000c3ff,
-     0x83ffffffffffffff, 0x00000000007fff9f, 0x00000000c3ff0fff, 0xfffe000000000000,
-     0x001fffffffffffff, 0x3ffffffffffffffe, 0x0af7fe96ffffffef, 0x5ef7f796aa96ea84,
-     0x0ffffbee0ffffbff, 0x0003000000000000, 0xffff0fffffffffff, 0xfffe7fff000fffff,
-     0x003ffffffffefffe, 0xffffffffffff1fff, 0xffff1fffffffffff, 0x00001fffffffffff,
-     0xffffffc000000000, 0x0fffffffffff0007, 0x0000003f000301ff, 0x07ff1fff003fffff,
-     0x000fffffffffffff, 0x00000fff01ffffff, 0xffffffffffff0fff, 0xffffffff03ff00ff,
-     0x00003fffffff00ff, 0xffffffffffffefff, 0xfc7bffffffffffff, 0xffffc7e7ffffffff,
-     0xffffffffffffe7ff, 0x070f3fff000fffff, 0x00000000003f0007, 0x0000000000000003,
-     0x0000001400000000, 0x0000000500000000, 0x0000000280000000, 0x0000050000000000,
-     0x000000001400140a, 0x2800050000000000, 0x0000000002800000, 0x0000000000014000,
-     0x0000000001400000, 0x000000000a000000, 0x0000280000000000, 0x0000000000200000,
-     0x0008000000000000, 0x0000000010000000, 0x0000000100000000, 0x0000000080000000,
-     0xffffffff00000002, 0x0000ffffffffffff}};
+    __string_with_idx{"bopo", 99},
+    __string_with_idx{"bopomofo", 99},
+    __string_with_idx{"brah", 100},
+    __string_with_idx{"brahmi", 100},
+    __string_with_idx{"brai", 101},
+    __string_with_idx{"braille", 101},
+    __string_with_idx{"bugi", 102},
+    __string_with_idx{"buginese", 102},
+    __string_with_idx{"buhd", 103},
+    __string_with_idx{"buhid", 103},
+    __string_with_idx{"c", 48},
+    __string_with_idx{"cakm", 104},
+    __string_with_idx{"canadian_aboriginal", 105},
+    __string_with_idx{"cans", 105},
+    __string_with_idx{"cari", 106},
+    __string_with_idx{"carian", 106},
+    __string_with_idx{"case_ignorable", 5},
+    __string_with_idx{"cased", 4},
+    __string_with_idx{"cased_letter", 55},
+    __string_with_idx{"caucasian_albanian", 87},
+    __string_with_idx{"cc", 49},
+    __string_with_idx{"cf", 50},
+    __string_with_idx{"chakma", 104},
+    __string_with_idx{"cham", 107},
+    __string_with_idx{"cher", 108},
+    __string_with_idx{"cherokee", 108},
+    __string_with_idx{"ci", 5},
+    __string_with_idx{"close_punctuation", 72},
+    __string_with_idx{"cn", 51},
+    __string_with_idx{"co", 52},
+    __string_with_idx{"common", 238},
+    __string_with_idx{"connector_punctuation", 70},
+    __string_with_idx{"control", 49},
+    __string_with_idx{"copt", 109},
+    __string_with_idx{"coptic", 109},
+    __string_with_idx{"cprt", 110},
+    __string_with_idx{"cs", 53},
+    __string_with_idx{"cuneiform", 234},
+    __string_with_idx{"currency_symbol", 78},
+    __string_with_idx{"cypriot", 110},
+    __string_with_idx{"cyrillic", 111},
+    __string_with_idx{"cyrl", 111},
+    __string_with_idx{"dash", 6},
+    __string_with_idx{"dash_punctuation", 71},
+    __string_with_idx{"decimal_number", 66},
+    __string_with_idx{"default_ignorable_code_point", 8},
+    __string_with_idx{"dep", 7},
+    __string_with_idx{"deprecated", 7},
+    __string_with_idx{"deseret", 114},
+    __string_with_idx{"deva", 112},
+    __string_with_idx{"devanagari", 112},
+    __string_with_idx{"di", 8},
+    __string_with_idx{"dia", 9},
+    __string_with_idx{"diacritic", 9},
+    __string_with_idx{"dogr", 113},
+    __string_with_idx{"dogra", 113},
+    __string_with_idx{"dsrt", 114},
+    __string_with_idx{"dupl", 115},
+    __string_with_idx{"duployan", 115},
+    __string_with_idx{"egyp", 116},
+    __string_with_idx{"egyptian_hieroglyphs", 116},
+    __string_with_idx{"elba", 117},
+    __string_with_idx{"elbasan", 117},
+    __string_with_idx{"elym", 118},
+    __string_with_idx{"elymaic", 118},
+    __string_with_idx{"emoji", 10},
+    __string_with_idx{"emoji_component", 11},
+    __string_with_idx{"emoji_modifier", 12},
+    __string_with_idx{"emoji_modifier_base", 13},
+    __string_with_idx{"emoji_presentation", 14},
+    __string_with_idx{"enclosing_mark", 63},
+    __string_with_idx{"ethi", 119},
+    __string_with_idx{"ethiopic", 119},
+    __string_with_idx{"ext", 15},
+    __string_with_idx{"extended_pictographic", 16},
+    __string_with_idx{"extender", 15},
+    __string_with_idx{"final_punctuation", 73},
+    __string_with_idx{"format", 50},
+    __string_with_idx{"geor", 120},
+    __string_with_idx{"georgian", 120},
+    __string_with_idx{"glag", 121},
+    __string_with_idx{"glagolitic", 121},
+    __string_with_idx{"gong", 122},
+    __string_with_idx{"gonm", 123},
+    __string_with_idx{"goth", 124},
+    __string_with_idx{"gothic", 124},
+    __string_with_idx{"gr_base", 17},
+    __string_with_idx{"gr_ext", 18},
+    __string_with_idx{"gran", 125},
+    __string_with_idx{"grantha", 125},
+    __string_with_idx{"grapheme_base", 17},
+    __string_with_idx{"grapheme_extend", 18},
+    __string_with_idx{"greek", 126},
+    __string_with_idx{"grek", 126},
+    __string_with_idx{"gujarati", 127},
+    __string_with_idx{"gujr", 127},
+    __string_with_idx{"gunjala_gondi", 122},
+    __string_with_idx{"gurmukhi", 128},
+    __string_with_idx{"guru", 128},
+    __string_with_idx{"han", 130},
+    __string_with_idx{"hang", 129},
+    __string_with_idx{"hangul", 129},
+    __string_with_idx{"hani", 130},
+    __string_with_idx{"hanifi_rohingya", 197},
+    __string_with_idx{"hano", 131},
+    __string_with_idx{"hanunoo", 131},
+    __string_with_idx{"hatr", 132},
+    __string_with_idx{"hatran", 132},
+    __string_with_idx{"hebr", 133},
+    __string_with_idx{"hebrew", 133},
+    __string_with_idx{"hex", 19},
+    __string_with_idx{"hex_digit", 19},
+    __string_with_idx{"hira", 134},
+    __string_with_idx{"hiragana", 134},
+    __string_with_idx{"hluw", 135},
+    __string_with_idx{"hmng", 136},
+    __string_with_idx{"hmnp", 137},
+    __string_with_idx{"hrkt", 138},
+    __string_with_idx{"hung", 139},
+    __string_with_idx{"id_continue", 20},
+    __string_with_idx{"id_start", 22},
+    __string_with_idx{"idc", 20},
+    __string_with_idx{"ideo", 21},
+    __string_with_idx{"ideographic", 21},
+    __string_with_idx{"ids", 22},
+    __string_with_idx{"ids_binary_operator", 23},
+    __string_with_idx{"ids_trinary_operator", 24},
+    __string_with_idx{"idsb", 23},
+    __string_with_idx{"idst", 24},
+    __string_with_idx{"imperial_aramaic", 90},
+    __string_with_idx{"inherited", 237},
+    __string_with_idx{"initial_punctuation", 74},
+    __string_with_idx{"inscriptional_pahlavi", 191},
+    __string_with_idx{"inscriptional_parthian", 195},
+    __string_with_idx{"ital", 140},
+    __string_with_idx{"java", 141},
+    __string_with_idx{"javanese", 141},
+    __string_with_idx{"join_c", 25},
+    __string_with_idx{"join_control", 25},
+    __string_with_idx{"kaithi", 148},
+    __string_with_idx{"kali", 142},
+    __string_with_idx{"kana", 143},
+    __string_with_idx{"kannada", 147},
+    __string_with_idx{"katakana", 143},
+    __string_with_idx{"katakana_or_hiragana", 138},
+    __string_with_idx{"kayah_li", 142},
+    __string_with_idx{"khar", 144},
+    __string_with_idx{"kharoshthi", 144},
+    __string_with_idx{"khmer", 145},
+    __string_with_idx{"khmr", 145},
+    __string_with_idx{"khoj", 146},
+    __string_with_idx{"khojki", 146},
+    __string_with_idx{"khudawadi", 206},
+    __string_with_idx{"knda", 147},
+    __string_with_idx{"kthi", 148},
+    __string_with_idx{"l", 54},
+    __string_with_idx{"lana", 149},
+    __string_with_idx{"lao", 150},
+    __string_with_idx{"laoo", 150},
+    __string_with_idx{"latin", 151},
+    __string_with_idx{"latn", 151},
+    __string_with_idx{"lc", 55},
+    __string_with_idx{"lepc", 152},
+    __string_with_idx{"lepcha", 152},
+    __string_with_idx{"letter", 54},
+    __string_with_idx{"letter_number", 67},
+    __string_with_idx{"limb", 153},
+    __string_with_idx{"limbu", 153},
+    __string_with_idx{"lina", 154},
+    __string_with_idx{"linb", 155},
+    __string_with_idx{"line_separator", 83},
+    __string_with_idx{"linear_a", 154},
+    __string_with_idx{"linear_b", 155},
+    __string_with_idx{"lisu", 156},
+    __string_with_idx{"ll", 56},
+    __string_with_idx{"lm", 57},
+    __string_with_idx{"lo", 58},
+    __string_with_idx{"loe", 26},
+    __string_with_idx{"logical_order_exception", 26},
+    __string_with_idx{"lower", 27},
+    __string_with_idx{"lowercase", 27},
+    __string_with_idx{"lowercase_letter", 56},
+    __string_with_idx{"lt", 59},
+    __string_with_idx{"lu", 60},
+    __string_with_idx{"lyci", 157},
+    __string_with_idx{"lycian", 157},
+    __string_with_idx{"lydi", 158},
+    __string_with_idx{"lydian", 158},
+    __string_with_idx{"m", 61},
+    __string_with_idx{"mahajani", 159},
+    __string_with_idx{"mahj", 159},
+    __string_with_idx{"maka", 160},
+    __string_with_idx{"makasar", 160},
+    __string_with_idx{"malayalam", 168},
+    __string_with_idx{"mand", 161},
+    __string_with_idx{"mandaic", 161},
+    __string_with_idx{"mani", 162},
+    __string_with_idx{"manichaean", 162},
+    __string_with_idx{"marc", 163},
+    __string_with_idx{"marchen", 163},
+    __string_with_idx{"mark", 61},
+    __string_with_idx{"masaram_gondi", 123},
+    __string_with_idx{"math", 28},
+    __string_with_idx{"math_symbol", 80},
+    __string_with_idx{"mc", 62},
+    __string_with_idx{"me", 63},
+    __string_with_idx{"medefaidrin", 164},
+    __string_with_idx{"medf", 164},
+    __string_with_idx{"meetei_mayek", 172},
+    __string_with_idx{"mend", 165},
+    __string_with_idx{"mende_kikakui", 165},
+    __string_with_idx{"merc", 166},
+    __string_with_idx{"mero", 167},
+    __string_with_idx{"meroitic_cursive", 166},
+    __string_with_idx{"meroitic_hieroglyphs", 167},
+    __string_with_idx{"miao", 194},
+    __string_with_idx{"mlym", 168},
+    __string_with_idx{"mn", 64},
+    __string_with_idx{"modi", 169},
+    __string_with_idx{"modifier_letter", 57},
+    __string_with_idx{"modifier_symbol", 79},
+    __string_with_idx{"mong", 170},
+    __string_with_idx{"mongolian", 170},
+    __string_with_idx{"mro", 171},
+    __string_with_idx{"mroo", 171},
+    __string_with_idx{"mtei", 172},
+    __string_with_idx{"mult", 173},
+    __string_with_idx{"multani", 173},
+    __string_with_idx{"myanmar", 174},
+    __string_with_idx{"mymr", 174},
+    __string_with_idx{"n", 65},
+    __string_with_idx{"nabataean", 177},
+    __string_with_idx{"nand", 175},
+    __string_with_idx{"nandinagari", 175},
+    __string_with_idx{"narb", 176},
+    __string_with_idx{"nbat", 177},
+    __string_with_idx{"nchar", 29},
+    __string_with_idx{"nd", 66},
+    __string_with_idx{"new_tai_lue", 218},
+    __string_with_idx{"newa", 178},
+    __string_with_idx{"nko", 179},
+    __string_with_idx{"nkoo", 179},
+    __string_with_idx{"nl", 67},
+    __string_with_idx{"no", 68},
+    __string_with_idx{"noncharacter_code_point", 29},
+    __string_with_idx{"nonspacing_mark", 64},
+    __string_with_idx{"nshu", 180},
+    __string_with_idx{"number", 65},
+    __string_with_idx{"nushu", 180},
+    __string_with_idx{"nyiakeng_puachue_hmong", 137},
+    __string_with_idx{"ogam", 181},
+    __string_with_idx{"ogham", 181},
+    __string_with_idx{"ol_chiki", 182},
+    __string_with_idx{"olck", 182},
+    __string_with_idx{"old_hungarian", 139},
+    __string_with_idx{"old_italic", 140},
+    __string_with_idx{"old_north_arabian", 176},
+    __string_with_idx{"old_permic", 189},
+    __string_with_idx{"old_persian", 233},
+    __string_with_idx{"old_sogdian", 209},
+    __string_with_idx{"old_south_arabian", 200},
+    __string_with_idx{"old_turkic", 183},
+    __string_with_idx{"open_punctuation", 76},
+    __string_with_idx{"oriya", 184},
+    __string_with_idx{"orkh", 183},
+    __string_with_idx{"orya", 184},
+    __string_with_idx{"osage", 185},
+    __string_with_idx{"osge", 185},
+    __string_with_idx{"osma", 186},
+    __string_with_idx{"osmanya", 186},
+    __string_with_idx{"other", 48},
+    __string_with_idx{"other_letter", 58},
+    __string_with_idx{"other_number", 68},
+    __string_with_idx{"other_punctuation", 75},
+    __string_with_idx{"other_symbol", 81},
+    __string_with_idx{"p", 69},
+    __string_with_idx{"pahawh_hmong", 136},
+    __string_with_idx{"palm", 187},
+    __string_with_idx{"palmyrene", 187},
+    __string_with_idx{"paragraph_separator", 84},
+    __string_with_idx{"pat_syn", 30},
+    __string_with_idx{"pat_ws", 31},
+    __string_with_idx{"pattern_syntax", 30},
+    __string_with_idx{"pattern_white_space", 31},
+    __string_with_idx{"pau_cin_hau", 188},
+    __string_with_idx{"pauc", 188},
+    __string_with_idx{"pc", 70},
+    __string_with_idx{"pcm", 32},
+    __string_with_idx{"pd", 71},
+    __string_with_idx{"pe", 72},
+    __string_with_idx{"perm", 189},
+    __string_with_idx{"pf", 73},
+    __string_with_idx{"phag", 190},
+    __string_with_idx{"phags_pa", 190},
+    __string_with_idx{"phli", 191},
+    __string_with_idx{"phlp", 192},
+    __string_with_idx{"phnx", 193},
+    __string_with_idx{"phoenician", 193},
+    __string_with_idx{"pi", 74},
+    __string_with_idx{"plrd", 194},
+    __string_with_idx{"po", 75},
+    __string_with_idx{"prepended_concatenation_mark", 32},
+    __string_with_idx{"private_use", 52},
+    __string_with_idx{"prti", 195},
+    __string_with_idx{"ps", 76},
+    __string_with_idx{"psalter_pahlavi", 192},
+    __string_with_idx{"punctuation", 69},
+    __string_with_idx{"qmark", 33},
+    __string_with_idx{"quotation_mark", 33},
+    __string_with_idx{"radical", 34},
+    __string_with_idx{"regional_indicator", 35},
+    __string_with_idx{"rejang", 196},
+    __string_with_idx{"ri", 35},
+    __string_with_idx{"rjng", 196},
+    __string_with_idx{"rohg", 197},
+    __string_with_idx{"runic", 198},
+    __string_with_idx{"runr", 198},
+    __string_with_idx{"s", 77},
+    __string_with_idx{"samaritan", 199},
+    __string_with_idx{"samr", 199},
+    __string_with_idx{"sarb", 200},
+    __string_with_idx{"saur", 201},
+    __string_with_idx{"saurashtra", 201},
+    __string_with_idx{"sc", 78},
+    __string_with_idx{"sd", 36},
+    __string_with_idx{"sentence_terminal", 37},
+    __string_with_idx{"separator", 82},
+    __string_with_idx{"sgnw", 202},
+    __string_with_idx{"sharada", 204},
+    __string_with_idx{"shavian", 203},
+    __string_with_idx{"shaw", 203},
+    __string_with_idx{"shrd", 204},
+    __string_with_idx{"sidd", 205},
+    __string_with_idx{"siddham", 205},
+    __string_with_idx{"signwriting", 202},
+    __string_with_idx{"sind", 206},
+    __string_with_idx{"sinh", 207},
+    __string_with_idx{"sinhala", 207},
+    __string_with_idx{"sk", 79},
+    __string_with_idx{"sm", 80},
+    __string_with_idx{"so", 81},
+    __string_with_idx{"soft_dotted", 36},
+    __string_with_idx{"sogd", 208},
+    __string_with_idx{"sogdian", 208},
+    __string_with_idx{"sogo", 209},
+    __string_with_idx{"sora", 210},
+    __string_with_idx{"sora_sompeng", 210},
+    __string_with_idx{"soyo", 211},
+    __string_with_idx{"soyombo", 211},
+    __string_with_idx{"space", 42},
+    __string_with_idx{"space_separator", 85},
+    __string_with_idx{"spacing_mark", 62},
+    __string_with_idx{"sterm", 37},
+    __string_with_idx{"sund", 212},
+    __string_with_idx{"sundanese", 212},
+    __string_with_idx{"surrogate", 53},
+    __string_with_idx{"sylo", 213},
+    __string_with_idx{"syloti_nagri", 213},
+    __string_with_idx{"symbol", 77},
+    __string_with_idx{"syrc", 214},
+    __string_with_idx{"syriac", 214},
+    __string_with_idx{"tagalog", 224},
+    __string_with_idx{"tagb", 215},
+    __string_with_idx{"tagbanwa", 215},
+    __string_with_idx{"tai_le", 217},
+    __string_with_idx{"tai_tham", 149},
+    __string_with_idx{"tai_viet", 221},
+    __string_with_idx{"takr", 216},
+    __string_with_idx{"takri", 216},
+    __string_with_idx{"tale", 217},
+    __string_with_idx{"talu", 218},
+    __string_with_idx{"tamil", 219},
+    __string_with_idx{"taml", 219},
+    __string_with_idx{"tang", 220},
+    __string_with_idx{"tangut", 220},
+    __string_with_idx{"tavt", 221},
+    __string_with_idx{"telu", 222},
+    __string_with_idx{"telugu", 222},
+    __string_with_idx{"term", 38},
+    __string_with_idx{"terminal_punctuation", 38},
+    __string_with_idx{"tfng", 223},
+    __string_with_idx{"tglg", 224},
+    __string_with_idx{"thaa", 225},
+    __string_with_idx{"thaana", 225},
+    __string_with_idx{"thai", 226},
+    __string_with_idx{"tibetan", 227},
+    __string_with_idx{"tibt", 227},
+    __string_with_idx{"tifinagh", 223},
+    __string_with_idx{"tirh", 228},
+    __string_with_idx{"tirhuta", 228},
+    __string_with_idx{"titlecase_letter", 59},
+    __string_with_idx{"ugar", 229},
+    __string_with_idx{"ugaritic", 229},
+    __string_with_idx{"uideo", 39},
+    __string_with_idx{"unassigned", 51},
+    __string_with_idx{"unified_ideograph", 39},
+    __string_with_idx{"unknown", 239},
+    __string_with_idx{"upper", 40},
+    __string_with_idx{"uppercase", 40},
+    __string_with_idx{"uppercase_letter", 60},
+    __string_with_idx{"vai", 230},
+    __string_with_idx{"vaii", 230},
+    __string_with_idx{"variation_selector", 41},
+    __string_with_idx{"vs", 41},
+    __string_with_idx{"wancho", 232},
+    __string_with_idx{"wara", 231},
+    __string_with_idx{"warang_citi", 231},
+    __string_with_idx{"wcho", 232},
+    __string_with_idx{"white_space", 42},
+    __string_with_idx{"wspace", 42},
+    __string_with_idx{"xid_continue", 43},
+    __string_with_idx{"xid_start", 44},
+    __string_with_idx{"xidc", 43},
+    __string_with_idx{"xids", 44},
+    __string_with_idx{"xpeo", 233},
+    __string_with_idx{"xsux", 234},
+    __string_with_idx{"yi", 235},
+    __string_with_idx{"yiii", 235},
+    __string_with_idx{"z", 82},
+    __string_with_idx{"zanabazar_square", 236},
+    __string_with_idx{"zanb", 236},
+    __string_with_idx{"zinh", 237},
+    __string_with_idx{"zl", 83},
+    __string_with_idx{"zp", 84},
+    __string_with_idx{"zs", 85},
+    __string_with_idx{"zyyy", 238},
+    __string_with_idx{"zzzz", 239}};
 }    // namespace uni
 #ifndef UNI_SINGLE_HEADER
 #    pragma once
-#    include "props.h"
+#    include "extra.h"
 #endif
-#include <string_view>
+
+// More regex support for ctre
 
 namespace uni {
 
-enum class property;
-
-
-template<uni::version v>
-constexpr category cp_category(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return category::cn;
-    }
-    if(cp > 0x10FFFF)
-        return category::unassigned;
-    return __get_category<uni::version::latest_version>(cp);
-}
-
-constexpr uni::version __age_from_string(std::string_view a) {
-    for(std::size_t i = 0; i < __age_strings.size(); ++i) {
-        const auto res = __pronamecomp(a, __age_strings[i]);
-        if(res == 0)
-            return uni::version(i);
-    }
-    return uni::version::unassigned;
-}
-
-constexpr category __category_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __categories_names.size(); ++i) {
-        const auto& c = __categories_names[i];
-        const auto res = __pronamecomp(s, c.name);
-        if(res == 0)
-            return category(c.value);
-    }
-    return category::unassigned;
-}
-
-constexpr block __block_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __blocks_names.size(); ++i) {
-        const auto& c = __blocks_names[i];
-        const auto res = __pronamecomp(s, c.name);
-        if(res == 0)
-            return block(c.value);
-    }
-    return block::no_block;
-}
-
-constexpr script __script_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __scripts_names.size(); ++i) {
-        const auto& c = __scripts_names[i];
-        const auto res = __pronamecomp(s, c.name);
-        if(res == 0)
-            return script(c.value);
-    }
-    return script::unknown;
-}
 
 constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
     for(std::size_t i = 0; i < __binary_prop_names.size(); ++i) {
@@ -9430,216 +9630,6 @@ constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
     }
     return __binary_prop::unknown;
 }
-
-template<uni::version v>
-constexpr script cp_script(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return script::zzzz;
-    }
-    return __cp_script<0, v>(cp);
-}
-
-template<uni::version v = uni::version::standard_unicode_version>
-struct script_extensions_view {
-    constexpr script_extensions_view(char32_t c) : c(c){};
-
-    struct sentinel {};
-    struct iterator {
-
-        using value_type = script;
-        using iterator_category = std::forward_iterator_tag;
-
-        constexpr iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
-            if(m_script == script::unknown)
-                m_script = __cp_script<0, v>(m_c);
-        }
-        constexpr script operator*() const {
-            return m_script;
-        };
-
-        constexpr iterator& operator++(int) {
-            idx++;
-            m_script = __get_cp_script<v>(m_c, idx);
-            return this;
-        }
-
-        constexpr iterator operator++() {
-            auto c = *this;
-            idx++;
-            m_script = __get_cp_script<v>(m_c, idx);
-            return c;
-        }
-
-        constexpr bool operator==(sentinel) const {
-            return m_script == script::unknown;
-        };
-        constexpr bool operator!=(sentinel) const {
-            return m_script != script::unknown;
-        };
-        constexpr bool operator==(iterator it) const {
-            return m_script == it.m_script && m_c == it.m_c;
-        };
-        constexpr bool operator!=(iterator it) const {
-            return !(*this == it);
-        };
-
-    private:
-        char32_t m_c;
-        script m_script;
-        int idx = 1;
-    };
-
-    constexpr iterator begin() const {
-        return iterator{c};
-    }
-    constexpr sentinel end() const {
-        return {};
-    }
-
-private:
-    char32_t c;
-};
-
-template<uni::version v = uni::version::standard_unicode_version>
-constexpr auto cp_script_extensions(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return script::zzzz;
-    }
-    return script_extensions_view<v>(cp);
-}
-
-
-constexpr version cp_age(char32_t cp) {
-    return static_cast<version>(uni::__age_data.value(cp, uint8_t(version::unassigned)));
-}
-
-constexpr block cp_block(char32_t cp) {
-    const auto end = __block_data._data.end();
-    auto it = uni::upper_bound(__block_data._data.begin(), end, cp, [](char32_t cp, uint32_t v) {
-        char32_t c = (v >> 8);
-        return cp < c;
-    });
-    if(it == end)
-        return block::no_block;
-    it--;
-    auto offset = (*it) & 0xFF;
-    if(offset == 0)
-        return block::no_block;
-    offset--;
-
-    const auto d = std::distance(__block_data._data.begin(), it);
-    return uni::block((d - offset) + 1);
-}
-
-template<>
-constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
-    return (char32_t(cp) & 0xfffe) == 0xfffe || (char32_t(cp) >= 0xfdd0 && char32_t(cp) <= 0xfdef);
-}
-
-// http://unicode.org/reports/tr44/#Lowercase
-template<>
-constexpr bool cp_is<property::lowercase>(char32_t cp) {
-    return uni::__cat_ll.lookup(char32_t(cp)) || uni::__prop_olower_data.lookup(char32_t(cp));
-}
-
-// http://unicode.org/reports/tr44/#Uppercase
-template<>
-constexpr bool cp_is<property::uppercase>(char32_t cp) {
-    return uni::__cat_lu.lookup(char32_t(cp)) || uni::__prop_oupper_data.lookup(char32_t(cp));
-}
-
-// http://unicode.org/reports/tr44/#Cased
-template<>
-constexpr bool cp_is<property::cased>(char32_t cp) {
-    return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
-           uni::__cat_lt.lookup(char32_t(cp));
-}
-
-constexpr bool cp_is_valid(char32_t cp) {
-    return char32_t(cp) <= 0x10FFFF;
-}
-constexpr bool cp_is_assigned(char32_t cp) {
-    return uni::__prop_assigned.lookup(char32_t(cp));
-}
-
-constexpr bool cp_is_ascii(char32_t cp) {
-    return char32_t(cp) <= 0x7F;
-}
-
-template<>
-constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
-    const auto c = char32_t(cp);
-    const bool maybe = uni::__prop_odi_data.lookup(cp) || uni::__cat_cf.lookup(cp) ||
-                       uni::__prop_vs_data.lookup(cp);
-    if(!maybe)
-        return false;
-    // ignore (Interlinear annotation format characters
-    if(c >= 0xFFF9 && c <= 0xFFFB) {
-        return false;
-    }
-    // Ignore Egyptian hieroglyph format characters
-    else if(c >= 0x13430 && c <= 0x13438) {
-        return false;
-    } else if(uni::__prop_wspace_data.lookup(cp))
-        return false;
-    else if(uni::__prop_pcm_data.lookup(cp))
-        return false;
-    return true;
-}
-
-// http://www.unicode.org/reports/tr31/#D1
-template<>
-constexpr bool cp_is<property::id_start>(char32_t cp) {
-    const bool maybe =
-        cp_is<category::letter>(cp) || __cat_nl.lookup(cp) || __prop_oids_data.lookup(cp);
-    if(!maybe)
-        return false;
-    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
-}
-
-template<>
-constexpr bool cp_is<property::id_continue>(char32_t cp) {
-    const bool maybe = cp_is<category::letter>(cp) || __cat_nl.lookup(cp) ||
-                       __prop_oids_data.lookup(cp) || __cat_mn.lookup(cp) || __cat_mc.lookup(cp) ||
-                       __cat_nd.lookup(cp) || __cat_pc.lookup(cp) || __prop_oidc_data.lookup(cp);
-    if(!maybe)
-        return false;
-    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
-}
-
-template<typename Array, typename Res = long long>
-constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
-    auto it = uni::lower_bound(array.begin(), array.end(), cp,
-                               [](const auto& d, char32_t cp) { return d.first < cp; });
-    if(it == array.end() || it->first != cp)
-        return false;
-    res = it->second;
-    return true;
-}
-
-constexpr numeric_value cp_numeric_value(char32_t cp) {
-    long long res = 0;
-    if(!(_get_numeric_value(cp, __numeric_data64, res) ||
-             _get_numeric_value(cp, __numeric_data32, res) ||
-             _get_numeric_value(cp, __numeric_data16, res) || [&res, cp]() -> bool {
-           res = __numeric_data8.value(cp, 255);
-           return res != 255;
-       }())) {
-        return {};
-    }
-    uint16_t d = 1;
-    _get_numeric_value(cp, __numeric_data_d, d);
-    return numeric_value(res, d);
-}
-
-
-// More regex support for ctre
 
 template<>
 constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
@@ -9655,6 +9645,5 @@ template<>
 constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
     return cp_is_valid(c);
 }
-
 
 }    // namespace uni

@@ -34,18 +34,15 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/PropertyValueAliases.txt)
   file(DOWNLOAD "ftp://ftp.unicode.org/Public/12.0.0/ucd/PropertyValueAliases.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/PropertyValueAliases.txt)
 endif()
 
-
-
-
-
 set(CMAKE_CXX_STANDARD 17)
 
 add_custom_command(
         COMMENT "Generating properties file"
-        OUTPUT ${PROJECT_BINARY_DIR}/props.h
+        OUTPUT ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-        COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/ucd/
+        COMMAND pypy3 ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
         COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
+        COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
         DEPENDS
             ${PROJECT_SOURCE_DIR}/gen.py
         )
@@ -55,11 +52,13 @@ add_custom_command(
     OUTPUT ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/singleheader/ext/
-    COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h ${PROJECT_SOURCE_DIR}/base.h ${PROJECT_BINARY_DIR}/props.h ${PROJECT_SOURCE_DIR}/unicode.h > ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp
+    COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h ${PROJECT_SOURCE_DIR}/base.h ${PROJECT_BINARY_DIR}/props.h ${PROJECT_SOURCE_DIR}/unicode.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_SOURCE_DIR}/regex.h > ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp
     DEPENDS
         ${PROJECT_BINARY_DIR}/props.h
+        ${PROJECT_BINARY_DIR}/extra.h
         ${PROJECT_SOURCE_DIR}/base.h
         ${PROJECT_SOURCE_DIR}/unicode.h
+        ${PROJECT_SOURCE_DIR}/regex.h
         ${PROJECT_SOURCE_DIR}/single_header.h
     )
 
@@ -67,6 +66,7 @@ add_library(std_ext_uni STATIC
     gen.py
     props.h
     unicode.h
+    regex.h
     base.h
     unicode.cpp
     ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp
@@ -77,6 +77,12 @@ add_custom_target("single-header")
 add_custom_command(TARGET "single-header" COMMAND cp ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp)
 
 target_compile_options(std_ext_uni PUBLIC -std=c++17)
+
+if(MSVC)
+  target_compile_options(std_ext_uni PRIVATE /W4 /WX)
+else()
+  target_compile_options(std_ext_uni PRIVATE -Wall -Wextra -pedantic -Werror)
+endif()
 
 target_include_directories(std_ext_uni PUBLIC
     ${PROJECT_BINARY_DIR}/singleheader

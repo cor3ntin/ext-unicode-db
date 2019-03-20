@@ -62,17 +62,7 @@ constexpr script __script_from_string(const std::string_view s) {
     return script::unknown;
 }
 
-constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __binary_prop_names.size(); ++i) {
-        const auto& c = __binary_prop_names[i];
-        const auto res = __pronamecomp(s, c.name);
-        if(res == 0)
-            return __binary_prop(c.value);
-    }
-    return __binary_prop::unknown;
-}
-
-template<uni::version v>
+template<uni::version v = uni::version::standard_unicode_version>
 constexpr script cp_script(char32_t cp) {
     static_assert(v >= uni::version::minimum_version,
                   "This version of the Unicode Database is not supported");
@@ -202,6 +192,26 @@ constexpr bool cp_is<property::cased>(char32_t cp) {
            uni::__cat_lt.lookup(char32_t(cp));
 }
 
+// http://unicode.org/reports/tr44/#Math
+template<>
+constexpr bool cp_is<property::math>(char32_t cp) {
+    return uni::__cat_sm.lookup(char32_t(cp)) || __prop_omath_data.lookup(cp);
+}
+
+// http://unicode.org/reports/tr44/#Case_Ignorable
+template<>
+constexpr bool cp_is<property::case_ignorable>(char32_t) {
+    return false;
+}
+
+
+// http://unicode.org/reports/tr44/#Grapheme_Extend
+template<>
+constexpr bool cp_is<property::grapheme_extend>(char32_t cp) {
+    return uni::__cat_me.lookup(char32_t(cp)) || uni::__cat_mn.lookup(char32_t(cp)) ||
+           __prop_ogr_ext_data.lookup(cp);
+}
+
 constexpr bool cp_is_valid(char32_t cp) {
     return char32_t(cp) <= 0x10FFFF;
 }
@@ -277,24 +287,6 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
     uint16_t d = 1;
     _get_numeric_value(cp, __numeric_data_d, d);
     return numeric_value(res, d);
-}
-
-
-// More regex support for ctre
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
-    return cp_is_ascii(c);
-}
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::assigned>(char32_t c) {
-    return cp_is_assigned(c);
-}
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
-    return cp_is_valid(c);
 }
 
 
