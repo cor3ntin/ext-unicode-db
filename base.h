@@ -91,11 +91,11 @@ struct _compact_list {
     std::array<std::uint32_t, N> _data;
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = _data.end();
-        auto it = uni::lower_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = uni::lower_bound(_data.begin(), end, cp, [](uint32_t v, char32_t cp) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return c < cp;
         });
-        if(it == end || (*it >> 8) != cp)
+        if(it == end || ((*it) >> 8) != cp)
             return default_value;
         return *(it)&0xFF;
     }

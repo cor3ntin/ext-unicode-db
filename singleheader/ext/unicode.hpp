@@ -92,11 +92,11 @@ struct _compact_list {
     std::array<std::uint32_t, N> _data;
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = _data.end();
-        auto it = uni::lower_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = uni::lower_bound(_data.begin(), end, cp, [](uint32_t v, char32_t cp) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return c < cp;
         });
-        if(it == end || (*it >> 8) != cp)
+        if(it == end || ((*it) >> 8) != cp)
             return default_value;
         return *(it)&0xFF;
     }
@@ -2424,51 +2424,8 @@ template<category category_, version v = uni::version::standard_unicode_version,
 constexpr bool cp_is(char32_t c) {
     return cp_category(c) == category::unassigned;
 }
-static constexpr std::array __cat_version_data_v11_0{
-    std::pair{0x166D, category::po}, std::pair{0x1CF2, category::mc},
-    std::pair{0x1CF3, category::mc}, std::pair{0xA9BD, category::mc}};
-static constexpr std::array __cat_version_data_v10_0{
-    std::pair{0x10D0, category::lo},  std::pair{0x10D1, category::lo},
-    std::pair{0x10D2, category::lo},  std::pair{0x10D3, category::lo},
-    std::pair{0x10D4, category::lo},  std::pair{0x10D5, category::lo},
-    std::pair{0x10D6, category::lo},  std::pair{0x10D7, category::lo},
-    std::pair{0x10D8, category::lo},  std::pair{0x10D9, category::lo},
-    std::pair{0x10DA, category::lo},  std::pair{0x10DB, category::lo},
-    std::pair{0x10DC, category::lo},  std::pair{0x10DD, category::lo},
-    std::pair{0x10DE, category::lo},  std::pair{0x10DF, category::lo},
-    std::pair{0x10E0, category::lo},  std::pair{0x10E1, category::lo},
-    std::pair{0x10E2, category::lo},  std::pair{0x10E3, category::lo},
-    std::pair{0x10E4, category::lo},  std::pair{0x10E5, category::lo},
-    std::pair{0x10E6, category::lo},  std::pair{0x10E7, category::lo},
-    std::pair{0x10E8, category::lo},  std::pair{0x10E9, category::lo},
-    std::pair{0x10EA, category::lo},  std::pair{0x10EB, category::lo},
-    std::pair{0x10EC, category::lo},  std::pair{0x10ED, category::lo},
-    std::pair{0x10EE, category::lo},  std::pair{0x10EF, category::lo},
-    std::pair{0x10F0, category::lo},  std::pair{0x10F1, category::lo},
-    std::pair{0x10F2, category::lo},  std::pair{0x10F3, category::lo},
-    std::pair{0x10F4, category::lo},  std::pair{0x10F5, category::lo},
-    std::pair{0x10F6, category::lo},  std::pair{0x10F7, category::lo},
-    std::pair{0x10F8, category::lo},  std::pair{0x10F9, category::lo},
-    std::pair{0x10FA, category::lo},  std::pair{0x10FD, category::lo},
-    std::pair{0x10FE, category::lo},  std::pair{0x10FF, category::lo},
-    std::pair{0x111C9, category::po}, std::pair{0x11A07, category::mc},
-    std::pair{0x11A08, category::mc}};
 template<version v>
 constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {
-    if constexpr(v <= uni::version::v11_0) {
-        const auto it =
-            uni::lower_bound(__cat_version_data_v11_0.begin(), __cat_version_data_v11_0.end(), cp,
-                             [](const auto& e, char32_t cp) { return e.first < cp; });
-        if(it != __cat_version_data_v11_0.end() && cp == it->first)
-            c = it->second;
-    }
-    if constexpr(v <= uni::version::v10_0) {
-        const auto it =
-            uni::lower_bound(__cat_version_data_v10_0.begin(), __cat_version_data_v10_0.end(), cp,
-                             [](const auto& e, char32_t cp) { return e.first < cp; });
-        if(it != __cat_version_data_v10_0.end() && cp == it->first)
-            c = it->second;
-    }
     return c;
 }
 enum class block {
@@ -4236,12 +4193,8 @@ struct __script_data<0> {
         0x02A6D699, 0x02B7332C, 0x02B73499, 0x02B81C2C, 0x02B81D99, 0x02CEA02C, 0x02CEA199,
         0x02EBDF2C, 0x02EBE099, 0x02F8002C, 0x02FA1E99, 0x0E000198, 0x0E000299, 0x0E002098,
         0x0E008099, 0x0E010097, 0x0E01F099, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x0009531A, 0x0009541A};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4273,21 +4226,8 @@ struct __script_data<1> {
         0x01130327, 0x01130499, 0x01133B27, 0x01133D99, 0x011FD027, 0x011FD299, 0x011FD327,
         0x011FD499, 0x01BCA01D, 0x01BCA499, 0x01D3602C, 0x01D37299, 0x01F2502C, 0x01F25299,
         0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x000CE699, 0x000CE799, 0x000CE899, 0x000CE999, 0x000CEA99, 0x000CEB99,
-        0x000CEC99, 0x000CED99, 0x000CEE99, 0x000CEF99, 0x001CF21A, 0x00202F99};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x0006D499, 0x000BAA27, 0x000BB527, 0x000BF399, 0x001CD01A, 0x001CD21A, 0x001CD51A,
-        0x001CD61A, 0x001CD81A, 0x001CE11A, 0x001CEA1A, 0x001CED1A, 0x001CF51A, 0x001CF61A};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4316,25 +4256,8 @@ struct __script_data<2> {
         0x01013745, 0x01014099, 0x0102E017, 0x0102FC99, 0x01130185, 0x01130299, 0x01130385,
         0x01130499, 0x01133B85, 0x01133D99, 0x011FD085, 0x011FD299, 0x011FD385, 0x011FD499,
         0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x000CE699, 0x000CE799, 0x000CE899, 0x000CE999, 0x000CEA99, 0x000CEB99, 0x000CEC99,
-        0x000CED99, 0x000CEE99, 0x000CEF99, 0x001CE999, 0x001CF227, 0x00202F99};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00060C80, 0x00061B80, 0x00061F80, 0x0006D499, 0x0009663E, 0x0009673E, 0x0009683E,
-        0x0009693E, 0x00096A3E, 0x00096B3E, 0x00096C3E, 0x00096D3E, 0x00096E3E, 0x00096F3E,
-        0x000BAA85, 0x000BB585, 0x000BF399, 0x001CD027, 0x001CD227, 0x001CD599, 0x001CD699,
-        0x001CD899, 0x001CE199, 0x001CEA99, 0x001CED99, 0x001CF53D, 0x001CF699, 0x00A83029,
-        0x00A83129, 0x00A83229, 0x00A83329, 0x00A83429, 0x00A83529, 0x00A83629, 0x00A83729,
-        0x00A83829, 0x00A83929};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4350,21 +4273,8 @@ struct __script_data<3> {
         0x00303899, 0x00303C39, 0x00303E99, 0x0030FB2C, 0x0030FC99, 0x00A83029, 0x00A83A99,
         0x00A92E58, 0x00A92F99, 0x00FE452C, 0x00FE4799, 0x00FF612C, 0x00FF6699, 0x01010745,
         0x01013499, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00060C8B, 0x00061B8B, 0x00061F8B, 0x00096427, 0x00096527, 0x00096649, 0x00096749,
-        0x00096849, 0x00096949, 0x00096A49, 0x00096B49, 0x00096C49, 0x00096D49, 0x00096E49,
-        0x00096F49, 0x001CD099, 0x001CD299, 0x001CF499, 0x00A8302A, 0x00A8312A, 0x00A8322A,
-        0x00A8332A, 0x00A8342A, 0x00A8352A, 0x00A8362A, 0x00A8372A, 0x00A8382A, 0x00A8392A};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4378,21 +4288,8 @@ struct __script_data<4> {
         0x00301330, 0x00302099, 0x00303030, 0x00303199, 0x00303730, 0x00303899, 0x0030FB30,
         0x0030FC99, 0x00A8302A, 0x00A83A99, 0x00FE4530, 0x00FE4799, 0x00FF6130, 0x00FF6699,
         0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00060C99, 0x00061B99, 0x00061F99, 0x00096429, 0x00096529, 0x00096699, 0x00096799,
-        0x00096899, 0x00096999, 0x00096A99, 0x00096B99, 0x00096C99, 0x00096D99, 0x00096E99,
-        0x00096F99, 0x001CD099, 0x001CD299, 0x001CDA85, 0x00A8303D, 0x00A8313D, 0x00A8323D,
-        0x00A8333D, 0x00A8343D, 0x00A8353D, 0x00A8363E, 0x00A8373E, 0x00A8383E, 0x00A8393E};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4404,20 +4301,8 @@ struct __script_data<5> {
         0x00300499, 0x00300839, 0x00301299, 0x00301339, 0x00302099, 0x00303039,
         0x00303199, 0x00303739, 0x00303899, 0x0030FB39, 0x0030FC99, 0x00A8303C,
         0x00A83A99, 0x00FE4539, 0x00FE4799, 0x00FF6139, 0x00FF6699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096427, 0x00096527,
-                                                                      0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x0009642A, 0x0009652A, 0x001CDA88, 0x00A8303E, 0x00A8313E, 0x00A8323E, 0x00A8333E,
-        0x00A8343E, 0x00A8353E, 0x00A83649, 0x00A83749, 0x00A83849, 0x00A83949};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4428,20 +4313,8 @@ struct __script_data<6> {
         0x001CDA88, 0x001CDB99, 0x001CF262, 0x001CF399, 0x00300195, 0x00300399, 0x00300895,
         0x00301299, 0x00301495, 0x00301C99, 0x0030FB95, 0x0030FC99, 0x00A8303D, 0x00A8363E,
         0x00A83A99, 0x00FF6195, 0x00FF6699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096429, 0x00096529,
-                                                                      0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00064080, 0x0009643D, 0x0009653D, 0x001CDA99, 0x00A83049, 0x00A83149, 0x00A83249,
-        0x00A83349, 0x00A83449, 0x00A83549, 0x00A83653, 0x00A83753, 0x00A83853, 0x00A83953};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4450,20 +4323,8 @@ struct __script_data<7> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x0006407A, 0x00064199, 0x00095141, 0x00095399, 0x00096429, 0x00096699,
         0x001CF288, 0x001CF399, 0x00A8303E, 0x00A83649, 0x00A83A99, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x0009642A, 0x0009652A,
-                                                                      0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00064099, 0x00096449, 0x00096543, 0x00A83053, 0x00A83153, 0x00A83253, 0x00A83353,
-        0x00A83453, 0x00A83553, 0x00A83678, 0x00A83778, 0x00A83878, 0x00A83978};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4472,20 +4333,8 @@ struct __script_data<8> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00064080, 0x00064199, 0x00095152, 0x00095399, 0x0009642A, 0x00096699,
         0x001CF28E, 0x001CF399, 0x00A83049, 0x00A83653, 0x00A83A99, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x0009643D, 0x0009653D,
-                                                                      0x001CF299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00064099, 0x00096452, 0x00096549, 0x00A83078, 0x00A83178, 0x00A83278, 0x00A83378,
-        0x00A83478, 0x00A83578, 0x00A83682, 0x00A83782, 0x00A83882, 0x00A83982};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4494,19 +4343,8 @@ struct __script_data<9> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00095162, 0x00095399, 0x0009643D, 0x00096699,
         0x00A83052, 0x00A83353, 0x00A83678, 0x00A83A99, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096449, 0x00096543};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00096462, 0x00096552, 0x00A83082, 0x00A83182, 0x00A83282, 0x00A83382,
-        0x00A83482, 0x00A83582, 0x00A8368E, 0x00A8378E, 0x00A8388E, 0x00A8398E};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4515,20 +4353,8 @@ struct __script_data<10> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00095176, 0x00095285, 0x00095399, 0x00096449, 0x00096543,
         0x00096699, 0x00A83053, 0x00A83359, 0x00A83682, 0x00A83A99, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x00096452, 0x00096549, 0x00A83378, 0x00A83478, 0x00A83578};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00096478, 0x00096562, 0x00A8308E, 0x00A8318E, 0x00A8328E, 0x00A8338E,
-        0x00A8348E, 0x00A8358E, 0x00A83699, 0x00A83799, 0x00A83899, 0x00A83999};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4537,21 +4363,8 @@ struct __script_data<11> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00095185, 0x00095288, 0x00095399, 0x00096452, 0x00096549,
         0x00096699, 0x00A83059, 0x00A83378, 0x00A8368E, 0x00A83A99, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x00096462, 0x00096552, 0x00A83078, 0x00A83178,
-        0x00A83278, 0x00A83382, 0x00A83482, 0x00A83582};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00096479, 0x00096578, 0x00A83099, 0x00A83199, 0x00A83299, 0x00A83399,
-        0x00A83499, 0x00A83599, 0x00A83699, 0x00A83799, 0x00A83899, 0x00A83999};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4560,21 +4373,8 @@ struct __script_data<12> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00095188, 0x0009528E, 0x00095399, 0x00096459, 0x00096552,
         0x00096699, 0x00A83078, 0x00A83382, 0x00A83699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x00096478, 0x00096562, 0x00A83082, 0x00A83182,
-        0x00A83282, 0x00A8338E, 0x00A8348E, 0x00A8358E};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00095299, 0x0009647F, 0x00096579, 0x00A83099, 0x00A83199,
-        0x00A83299, 0x00A83399, 0x00A83499, 0x00A83599};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4583,20 +4383,8 @@ struct __script_data<13> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x0009518E, 0x00095299, 0x00096462, 0x00096559,
         0x00096699, 0x00A83082, 0x00A8338E, 0x00A83699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x00096479, 0x00096578, 0x00A8308E, 0x00A8318E,
-        0x00A8328E, 0x00A83399, 0x00A83499, 0x00A83599};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {
-        0x00095199, 0x00096482, 0x0009657F, 0x00A83099, 0x00A83199, 0x00A83299};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4604,18 +4392,8 @@ template<>
 struct __script_data<14> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00096478, 0x00096562, 0x00096699, 0x00A8308E, 0x00A83399, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {
-        0x0009647F, 0x00096579, 0x00A83099, 0x00A83199, 0x00A83299};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x00096485, 0x00096582};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4623,17 +4401,8 @@ template<>
 struct __script_data<15> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096479, 0x00096578,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096482, 0x0009657F};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x00096488, 0x00096585};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4641,17 +4410,8 @@ template<>
 struct __script_data<16> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009647F, 0x00096579,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096485, 0x00096582};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x0009648E, 0x00096588};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4659,17 +4419,8 @@ template<>
 struct __script_data<17> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096482, 0x0009657F,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096488, 0x00096585};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x00096499, 0x0009658E};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4677,17 +4428,8 @@ template<>
 struct __script_data<18> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096485, 0x00096582,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x0009648E, 0x00096588};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x00096499, 0x00096599};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4695,17 +4437,8 @@ template<>
 struct __script_data<19> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096488, 0x00096585,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096499, 0x0009658E};
-    static constexpr const _compact_list scripts_data_compat_v10_0 = {0x00096599};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
-
-        if constexpr(v <= uni::version::v10_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v10_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4713,12 +4446,8 @@ template<>
 struct __script_data<20> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009648E, 0x00096588,
                                                           0x00096699, 0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096499, 0x00096599};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };
@@ -4726,12 +4455,8 @@ template<>
 struct __script_data<21> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009658E, 0x00096699,
                                                           0xFFFFFFFF};
-    static constexpr const _compact_list scripts_data_compat_v11_0 = {0x00096599};
     template<uni::version v>
     constexpr script older_cp_script(char32_t cp, script sc) {
-        if constexpr(v <= uni::version::v11_0) {
-            sc = static_cast<uni::script>(scripts_data_compat_v11_0.value(cp, uint8_t(sc)));
-        }
         return sc;
     }
 };

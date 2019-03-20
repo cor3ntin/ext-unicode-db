@@ -2,6 +2,7 @@
 #include "pugixml.hpp"
 #include <string>
 #include <iostream>
+#include <charconv>
 
 std::unordered_map<char32_t, cp_test_data> load_test_data() {
     pugi::xml_document doc;
@@ -24,7 +25,20 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
             for(auto&& x : results) {
                 exts.push_back(uni::__script_from_string(x));
             }
-            db[code] = {code, age, category, block, script, exts};
+
+            std::string nv = cp.attribute("nv").value();
+            int64_t d = 0;
+            int64_t n = 0;
+            if(nv != "NaN") {
+                d = 1;
+                auto idx = nv.find('/');
+                std::from_chars(nv.data(), nv.data() + idx, n);
+                if(idx != std::string::npos) {
+                    std::from_chars(nv.data() + idx + 1, nv.data() + nv.size(), d);
+                }
+            }
+
+            db[code] = {code, age, category, block, script, exts, n, d};
         } catch(...) {    // stoi...
         }
     }

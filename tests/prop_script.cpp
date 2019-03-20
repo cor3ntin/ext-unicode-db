@@ -74,3 +74,19 @@ TEST_CASE("Verify that all code point have the script extensions as in the DB") 
         REQUIRE_THAT(expected, UnorderedEquals(extensions));
     }
 }
+
+
+TEST_CASE("Verify that all code point have the numeric value as in the DB") {
+
+    for(char32_t c = 0xbc; c <= 0x10FFFF + 1; ++c) {
+        auto it = codes.find(c);
+        if(it == codes.end())
+            continue;
+        auto d = it->second.d;
+        auto n = it->second.n;
+        auto nv = uni::cp_numeric_value(c);
+        REQUIRE((d != 0 || !nv.is_valid()));
+        REQUIRE(d == nv.denominator());
+        REQUIRE(n == nv.numerator());
+    }
+}
