@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <optional>
 
 template<typename I>
 std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1) {
