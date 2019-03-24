@@ -92,4 +92,15 @@ target_include_directories(std_ext_uni PUBLIC
 
 target_link_libraries(std_ext_uni)
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
+
+
+add_subdirectory(third_party/fmt)
+add_subdirectory(third_party/pstl2019_20190320oss)
+add_executable(namesgen
+    names.cpp
+    tests/pugixml.cpp
+)
+target_link_libraries(namesgen PRIVATE fmt::fmt ParallelSTL)
+target_compile_options(namesgen PRIVATE "-fopenmp-simd" "-march=native" "-O3")
+target_include_directories(namesgen PUBLIC third_party/range-v3/include third_party/fmt/include)

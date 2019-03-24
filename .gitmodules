@@ -1,0 +1,6 @@
+[submodule "third_party/range-v3"]
+	path = third_party/range-v3
+	url = git@github.com:ericniebler/range-v3.git
+[submodule "third_party/fmt"]
+	path = third_party/fmt
+	url = https://github.com/fmtlib/fmt

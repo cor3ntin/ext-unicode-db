@@ -45,6 +45,7 @@ class ucd_cp(object):
         self.props = {}
         self.scx = [s.lower() for s in char.get("scx").split(" ")]
         self.sc  = char.get("sc").lower()
+        self.scx.sort()
         if [self.sc] != self.scx:
             self.scx = [self.sc] + self.scx
 
@@ -257,7 +258,7 @@ def write_script_data(characters, changed, scripts_names, file):
             for i, (cp, script) in enumerate(d):
                 f.write("{}{}".format(to_hex((cp << 8) | indexes[script[idx]], 10), "," if i < len(d) - 1 else ""))
             f.write("};")
-        f.write("template <uni::version v> constexpr script older_cp_script(char32_t cp, script sc) {")
+        f.write("template <uni::version v> constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {")
         for version, _ in data:
             f.write("""
                 if constexpr(v <= uni::version::{0}) {{
@@ -764,23 +765,6 @@ def write_binary_properties(characters, f):
 
     return [prop for prop in values if not prop[0] in details and not prop[0] in unsupported_props]
 
-
-def write_name_data(charactersn, f):
-# Range Rule Prefix String
-# AC00..D7A3 NR1 “hangul syllable”
-# 3400..4DB5 NR2 “cjk unified ideograph-”
-# 4E00..9FEA NR2 “cjk unified ideograph-”
-# 20000..2A6D6 NR2 “cjk unified ideograph-”
-# 2A700..2B734 NR2 “cjk unified ideograph-”
-# 2B740..2B81D NR2 “cjk unified ideograph-”
-# 2B820..2CEA1 NR2 “cjk unified ideograph-”
-# 2CEB0..2EBE0 NR2 “cjk unified ideograph-”
-# 17000..187EC NR2 “tangut ideograph-”
-# 1B170..1B2FB NR2 “nushu character-”
-# F900..FA6D* NR2 “cjk compatibility ideograph-”
-# FA70..FAD9 NR2 “cjk compatibility ideograph-”
-# 2F800..2FA1D NR2 “cjk compatibility ideograph-”
-    pass
 
 def write_regex_support(f, characters, supported_properties, categories_names, scripts_names):
     all = supported_properties + [["any"], ["ascii"], ["assigned"]] + categories_names + scripts_names
