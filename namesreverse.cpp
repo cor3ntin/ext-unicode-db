@@ -101,62 +101,6 @@ public:
     void compact() {
         compact(root.get());
     }
-
-    int count() const {
-        return count(root.get());
-    }
-
-    int max_children_count() const {
-        int max = 0;
-        max_children_count(root.get(), max);
-        return max;
-    }
-
-    void max_children_count(node* n, int & max) const {
-        if(n->children.size() > max)
-            max = n->children.size();
-        for(auto & c : n->children) {
-            max_children_count(c.get(), max);
-        }
-    }
-
-    int count(node* n) const {
-        int the_count = 1;
-        for(auto & c : n->children) {
-            the_count += count(c.get());
-        }
-        return the_count;
-    }
-
-    void print() {
-        print(root.get());
-    }
-
-    void print(node* n, int indent = 0) {
-        fmt::print("{:>{}} {} (value: {})\n", "{", indent * 4, n->name, n->value ? *n->value : 0 );
-        for(auto && c : n->children) {
-            print(c.get(), indent + 1);
-        }
-        fmt::print("{:>{}}\n", "}", indent * 4 );
-    }
-
-    int bytes() {
-        return bytes(root.get());
-    }
-
-    std::set<std::string> names() {
-        std::set<std::string> set;
-        collect_keys(root.get(), set);
-        return set;
-    }
-
-    int bytes(node* n) {
-        int s =  2 + (n->name.size() > 1 ? 3 : 1) + (n->value ? 3 : 0);
-        for(auto & c : n->children) {
-            s += bytes(c.get());
-        }
-        return s;
-    }
     std::tuple<std::string, std::vector<uint8_t>> dump() {
         std::set<std::string> names = this->names();
         std::vector<std::string> sorted(names.begin(), names.end());
@@ -172,8 +116,14 @@ public:
                continue;
             dict += n;
         }
-        auto bytes = dump2(dict);
+        auto bytes = dump(dict);
         return {dict, bytes};
+    }
+
+    std::set<std::string> names() {
+        std::set<std::string> set;
+        collect_keys(root.get(), set);
+        return set;
     }
 
     uint8_t letter(char c ) {
@@ -181,12 +131,14 @@ public:
         return letters.find(c);
     }
 
-    std::vector<uint8_t> dump2(const std::string & dict) {
+    std::vector<uint8_t> dump(const std::string & dict) {
         std::unordered_map<node*, int32_t> offsets;
         std::unordered_map<int32_t, std::pair<node*, bool>> children_offsets;
         std::unordered_map<node*, bool>  sibling_nodes;
         std::deque<node*> nodes;
         std::vector<uint8_t> bytes;
+        bytes.reserve(250'000);
+        nodes.reserve(50'000);
 
         auto add_children = [&sibling_nodes, &nodes](auto && container) {
             for(auto && [idx, c] : ranges::view::enumerate(container)) {
@@ -340,21 +292,9 @@ int main(int argc, char** argv) {
         }
         t.insert(name, v);
     }
-    fmt::print("//{} / {} / {} \n", t.count(), t.bytes()/1024, t.max_children_count());
     t.compact();
-    fmt::print("//{} / {} / {} \n", t.count(), t.bytes()/1024, t.max_children_count());
-    auto names = t.names();
-
-
-    auto it = std::max_element(names.begin(), names.end(), [] (const auto & a, const auto & b) {
-        return a.size() < b.size();
-    });
-    fmt::print("//{}\n", it->size());
-
     auto [dict, bytes] = t.dump();
     fmt::print("//dict : {} / tree : {} \n", dict.size()/1024, bytes.size()/1024);
-    //t.print();
-
 
     fmt::print("#pragma once\n");
     fmt::print("#include <cstdint>\n");
