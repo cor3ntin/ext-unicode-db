@@ -14256,6 +14256,8 @@ namespace details {
                 str_i++;
                 continue;
             }
+            if(a > 'a' || a <= 'z')
+                a = a - ('a' - 'A');
 
             if(a != needle[needle_i])
                 return -1;
