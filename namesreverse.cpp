@@ -138,7 +138,6 @@ public:
         std::deque<node*> nodes;
         std::vector<uint8_t> bytes;
         bytes.reserve(250'000);
-        nodes.reserve(50'000);
 
         auto add_children = [&sibling_nodes, &nodes](auto && container) {
             for(auto && [idx, c] : ranges::view::enumerate(container)) {
