@@ -14169,7 +14169,6 @@ constexpr const uint8_t index[] = {
 #include <iostream>
 #include <tuple>
 #include <charconv>
-#include <format.hpp>
 namespace uni {
 namespace details {
     struct node {
@@ -14180,14 +14179,14 @@ namespace details {
         std::string_view name;
 
 
-        bool is_valid() const {
+        constexpr bool is_valid() const {
             return name.size() != 0;
         }
-        bool has_children() const {
+        constexpr bool has_children() const {
             return children_offset != 0;
         }
     };
-    node read_node(uint32_t offset) {
+    constexpr node read_node(uint32_t offset) {
         using namespace uni::details;
         const uint32_t origin = offset;
         node n;
@@ -14236,7 +14235,7 @@ namespace details {
     }
 
 
-    int compare(std::string_view str, std::string_view needle, uint32_t start) {
+    constexpr int compare(std::string_view str, std::string_view needle, uint32_t start) {
         int str_i = start;
         int needle_i = 0;
         if(needle.size() == 0)
@@ -14266,8 +14265,8 @@ namespace details {
         return -1;
     }
 
-    std::tuple<node, bool, uint32_t> compare_node(uint32_t offset, std::string_view name,
-                                                  uint32_t start = 0) {
+    constexpr std::tuple<node, bool, uint32_t> compare_node(uint32_t offset, std::string_view name,
+                                                            uint32_t start = 0) {
         auto n = details::read_node(offset);
         auto cmp = details::compare(name, n.name, start);
         if(cmp == -1) {
@@ -14346,11 +14345,11 @@ namespace details {
     };
 
 
-    bool starts_with(std::string_view str, std::string_view needle) {
+    constexpr bool starts_with(std::string_view str, std::string_view needle) {
         return str.size() >= needle.size() && str.compare(0, needle.size(), needle) == 0;
     }
 
-    static int find_syllable(std::string_view str, int& pos, int count, int column) {
+    constexpr int find_syllable(std::string_view str, int& pos, int count, int column) {
         int len = -1;
         for(int i = 0; i < count; i++) {
             std::string_view s(hangul_syllables[i][column]);
@@ -14378,7 +14377,7 @@ namespace details {
 }    // namespace details
 
 
-char32_t cp_from_name(std::string_view name) {
+constexpr char32_t cp_from_name(std::string_view name) {
     using namespace details;
 
     if(std::string_view prefix = "HANGUL SYLLABLE "; starts_with(name, prefix)) {
@@ -14397,7 +14396,7 @@ char32_t cp_from_name(std::string_view name) {
         if(starts_with(name, item.prefix)) {
             auto gn = name;
             gn.remove_prefix(item.prefix.size());
-            uint32_t v;
+            uint32_t v = 0;
             const auto end = gn.data() + gn.size();
             auto [p, ec] = std::from_chars(gn.data(), end, v, 16);
             if(ec != std::errc() || p != end || v < item.start || v > item.end)
