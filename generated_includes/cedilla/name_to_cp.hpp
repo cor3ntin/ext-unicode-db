@@ -14246,7 +14246,7 @@ namespace details {
                 return str_i;
             if(str_i == str.size())
                 return -1;
-            const auto a = str[str_i];
+            char a = str[str_i];
             if(a == '-' && !had_space) {
                 str_i++;
                 continue;
@@ -14256,7 +14256,7 @@ namespace details {
                 str_i++;
                 continue;
             }
-            if(a > 'a' || a <= 'z')
+            if(a >= 'a' && a <= 'z')
                 a = a - ('a' - 'A');
 
             if(a != needle[needle_i])
