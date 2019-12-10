@@ -4194,7 +4194,7 @@ struct __script_data<0> {
         0x02EBDF2C, 0x02EBE099, 0x02F8002C, 0x02FA1E99, 0x0E000198, 0x0E000299, 0x0E002098,
         0x0E008099, 0x0E010097, 0x0E01F099, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4227,7 +4227,7 @@ struct __script_data<1> {
         0x011FD499, 0x01BCA01D, 0x01BCA499, 0x01D3602C, 0x01D37299, 0x01F2502C, 0x01F25299,
         0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4257,7 +4257,7 @@ struct __script_data<2> {
         0x01130499, 0x01133B85, 0x01133D99, 0x011FD085, 0x011FD299, 0x011FD385, 0x011FD499,
         0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4274,7 +4274,7 @@ struct __script_data<3> {
         0x00A92E58, 0x00A92F99, 0x00FE452C, 0x00FE4799, 0x00FF612C, 0x00FF6699, 0x01010745,
         0x01013499, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4289,7 +4289,7 @@ struct __script_data<4> {
         0x0030FC99, 0x00A8302A, 0x00A83A99, 0x00FE4530, 0x00FE4799, 0x00FF6130, 0x00FF6699,
         0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4302,7 +4302,7 @@ struct __script_data<5> {
         0x00303199, 0x00303739, 0x00303899, 0x0030FB39, 0x0030FC99, 0x00A8303C,
         0x00A83A99, 0x00FE4539, 0x00FE4799, 0x00FF6139, 0x00FF6699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4314,7 +4314,7 @@ struct __script_data<6> {
         0x00301299, 0x00301495, 0x00301C99, 0x0030FB95, 0x0030FC99, 0x00A8303D, 0x00A8363E,
         0x00A83A99, 0x00FF6195, 0x00FF6699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4324,7 +4324,7 @@ struct __script_data<7> {
         0x00000099, 0x0006407A, 0x00064199, 0x00095141, 0x00095399, 0x00096429, 0x00096699,
         0x001CF288, 0x001CF399, 0x00A8303E, 0x00A83649, 0x00A83A99, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4334,7 +4334,7 @@ struct __script_data<8> {
         0x00000099, 0x00064080, 0x00064199, 0x00095152, 0x00095399, 0x0009642A, 0x00096699,
         0x001CF28E, 0x001CF399, 0x00A83049, 0x00A83653, 0x00A83A99, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4344,7 +4344,7 @@ struct __script_data<9> {
         0x00000099, 0x00095162, 0x00095399, 0x0009643D, 0x00096699,
         0x00A83052, 0x00A83353, 0x00A83678, 0x00A83A99, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4354,7 +4354,7 @@ struct __script_data<10> {
         0x00000099, 0x00095176, 0x00095285, 0x00095399, 0x00096449, 0x00096543,
         0x00096699, 0x00A83053, 0x00A83359, 0x00A83682, 0x00A83A99, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4364,7 +4364,7 @@ struct __script_data<11> {
         0x00000099, 0x00095185, 0x00095288, 0x00095399, 0x00096452, 0x00096549,
         0x00096699, 0x00A83059, 0x00A83378, 0x00A8368E, 0x00A83A99, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4374,7 +4374,7 @@ struct __script_data<12> {
         0x00000099, 0x00095188, 0x0009528E, 0x00095399, 0x00096459, 0x00096552,
         0x00096699, 0x00A83078, 0x00A83382, 0x00A83699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4384,7 +4384,7 @@ struct __script_data<13> {
         0x00000099, 0x0009518E, 0x00095299, 0x00096462, 0x00096559,
         0x00096699, 0x00A83082, 0x00A8338E, 0x00A83699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4393,7 +4393,7 @@ struct __script_data<14> {
     static constexpr const _compact_range scripts_data = {
         0x00000099, 0x00096478, 0x00096562, 0x00096699, 0x00A8308E, 0x00A83399, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4402,7 +4402,7 @@ struct __script_data<15> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096479, 0x00096578,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4411,7 +4411,7 @@ struct __script_data<16> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009647F, 0x00096579,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4420,7 +4420,7 @@ struct __script_data<17> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096482, 0x0009657F,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4429,7 +4429,7 @@ struct __script_data<18> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096485, 0x00096582,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4438,7 +4438,7 @@ struct __script_data<19> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x00096488, 0x00096585,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4447,7 +4447,7 @@ struct __script_data<20> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009648E, 0x00096588,
                                                           0x00096699, 0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -4456,7 +4456,7 @@ struct __script_data<21> {
     static constexpr const _compact_range scripts_data = {0x00000099, 0x0009658E, 0x00096699,
                                                           0xFFFFFFFF};
     template<uni::version v>
-    constexpr script older_cp_script(char32_t cp, script sc) {
+    constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {
         return sc;
     }
 };
@@ -9335,40 +9335,4 @@ static constexpr const std::array __binary_prop_names = {
     __string_with_idx{"zs", 85},
     __string_with_idx{"zyyy", 238},
     __string_with_idx{"zzzz", 239}};
-}    // namespace uni
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "extra.h"
-#endif
-
-// More regex support for ctre
-
-namespace uni {
-
-
-constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __binary_prop_names.size(); ++i) {
-        const auto& c = __binary_prop_names[i];
-        const auto res = __pronamecomp(s, c.name);
-        if(res == 0)
-            return __binary_prop(c.value);
-    }
-    return __binary_prop::unknown;
-}
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
-    return cp_is_ascii(c);
-}
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::assigned>(char32_t c) {
-    return cp_is_assigned(c);
-}
-
-template<>
-constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
-    return cp_is_valid(c);
-}
-
 }    // namespace uni
