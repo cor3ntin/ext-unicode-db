@@ -41,25 +41,33 @@ bool generated(char32_t c) {
     return false;
 }
 
-std::unordered_multimap<char32_t, std::string> load_data() {
+std::string fixup_name(std::string n, std::string_view cp) {
+    auto p = n.find("#");
+    if(p == std::string::npos)
+        return n;
+    auto c = n;
+    c.replace(p, 1, cp);
+    return c;
+}
+
+std::unordered_multimap<char32_t, std::string> load_data(std::string db) {
     pugi::xml_document doc;
-    pugi::xml_parse_result result =
-        doc.load_file("/home/cor3ntin/dev/unicode/props/ucd/12.0/ucd.nounihan.flat.xml");
+    pugi::xml_parse_result result = doc.load_file(db.c_str());
     std::unordered_multimap<char32_t, std::string> characters;
 
     pugi::xml_node rep = doc.child("ucd").child("repertoire");
     for(pugi::xml_node cp : rep.children("char")) {
         try {
             auto code = char32_t(std::stoi(cp.attribute("cp").value(), 0, 16));
-            
+
             auto name = std::string(cp.attribute("na").value());
             if(!generated(code) && !name.empty()) {
-                characters.insert({code, name});
+                characters.insert({code, fixup_name(name, cp.attribute("cp").value())});
             }
 
             for(pugi::xml_node alias : cp.children("name-alias")) {
                 name = std::string(cp.attribute("alias").value());
-                characters.insert({code, name});
+                characters.insert({code, fixup_name(name, cp.attribute("cp").value())});
             }
 
         } catch(...) {
@@ -138,7 +146,7 @@ public:
 
     std::set<std::string> names() {
         std::set<std::string> set;
-        collect_keys(root.get(), set); 
+        collect_keys(root.get(), set);
         return set;
     }
 
@@ -149,7 +157,7 @@ public:
         }
         return s;
     }
-    std::tuple<std::string, std::vector<uint8_t>, uint32_t> dump() {
+    std::tuple<std::string, std::vector<uint8_t>> dump() {
         std::set<std::string> names = this->names();
         std::vector<std::string> sorted(names.begin(), names.end());
         ranges::sort(sorted, [](const auto &a, const auto & b) {
@@ -164,8 +172,8 @@ public:
                continue;
             dict += n;
         }
-        auto [bytes, non_leaf_offset] = dump2(dict);
-        return {dict, bytes, non_leaf_offset};
+        auto bytes = dump2(dict);
+        return {dict, bytes};
     }
 
     uint8_t letter(char c ) {
@@ -173,59 +181,37 @@ public:
         return letters.find(c);
     }
 
-    void collect_children(node* n, std::deque<node*> & children) {
-        for(auto & c : n->children) {
-            collect_children(c.get(), children);
-        }
-        if(!!n->value) {
-            children.push_back(n);
-        } 
-    }
-
-    std::pair<std::vector<uint8_t>, uint32_t> dump2(const std::string & dict) {
+    std::vector<uint8_t> dump2(const std::string & dict) {
         std::unordered_map<node*, int32_t> offsets;
-        std::unordered_map<int32_t, node*> parent_offsets;
-        std::unordered_map<int32_t, node*> parent_offsets_leafs;
+        std::unordered_map<int32_t, std::pair<node*, bool>> children_offsets;
+        std::unordered_map<node*, bool>  sibling_nodes;
         std::deque<node*> nodes;
         std::vector<uint8_t> bytes;
-        uint32_t non_leaf_offset = 0;
-        
-        bytes.reserve(200'000);
-        offsets.reserve(100000);
-        parent_offsets.reserve(100000);
-        parent_offsets_leafs.reserve(100000);
 
-        collect_children(root.get(), nodes);
-        ranges::sort(nodes, [](const auto & a, const auto & b) {
-            return a->name < b->name;
-        });
-
-        auto leafs = nodes.size();
-        bool add_terminal = true;
+        auto add_children = [&sibling_nodes, &nodes](auto && container) {
+            for(auto && [idx, c] : ranges::view::enumerate(container)) {
+                nodes.push_back(c.get());
+                if(idx != container.size() - 1)
+                    sibling_nodes[c.get()] = true;
+            }
+        };
+        add_children(root->children);
 
         while(!nodes.empty()) {
             auto offset = bytes.size();
             node* const n = nodes.front();
             nodes.pop_front();
-
-            if(offsets.count(n))
-                continue;
-            
-            offsets[n] = offset;
-            
             if(n->name.size() == 0) {
-                if(n->parent)
-                    throw std::runtime_error("NULL name");
-                continue;
+                throw std::runtime_error("NULL name");
             }
-
-            //fmt::print("// {} \n", n->name );
-            
+            offsets[n] = offset;
+            uint8_t b = (!!n->value) ? 0x80 : 0;
             if(n->name.size() == 1 ) {
-                bytes.push_back(letter(n->name[0]));
+                b |= letter(n->name[0]);
+                bytes.push_back(b);
             }
             else {
-                uint8_t b = uint8_t(n->name.size()) | uint8_t(0x80);
+                b = b | uint8_t(n->name.size())| 0x40;
                 bytes.push_back(b);
                 auto pos = dict.find(n->name);
                 if(pos == std::string::npos) {
@@ -237,77 +223,65 @@ public:
                 bytes.push_back(l);
             }
 
-            if(leafs > 0) {
+            const bool has_sibling  = sibling_nodes.count(n) != 0;
+            const bool has_children = n->children.size() != 0;
+
+            if(!!n->value) {
                 uint32_t v = (*(n->value) << 3);
-                
                 uint8_t h = ((v>>16) & 0xFF);
                 uint8_t m = ((v>>8) & 0xFF);
-                uint8_t l = (v & 0xFF);
-
+                uint8_t l = (v & 0xFF)
+                    | uint8_t(has_sibling ?  0x01 : 0)
+                    | uint8_t(has_children ?  0x02 : 0);
 
                 bytes.push_back(h);
                 bytes.push_back(m);
-
-                parent_offsets_leafs[bytes.size()] = n->parent;
-
                 bytes.push_back(l);
-                bytes.push_back(0xFF);
-                bytes.push_back(0xFF);
 
-                leafs --;
+                if(has_children) {
+                    children_offsets[bytes.size()] = std::pair{n->children[0].get(), true};
+                    bytes.push_back(0x00);
+                    bytes.push_back(0x00);
+                    bytes.push_back(0x00);
+                }
             }
-            else if(n->parent) {
-                parent_offsets[bytes.size()] = n->parent;
-                
-                bytes.push_back(0xFF);
-                bytes.push_back(0xFF);
-                bytes.push_back(0xFF);
+            else {
+                uint8_t s = uint8_t(has_sibling ?  0x80 : 0) | uint8_t(has_children ?  0x40 : 0);
+                bytes.push_back(s);
+                if(has_children) {
+                    children_offsets[bytes.size() - 1] = std::pair{n->children[0].get(), false};
+                    bytes.push_back(0x00);
+                    bytes.push_back(0x00);
+                }
             }
-
-            if(n->parent && ranges::find(nodes, n->parent) == nodes.end())
-                nodes.push_back(n->parent);
-
-            if(leafs == 0 && add_terminal) {
-                bytes.push_back(0x00);
-                add_terminal = false;
-                non_leaf_offset = bytes.size();
-            }
+            add_children(n->children);
         }
-        
-        bytes.push_back(0);
-        bytes.push_back(0);
-        bytes.push_back(0);
-        bytes.push_back(0);
-        bytes.push_back(0);
-        bytes.push_back(0);
 
-        for(auto && [k, v] : parent_offsets) {
-
-            const auto it = offsets.find(v);
+        for(auto && [offset, v] : children_offsets) {
+            auto & [n, has_value] = v;
+            const auto it = offsets.find(n);
             if(it == offsets.end()) {
                 throw std::runtime_error("oups");
             }
             uint32_t pos =  it->second;
-
-            bytes[k] = ((pos>>16) & 0xFF);
-            bytes[k + 1] = ((pos>>8) & 0xFF);
-            bytes[k + 2] = pos & 0xFF;
-        }
-        for(auto && [k, v] : parent_offsets_leafs) {
-
-            const auto it = offsets.find(v);
-            if(it == offsets.end()) {
-                throw std::runtime_error("oups");
-                break;
+            if(has_value) {
+                bytes[offset] = ((pos>>16) & 0xFF);
             }
-            uint32_t pos =  it->second;
-
-            bytes[k] =  bytes[k] | uint8_t((pos>>16) & 0xFF);
-            bytes[k + 1] = ((pos>>8) & 0xFF);
-            bytes[k + 2] = pos & 0xFF;
+            else {
+                bytes[offset] =  bytes[offset] | uint8_t((pos>>16) & 0xFF);
+            }
+            bytes[offset + 1] = ((pos>>8) & 0xFF);
+            bytes[offset + 2] = pos & 0xFF;
         }
 
-        return {bytes, non_leaf_offset};
+        bytes.push_back(0);
+        bytes.push_back(0);
+        bytes.push_back(0);
+        bytes.push_back(0);
+        bytes.push_back(0);
+        bytes.push_back(0);
+
+        return bytes;
     }
 
 
@@ -322,7 +296,9 @@ private:
         for(auto && child : n->children) {
             compact(child.get());
         }
-        if(n->parent && n->parent->children.size() == 1 && !n->parent->value) {
+        if(n->parent && n->parent->children.size() == 1
+            && !n->parent->value
+            && (n->parent->name.size() + n->name.size() <= 32)) {
             n->parent->value = n->value;
             n->parent->name += n->name;
             n->parent->children = std::move(n->children);
@@ -341,13 +317,27 @@ private:
     std::unique_ptr<node> root = std::make_unique<node>("");
 };
 
-int main() {
+int main(int argc, char** argv) {
     trie t;
-    for(auto [v, name] : load_data()) {
 
-        name.erase(ranges::remove_if(name.begin(), name.end(),[](auto c) {
-            return c == '-' || c == ' ';
-        }), name.end());
+    for(auto [v, name] : load_data(argv[1])) {
+        if(name.size() < 2)
+            continue;
+        bool prev_space = false;
+        for(auto it = name.begin() + 1; it != name.end();) {
+            if(*it == '-') {
+                if(!prev_space && v != 0x1180) {
+                    it = name.erase(it);
+                    continue;
+                }
+            }
+            prev_space = *it == ' ';
+            if(*it == '_' || *it == ' ') {
+                it = name.erase(it);
+                continue;
+            }
+            it++;
+        }
         t.insert(name, v);
     }
     fmt::print("//{} / {} / {} \n", t.count(), t.bytes()/1024, t.max_children_count());
@@ -361,14 +351,14 @@ int main() {
     });
     fmt::print("//{}\n", it->size());
 
-    auto [dict, bytes, non_leaf_offset] = t.dump();
+    auto [dict, bytes] = t.dump();
     fmt::print("//dict : {} / tree : {} \n", dict.size()/1024, bytes.size()/1024);
     //t.print();
 
-    
+
+    fmt::print("#pragma once\n");
     fmt::print("#include <cstdint>\n");
     fmt::print("namespace uni::details {{\n");
-    fmt::print("constexpr const uint32_t non_leaf_offset = {};\n", non_leaf_offset);
     fmt::print("constexpr const char* dict = \"{}\";\n", dict);
     fmt::print("constexpr const uint8_t index[] = {{\n");
     for(auto b : bytes) {

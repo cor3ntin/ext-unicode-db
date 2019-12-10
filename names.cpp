@@ -28,6 +28,8 @@
 #include "tbb/task_scheduler_init.h"
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/concurrent_vector.h"
+#include "range/v3/view/span.hpp"
+
 #include <mutex>
 
 bool generated(char32_t c) {
@@ -44,10 +46,18 @@ bool generated(char32_t c) {
     return false;
 }
 
-std::unordered_map<char32_t, std::string> load_data() {
+std::string fixup_name(std::string n, std::string_view cp) {
+    auto p = n.find("#");
+    if(p == std::string::npos)
+        return n;
+    auto c = n;
+    c.replace(p, 1, cp);
+    return c;
+}
+
+std::unordered_map<char32_t, std::string> load_data(std::string db) {
     pugi::xml_document doc;
-    pugi::xml_parse_result result =
-        doc.load_file("/home/cor3ntin/dev/unicode/props/ucd/12.0/ucd.nounihan.flat.xml");
+    pugi::xml_parse_result result = doc.load_file(db.c_str());
     std::unordered_map<char32_t, std::string> characters;
 
     pugi::xml_node rep = doc.child("ucd").child("repertoire");
@@ -57,14 +67,14 @@ std::unordered_map<char32_t, std::string> load_data() {
             if(generated(code))
                 continue;
 
-            auto name = std::string(cp.attribute("na").value());
+            auto name = fixup_name(std::string(cp.attribute("na").value()), cp.attribute("cp").value());
             if(name.empty())
                 continue;
 
-            characters.emplace(code, name);
+            // if(characters.size() > 100)
+            //     break;
 
-            if(characters.size() == 5000)
-                return characters;
+            characters.emplace(code, name);
 
         } catch(...) {
         }
@@ -255,7 +265,7 @@ void print_dict(std::FILE* f, const std::vector<block>& blocks) {
     };
     size_t start = 0;
 
-    int idx = 0;
+    int idx = 1;
     std::unordered_map<int, data> table;
     fmt::print(f, "static constexpr const char* __name_dict = \"");
     for(const auto& b : blocks) {
@@ -310,46 +320,47 @@ void print_indexes(std::FILE* f,
         start = data.size();
     }
 
-    fmt::print(f, "static constexpr std::array __name_indexes = {{");
+    fmt::print(f, "static constexpr uint64_t __name_indexes[] = {{");
     for(auto& elem : data) {
         fmt::print(f, "{:#018x},", elem);
     }
     fmt::print(f, "0xFFFF'FFFF'FFFF'FFFF}};");
 
     for(const auto& [index, data] : ranges::view::enumerate(sorted_jump_table)) {
-        fmt::print(f, "static constexpr std::array __name_indexes_{} = {{", index);
+        fmt::print(f, "static constexpr uint64_t __name_indexes_{}[] = {{", index);
         bool first = true;
-        char32_t prev = 0xFFFFFF;
+        char32_t prev = 0;
         size_t next_start = data.first;
         for(auto& c : data.second) {
-            if(first) {
-                fmt::print(f, "{:#018x},", (uint64_t(c.first) << 32) | uint64_t(next_start));
-                prev = c.first;
-                first = false;
-            } else if(c.first != prev + 1) {
-                fmt::print(f, "{:#018x},", (uint64_t(prev) << 32) | uint64_t(0xFFFFFFFF));
-                fmt::print(f, "{:#018x},", (uint64_t(c.first) << 32) | uint64_t(next_start));
+            if(first || c.first != prev + 1) {
+                fmt::print(f, "{:#018x},", (uint64_t(prev + 1) << 32) | uint32_t(0xFFFFFFFF));
+                fmt::print(f, "{:#018x},", (uint64_t(c.first) << 32) | uint32_t(next_start));
             }
+            first = false;
             prev = c.first;
             next_start++;
         }
-        fmt::print(f, "{:#018x} }};", (uint64_t(prev + 1) << 32) | uint64_t(0xFFFFFFFF));
+        fmt::print(f, "{:#018x}}};", (uint64_t(prev + 1) << 32) | uint32_t(0xFFFFFFFF));
     }
 
-    fmt::print(f, "constexpr auto __get_table_index(std::size_t index) {{");
+    fmt::print(f, "constexpr std::pair<const uint64_t* const, const uint64_t* const> "
+                  "__get_table_index(std::size_t index) {{");
     fmt::print(f, "switch(index) {{");
     for(const auto& [index, data] : ranges::view::enumerate(sorted_jump_table)) {
         fmt::print(f, "case {}:", index);
-        fmt::print(f, "return {{  __name_indexes_{0}.begin(), __name_indexes_{0}.end() }};", index);
+        fmt::print(f,
+                   "return {{  __name_indexes_{0},  __name_indexes_{0} +  "
+                   "sizeof(__name_indexes_{0})/sizeof(uint64_t) }};",
+                   index);
     }
-    fmt::print(f, "}} return {{}}; }}");
+    fmt::print(f, "}} return {{nullptr, nullptr}}; }}");
 }
 
-int main() {
+int main(int argc, char** argv) {
 
     // tbb::task_scheduler_init init(4);
 
-    const auto data = load_data();
+    const auto data = load_data(argv[1]);
     auto names = data | ranges::view::transform([](const auto& p) {
                      return character_name{p.first, p.second, {}, 0};
                  }) |
@@ -388,7 +399,7 @@ int main() {
 
         const auto materialized = incomplete | ranges::to<std::vector>;
 
-        std::for_each(std::execution::par_unseq, materialized.begin(), materialized.end(),
+        std::for_each(std::execution::par, materialized.begin(), materialized.end(),
                       [&all_substrings](const character_name& c) {
                           for(const auto& b : c.bits()) {
                               for(auto i : ranges::view::iota(0, b.second.size() + 1)) {
@@ -404,7 +415,7 @@ int main() {
 
         fmt::print("Substrings : {}\n", subs.size());
 
-        std::for_each(std::execution::par_unseq, subs.begin(), subs.end(),
+        std::for_each(std::execution::par, subs.begin(), subs.end(),
                       [& all_substrings = std::as_const(all_substrings),
                        &used_substrings](const auto& needle) {
                           auto it = all_substrings.find(needle);
@@ -493,7 +504,7 @@ int main() {
                dict_size / 1024.0, index_bytes / 1024.0);
 
     auto f = fopen("test.h", "w");
-    fmt::print(f, "#include <string_view>\n#include <array>\n");
+    fmt::print(f, "#pragma once\n#include <string_view>\n#include <array>\n\n");
 
     print_dict(f, blocks);
 
@@ -503,7 +514,7 @@ int main() {
     };
 
     std::unordered_map<std::string_view, pos> indexes;
-    int bi = 0;
+    int bi = 1;
     for(const auto& b : blocks) {
         int idx = 0;
         for(const auto& str : b.data) {
@@ -516,14 +527,13 @@ int main() {
     for(const auto& c : names) {
         int seq = 0;
         int i = 0;
-        uint64_t v = 0;
+
+        uint64_t v = 0x00000000000000;
         while(i < c.sub.size()) {
             const auto n = 64 - 16 * (i % 4);
             const auto pos = indexes[c.sub.at(i).second];
             v |= (uint64_t(pos.b) << (n - 8)) | (uint64_t(pos.i) << (n - 16));
             if(((i % 4) == 3) || i == c.sub.size() - 1) {
-                if(i == c.sub.size() - 1)
-                    v |= (uint64_t(0xFFFFFFFFFFFFFFFF) >> 16 * ((i + 1) % 4));
                 mapping[seq++].insert({c.cp, v});
                 v = 0;
             }

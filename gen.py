@@ -10,7 +10,7 @@ import collections
 DIR_WITH_UCD = os.path.realpath(sys.argv[3])
 LAST_VERSION = "12.0"
 STANDARD_VERSION = "12.0"
-SUPPORTED_VERSIONS = ["11.0", "10.0"] # "9.0", "8.0", "7.0"]
+SUPPORTED_VERSIONS = [] # "9.0", "8.0", "7.0"]
 MIN_VERSION = "10.0"
 PROPS_VALUE_FILE = os.path.join(DIR_WITH_UCD, "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR_WITH_UCD, "binary_props.txt")
@@ -48,6 +48,8 @@ class ucd_cp(object):
         self.scx.sort()
         if [self.sc] != self.scx:
             self.scx = [self.sc] + self.scx
+
+
 
         self.block = char.get("blk").lower().replace("-", "_").replace(" ", "_")
         self.nv = None if char.get("nv") == 'NaN' else char.get("nv").split("/")
@@ -180,8 +182,8 @@ def get_unicode_data(version = LAST_VERSION):
                 l = cp_code(l)
                 template =  ucd_cp(c, elem)
                 for c in range(f, l):
+                    template.cp = c
                     characters[c] = template
-                    characters[c].cp = c
                 continue
             c = elem.get("cp")
             if c == None:

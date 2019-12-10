@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ext/unicode.hpp>
+#include <cedilla/properties.hpp>
 #include <catch2/catch.hpp>
 #include <fstream>
 #include <iostream>
