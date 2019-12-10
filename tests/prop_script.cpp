@@ -2,6 +2,7 @@
 #include "common.h"
 #include <ext/unicode.hpp>
 #include <catch2/catch.hpp>
+#include "names.hpp"
 
 const auto codes = load_test_data();
 
@@ -88,5 +89,26 @@ TEST_CASE("Verify that all code point have the numeric value as in the DB") {
         REQUIRE((d != 0 || !nv.is_valid()));
         REQUIRE(d == nv.denominator());
         REQUIRE(n == nv.numerator());
+    }
+}
+
+
+TEST_CASE("Verify that all code point have the name as in the db") {
+
+    for(char32_t c = 0x0; c <= 0x10FFFF + 1; ++c) {
+        auto it = codes.find(c);
+        if(it == codes.end())
+            continue;
+        auto name = it->second.name;
+        if(name.empty())
+            continue;
+
+        std::string str;
+        auto n = uni::cp_name(c);
+        for(auto l : n) {
+            str.push_back(l);
+        }
+        std::cout << "name " << std::hex << c << std::dec << " " << name << str << " \n";
+        CHECK(str == name);
     }
 }

@@ -29,6 +29,7 @@ inline std::ostream& operator<<(std::ostream& os, std::u32string const& value) {
 
 struct cp_test_data {
     char32_t cp;
+    std::string name;
     uni::version age;
     uni::category category;
     uni::block block;
