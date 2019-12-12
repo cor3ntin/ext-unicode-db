@@ -267,7 +267,7 @@ void print_dict(std::FILE* f, const std::vector<block>& blocks) {
 
     int idx = 1;
     std::unordered_map<int, data> table;
-    fmt::print(f, "static constexpr const char* __name_dict = \"");
+    fmt::print(f, "constexpr const char* __name_dict = \"");
     for(const auto& b : blocks) {
         for(const auto& str : b.data) {
             for(auto c : str) {
@@ -320,14 +320,14 @@ void print_indexes(std::FILE* f,
         start = data.size();
     }
 
-    fmt::print(f, "static constexpr uint64_t __name_indexes[] = {{");
+    fmt::print(f, "constexpr uint64_t __name_indexes[] = {{");
     for(auto& elem : data) {
         fmt::print(f, "{:#018x},", elem);
     }
     fmt::print(f, "0xFFFF'FFFF'FFFF'FFFF}};");
 
     for(const auto& [index, data] : ranges::view::enumerate(sorted_jump_table)) {
-        fmt::print(f, "static constexpr uint64_t __name_indexes_{}[] = {{", index);
+        fmt::print(f, "constexpr uint64_t __name_indexes_{}[] = {{", index);
         bool first = true;
         char32_t prev = 0;
         size_t next_start = data.first;

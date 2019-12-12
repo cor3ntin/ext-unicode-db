@@ -106,11 +106,13 @@ add_custom_command(
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml
         ${PROJECT_SOURCE_DIR}/names.hpp
+        namesgen
 )
 
 add_library(std_ext_uni
   ${HEADERS_DIR}/cp_to_name.hpp
   ${HEADERS_DIR}/name_to_cp.hpp
+  ${HEADERS_DIR}/properties.hpp
   empty.cpp
 )
 
