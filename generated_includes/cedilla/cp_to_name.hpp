@@ -2,7 +2,7 @@
 #include <string_view>
 #include <array>
 
-static constexpr const char* __name_dict =
+constexpr const char* __name_dict =
     "\x42\x45\x4e\x54\x20\x41\x52\x52\x4f\x57\x20\x50\x4f\x49\x4e\x54\x49\x4e\x47\x20\x44\x4f\x57"
     "\x4e\x57\x41\x52\x44\x53\x20\x54\x48\x45\x4e\x20\x4e\x4f\x52\x54\x48\x20\x45\x41\x53\x54\x48"
     "\x45\x41\x56\x59\x20\x44\x4f\x55\x42\x4c\x45\x20\x54\x55\x52\x4e\x45\x44\x20\x43\x4f\x4d\x4d"
@@ -3994,7 +3994,7 @@ constexpr std::string_view __get_name_segment(std::size_t b, std::size_t idx) {
     }
     return {};
 }
-static constexpr uint64_t __name_indexes[] = {
+constexpr uint64_t __name_indexes[] = {
     0x7110000000000000, 0x1d60000000000000, 0x2ea6000000000000, 0x9712000000000000,
     0x9b0c000000000000, 0x5f01000000000000, 0x9011000000000000, 0x3c5f000000000000,
     0x1d55000000000000, 0x0d39000000000000, 0x8513000000000000, 0x8e3b000000000000,
@@ -12067,7 +12067,7 @@ static constexpr uint64_t __name_indexes[] = {
     0x170f7e254306361a, 0x7171000000000000, 0x880a000000000000, 0x70dd000000000000,
     0x5516000000000000, 0x4306000000000000, 0x420b000000000000, 0x420b000000000000,
     0x420b62077e658315, 0x363e7e2521810000, 0x4303291a00000000, 0xFFFF'FFFF'FFFF'FFFF};
-static constexpr uint64_t __name_indexes_0[] = {
+constexpr uint64_t __name_indexes_0[] = {
     0x00000001ffffffff, 0x0000002000000000, 0x0000007fffffffff, 0x000000a00000005f,
     0x00000378ffffffff, 0x0000037a00000337, 0x00000380ffffffff, 0x000003840000033d,
     0x0000038bffffffff, 0x0000038c00000344, 0x0000038dffffffff, 0x0000038e00000345,
@@ -12397,7 +12397,7 @@ static constexpr uint64_t __name_indexes_0[] = {
     0x0001fa7bffffffff, 0x0001fa8000007982, 0x0001fa83ffffffff, 0x0001fa9000007985,
     0x0001fa96ffffffff, 0x000e00010000798b, 0x000e0002ffffffff, 0x000e00200000798c,
     0x000e0080ffffffff, 0x000e0100000079ec, 0x000e01f0ffffffff};
-static constexpr uint64_t __name_indexes_1[] = {
+constexpr uint64_t __name_indexes_1[] = {
     0x00000001ffffffff, 0x0000011e00007adc, 0x00000120ffffffff, 0x0000013200007ade,
     0x00000133ffffffff, 0x0000019d00007adf, 0x0000019effffffff, 0x000001c500007ae0,
     0x000001c6ffffffff, 0x000001c800007ae1, 0x000001c9ffffffff, 0x000001cb00007ae2,
@@ -12678,7 +12678,7 @@ static constexpr uint64_t __name_indexes_1[] = {
     0x0001f971ffffffff, 0x0001f97300007e13, 0x0001f974ffffffff, 0x0001f9bb00007e14,
     0x0001f9bcffffffff, 0x0001f9d500007e15, 0x0001f9d6ffffffff, 0x0001f9d800007e16,
     0x0001f9d9ffffffff};
-static constexpr uint64_t __name_indexes_2[] = {
+constexpr uint64_t __name_indexes_2[] = {
     0x00000001ffffffff, 0x0000254a00007e17, 0x0000254bffffffff, 0x00002ff300007e18,
     0x00002ff4ffffffff, 0x000121e400007e19, 0x000121e5ffffffff, 0x0001239300007e1a,
     0x00012394ffffffff, 0x0001f50100007e1b, 0x0001f503ffffffff, 0x0001f59600007e1d,
