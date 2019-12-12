@@ -503,7 +503,7 @@ int main(int argc, char** argv) {
     fmt::print("KBytes: {}  ( dict {}  + index : {} )\n", (index_bytes + dict_size) / 1024.0,
                dict_size / 1024.0, index_bytes / 1024.0);
 
-    auto f = fopen("test.h", "w");
+    auto f = fopen(argv[2], "w");
     fmt::print(f, "#pragma once\n#include <string_view>\n#include <array>\n\n");
 
     print_dict(f, blocks);

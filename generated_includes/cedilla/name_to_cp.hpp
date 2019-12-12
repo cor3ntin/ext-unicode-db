@@ -14223,8 +14223,8 @@ namespace details {
             uint8_t h = index[offset++];
             n.has_sibling = h & 0x80;
             bool has_children = h & 0x40;
+            h &= ~0xC0;
             if(has_children) {
-                h &= ~0xC0;
                 n.children_offset = (h << 16);
                 n.children_offset |= (uint32_t(index[offset++]) << 8);
                 n.children_offset |= index[offset++];

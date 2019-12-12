@@ -56,8 +56,7 @@ target_link_libraries(namesreversegen PRIVATE fmt::fmt ParallelSTL "-fsanitize=u
 target_compile_options(namesreversegen PRIVATE "-fsanitize=undefined" "-fopenmp-simd" "-march=native" "-g3")
 target_include_directories(namesreversegen PUBLIC third_party/range-v3/include third_party/fmt/include)
 
-add_custom_target(
-    generate_properties
+add_custom_command(
     COMMENT "Generating Properties Header"
     OUTPUT ${HEADERS_DIR}/properties.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -81,8 +80,7 @@ add_custom_target(
         ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml
     )
 
-add_custom_target(
-    generate_name2cpp
+add_custom_command(
     COMMENT "Generating name_to_cp.hpp"
     OUTPUT ${HEADERS_DIR}/name_to_cp.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -96,9 +94,25 @@ add_custom_target(
         ${PROJECT_SOURCE_DIR}/name_to_cp.hpp
 )
 
-add_library(std_ext_uni INTERFACE)
-add_dependencies(std_ext_uni generate_name2cpp generate_properties)
-add_dependencies(generate_name2cpp namesreversegen)
+add_custom_command(
+    COMMENT "Generating cp_to_name.hpp"
+    OUTPUT ${HEADERS_DIR}/cp_to_name.hpp
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMAND mkdir -p ${HEADERS_DIR}
+    COMMAND namesgen 
+      ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
+    COMMAND cat ${PROJECT_SOURCE_DIR}/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
+    COMMAND clang-format ${HEADERS_DIR}/cp_to_name.hpp -i
+    DEPENDS
+        ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml
+        ${PROJECT_SOURCE_DIR}/names.hpp
+)
+
+add_library(std_ext_uni
+  ${HEADERS_DIR}/cp_to_name.hpp
+  ${HEADERS_DIR}/name_to_cp.hpp
+  empty.cpp
+)
 
 # add_custom_target("single-header")
 # add_custom_command(TARGET "single-header" COMMAND cp ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp)

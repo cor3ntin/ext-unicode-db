@@ -63,7 +63,7 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
                 }
             }
 
-            db[code] = {code, name, age, category, block, script, exts, n, d};
+            db[code] = {code, name, age, category, block, script, exts, n, d, generated(code)};
         } catch(...) {    // stoi...
         }
     }
