@@ -125,9 +125,9 @@ struct character_name {
 };
 
 template<typename R>
-std::unordered_set<std::string_view> substrings(R&& r) {
+auto substrings(R&& r) {
     tbb::concurrent_unordered_set<std::string_view, std::hash<std::string_view>> set;
-    std::for_each(std::execution::par, ranges::begin(r), ranges::end(r),
+    std::for_each(std::execution::par_unseq, ranges::begin(r), ranges::end(r),
                       [&set](const character_name& c) {
         for(const auto& b : c.bits()) {
             for(auto i : ranges::view::iota(1, b.second.size() + 1)) {
@@ -138,7 +138,7 @@ std::unordered_set<std::string_view> substrings(R&& r) {
             }
         }
     });
-    return {set.begin(), set.end()};
+    return set;
 }
 
 template<typename Map, typename K>
@@ -198,15 +198,6 @@ void print_dict(std::FILE* f, const std::vector<block> & blocks) {
     }
     fmt::print(f, "}} return {{}};}}");
 }
-/*
-void print_indexes(std::FILE* f, int idx, const std::unordered_map<char32_t, uint64_t>& mapping) {
-    auto v = mapping | ranges::to<std::vector<std::pair<char32_t, uint64_t>>>;
-    std::vector<std::uint64_t> data;
-    std::vector<std::pair<char32_t, std::size_t>> data;
-    bool in = false;
-    ranges::sort(v, {}, &std::pair<char32_t, uint64_t>::first);
-}*/
-
 void print_indexes(std::FILE* f,
                    const std::unordered_map<int, std::unordered_map<char32_t, uint64_t>>& mapping) {
 
@@ -281,7 +272,7 @@ int main(int argc, char** argv) {
     auto end = names.end();
 
     while(true) {
-        end = std::partition(std::execution::par, names.begin(), end,
+        end = std::partition(std::execution::par_unseq, names.begin(), end,
             [](const auto & a) {
                 return !a.complete();
             });
@@ -295,7 +286,7 @@ int main(int argc, char** argv) {
 
         const auto subs = [&incomplete] {
             auto tmp = substrings(incomplete) | ranges::to<std::vector>;
-            std::sort(std::execution::par, tmp.begin(), tmp.end(),
+            std::sort(std::execution::par_unseq, tmp.begin(), tmp.end(),
             [](const auto & a, const auto & b) {
                 return a.size() > b.size();
             });
@@ -312,19 +303,19 @@ int main(int argc, char** argv) {
         // Compute a list of all possible substrings for each char
         // the value is the distance
 
-        std::for_each(std::execution::par, incomplete.begin(), incomplete.end(),
+        std::for_each(std::execution::par_unseq, incomplete.begin(), incomplete.end(),
                       [&used_substrings](const character_name& c) {
                 const auto bits = c.bits();
-                std::for_each(std::execution::par,
+                std::for_each(std::execution::par_unseq,
                 ranges::begin(bits),
                 ranges::end(bits), [&used_substrings, &c](const auto & b) {
                         for(auto i : ranges::view::iota(0, b.second.size() + 1)) {
+                            if(i > 0 && i < 5)
+                                continue;
                             for(auto j : ranges::view::iota(i, b.second.size() + 1)) {
                                 auto it = used_substrings.find(b.second.substr(i, j));
                                 if(it != used_substrings.end()) {
-                                    if(i == 0 || i > 5) {
-                                        it->second++;
-                                    }
+                                    it->second++;
                                 }
                             }
                         }
@@ -345,7 +336,7 @@ int main(int argc, char** argv) {
         fmt::print("Used Substrings : {}\n", weighted_substrings.size());
         const auto count = std::size_t(1 + 0.01 * double(weighted_substrings.size()));
         fmt::print("{}", count);
-        std::partial_sort(std::execution::par,
+        std::partial_sort(std::execution::par_unseq,
             std::begin(weighted_substrings),
             std::begin(weighted_substrings) + count + 1,
             std::end(weighted_substrings), [](const auto & a, const auto &b ) {
@@ -356,7 +347,7 @@ int main(int argc, char** argv) {
             weighted_substrings | ranges::view::take(count) |
             ranges::view::transform([](const auto& p) { return p.first; });
 
-        std::partial_sort(std::execution::par,
+        std::partial_sort(std::execution::par_unseq,
             std::begin(filtered),
             std::begin(filtered) + 11,
             std::end(filtered), [](const auto & a, const auto &b ) {
@@ -366,7 +357,7 @@ int main(int argc, char** argv) {
 
         std::mutex mutex;
         for(const auto& s : filtered | ranges::view::take(10)) {
-            std::for_each(std::execution::par,
+            std::for_each(std::execution::par_unseq,
                          ranges::begin(incomplete),
                          ranges::end(incomplete),
             [&] (auto & c){
