@@ -11,7 +11,9 @@
 #include <fmt/ostream.h>
 #include <format.hpp>
 #include <range/v3/view/transform.hpp>
+#include <range/v3/view/span.hpp>
 #include <range/v3/view/iota.hpp>
+#include <range/v3/view/chunk.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/sort.hpp>
@@ -27,7 +29,10 @@
 #include "pstl/execution"
 #include "tbb/task_scheduler_init.h"
 #include "tbb/concurrent_unordered_map.h"
+#include "tbb/concurrent_unordered_set.h"
 #include "tbb/concurrent_vector.h"
+#include "tbb/concurrent_vector.h"
+#include "tbb/memory_pool.h"
 #include "range/v3/view/span.hpp"
 
 #include <mutex>
@@ -88,7 +93,7 @@ struct character_name {
     std::vector<std::pair<std::size_t, std::string_view>> sub;
     std::size_t total = 0;
 
-    bool complete() const {
+    inline bool complete() const {
         return total == name.size();
     }
     bool add_sub(std::size_t pos, std::string_view s) {
@@ -105,7 +110,7 @@ struct character_name {
     std::vector<std::pair<std::size_t, std::string_view>> bits() const {
         std::vector<std::pair<std::size_t, std::string_view>> v;
         std::size_t start = 0;
-        for(const auto used : sub) {
+        for(const auto & used : sub) {
             const auto end = used.first;
             std::string_view s = name.substr(start, end - start);
             if(!s.empty())
@@ -121,8 +126,9 @@ struct character_name {
 
 template<typename R>
 std::unordered_set<std::string_view> substrings(R&& r) {
-    std::unordered_set<std::string_view> set;
-    for(auto&& c : r) {
+    tbb::concurrent_unordered_set<std::string_view, std::hash<std::string_view>> set;
+    std::for_each(std::execution::par, ranges::begin(r), ranges::end(r),
+                      [&set](const character_name& c) {
         for(const auto& b : c.bits()) {
             for(auto i : ranges::view::iota(1, b.second.size() + 1)) {
                 auto sub = b.second.substr(0, i);
@@ -131,8 +137,8 @@ std::unordered_set<std::string_view> substrings(R&& r) {
                 set.insert(sub);
             }
         }
-    }
-    return set;
+    });
+    return {set.begin(), set.end()};
 }
 
 template<typename Map, typename K>
@@ -155,109 +161,13 @@ auto sorted_by_occurences(Map& map) {
 struct block {
 public:
     std::size_t elem_size;
-    std::vector<std::string_view> data;
-    std::unordered_set<char> alphabet;
+    std::unordered_set<std::string_view> data;
     std::size_t size() const {
         return data.size();
     }
 };
-struct block_group {
-public:
-    std::size_t elem_size;
-    std::vector<std::string_view> data;
-    std::unordered_map<char, int> alphabet_mapping;
 
-    std::size_t s = 0;
-
-    void add_string(std::string_view str) {
-        data.push_back(str);
-    }
-
-    struct ba {
-        std::unordered_set<std::string_view> strings;
-        std::unordered_set<char> alphabet;
-        void insert(std::string_view s) {
-            strings.insert(s);
-            for(auto& c : s) {
-                alphabet.insert(c);
-            }
-        }
-        void remove(const ba& other) {
-            for(auto str : other.strings)
-                strings.erase(str);
-            alphabet.clear();
-            for(auto s : strings) {
-                for(auto& c : s) {
-                    alphabet.insert(c);
-                }
-            }
-        }
-    };
-
-    std::vector<block> construct_blocks() {
-        std::vector<block> blocks;
-        std::unordered_multimap<char, ba> alphabet_mapping;
-        for(auto& str : data) {
-            for(auto& c : str) {
-                bool inserted = false;
-                auto it = alphabet_mapping.find(c);
-                while(it != alphabet_mapping.end() && it->first == c) {
-                    if(it->second.strings.size() < 255) {
-                        it->second.insert(str);
-                        inserted = true;
-                        break;
-                    }
-                    ++it;
-                }
-                if(!inserted) {
-                    it = alphabet_mapping.insert({c, ba{}});
-                    it->second.insert(str);
-                }
-            }
-        }
-        auto v = alphabet_mapping |
-                 ranges::view::transform([](const auto& p) { return p.second; }) |
-                 ranges::to<std::vector>;
-
-        while(!v.empty()) {
-            auto e = std::move(v.back());
-            v.pop_back();
-            if(e.strings.empty())
-                continue;
-            for(auto it = v.begin(); it != v.end();) {
-                if(e.strings.size() >= 255) {
-                    break;
-                }
-                std::vector<char> merged_alphabet;
-                std::set_union(it->alphabet.begin(), it->alphabet.end(), e.alphabet.begin(),
-                               e.alphabet.end(), std::back_inserter(merged_alphabet));
-                if(e.alphabet.size() <= 24 && merged_alphabet.size() > 24) {
-                    ++it;
-                    continue;
-                }
-                std::vector<std::string_view> merged_strings;
-                std::set_union(it->strings.begin(), it->strings.end(), e.strings.begin(),
-                               e.strings.end(), std::back_inserter(merged_strings));
-                if(merged_strings.size() > 255) {
-                    ++it;
-                    continue;
-                }
-                e.alphabet = merged_alphabet | ranges::to<std::unordered_set>;
-                e.strings = merged_strings | ranges::to<std::unordered_set>;
-                ;
-                it = v.erase(it);
-            };
-            for(auto it = v.begin(); it != v.end(); ++it) {
-                it->remove(e);
-            }
-            blocks.push_back(block{elem_size, e.strings | ranges::to<std::vector>, e.alphabet});
-        }
-
-        return blocks;
-    }
-};
-
-void print_dict(std::FILE* f, const std::vector<block>& blocks) {
+void print_dict(std::FILE* f, const std::vector<block> & blocks) {
     struct data {
         std::size_t start;
         std::size_t elem_size;
@@ -268,10 +178,10 @@ void print_dict(std::FILE* f, const std::vector<block>& blocks) {
     int idx = 1;
     std::unordered_map<int, data> table;
     fmt::print(f, "constexpr const char* __name_dict = \"");
-    for(const auto& b : blocks) {
+    for(const auto& b: blocks) {
         for(const auto& str : b.data) {
             for(auto c : str) {
-                fmt::print(f, "\\x{:x}", c);
+                fmt::print(f, "{}", c);
             }
         }
         table[idx++] = data{start, b.elem_size, b.data.size()};
@@ -358,8 +268,6 @@ void print_indexes(std::FILE* f,
 
 int main(int argc, char** argv) {
 
-    // tbb::task_scheduler_init init(4);
-
     const auto data = load_data(argv[1]);
     auto names = data | ranges::view::transform([](const auto& p) {
                      return character_name{p.first, p.second, {}, 0};
@@ -368,10 +276,17 @@ int main(int argc, char** argv) {
 
 
     std::unordered_map<std::string_view, int> all_used;
+    tbb::concurrent_unordered_map<std::string_view, int, std::hash<std::string_view>> used_substrings;
+
+    auto end = names.end();
 
     while(true) {
-        auto incomplete =
-            names | ranges::view::remove_if([](const auto& c) { return c.complete(); });
+        end = std::partition(std::execution::par, names.begin(), end,
+            [](const auto & a) {
+                return !a.complete();
+            });
+        auto incomplete = ranges::view::counted(names.begin(), std::size_t(ranges::distance(names.begin(), end)));
+
         fmt::print("Count : {}\n", ranges::distance(incomplete));
 
         if(ranges::empty(incomplete)) {
@@ -380,115 +295,126 @@ int main(int argc, char** argv) {
 
         const auto subs = [&incomplete] {
             auto tmp = substrings(incomplete) | ranges::to<std::vector>;
-            ranges::sort(tmp, std::greater<>{}, &std::string_view::size);
+            std::sort(std::execution::par, tmp.begin(), tmp.end(),
+            [](const auto & a, const auto & b) {
+                return a.size() > b.size();
+            });
             return tmp;
         }();
 
-        std::unordered_map<std::string_view, int> used_substrings;
-        used_substrings.reserve(subs.size());
+
+        used_substrings.clear();
         for(const auto& s : subs) {
-            used_substrings.emplace(s, 0);
+            used_substrings[s] = 0;
         }
 
 
         // Compute a list of all possible substrings for each char
         // the value is the distance
-        tbb::concurrent_unordered_multimap<std::string_view, std::pair<const character_name&, int>,
-                                           std::hash<std::string_view>>
-            all_substrings;
 
-        const auto materialized = incomplete | ranges::to<std::vector>;
-
-        std::for_each(std::execution::par, materialized.begin(), materialized.end(),
-                      [&all_substrings](const character_name& c) {
-                          for(const auto& b : c.bits()) {
-                              for(auto i : ranges::view::iota(0, b.second.size() + 1)) {
-                                  for(auto j : ranges::view::iota(i, b.second.size() + 1)) {
-                                      all_substrings.insert(
-                                          {b.second.substr(i, j),
-                                           std::pair<const character_name&, int>{c, i}});
-                                  }
-                              }
-                          }
-                      });
-
+        std::for_each(std::execution::par, incomplete.begin(), incomplete.end(),
+                      [&used_substrings](const character_name& c) {
+                const auto bits = c.bits();
+                std::for_each(std::execution::par,
+                ranges::begin(bits),
+                ranges::end(bits), [&used_substrings, &c](const auto & b) {
+                        for(auto i : ranges::view::iota(0, b.second.size() + 1)) {
+                            for(auto j : ranges::view::iota(i, b.second.size() + 1)) {
+                                auto it = used_substrings.find(b.second.substr(i, j));
+                                if(it != used_substrings.end()) {
+                                    if(i == 0 || i > 5) {
+                                        it->second++;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
 
         fmt::print("Substrings : {}\n", subs.size());
 
-        std::for_each(std::execution::par, subs.begin(), subs.end(),
-                      [& all_substrings = std::as_const(all_substrings),
-                       &used_substrings](const auto& needle) {
-                          auto it = all_substrings.find(needle);
-                          while(it != all_substrings.end() && it->first == needle) {
-                              const auto distance_from_start = it->second.second;
-                              if(distance_from_start == 0 || distance_from_start > 4) {
-                                  auto it = used_substrings.find(needle);
-                                  it->second += 1;
-                              }
-                              ++it;
-                          };
-                      });
-
-        fmt::print("Used Substrings : {}\n", used_substrings.size());
-
-
         std::vector<std::pair<std::string_view, double>> weighted_substrings =
-            used_substrings | ranges::view::transform([](const auto& p) {
+            used_substrings | ranges::view::remove_if([](const auto& p) {
+                return p.second == 0;
+            }) |
+            ranges::view::transform([](const auto& p) {
                 const double d =
-                    p.first.size() < 5 ? 1.0 : double(p.second) / (1.0 / double(p.first.size()));
+                    p.first.size() < 5 ? 1.0 : double(p.second) * p.first.size();
                 return std::pair<std::string_view, double>{p.first, d};
             });
-        ;
-        ranges::sort(weighted_substrings, std::greater<>{},
-                     &std::pair<std::string_view, double>::second);
+        fmt::print("Used Substrings : {}\n", weighted_substrings.size());
         const auto count = std::size_t(1 + 0.01 * double(weighted_substrings.size()));
         fmt::print("{}", count);
+        std::partial_sort(std::execution::par,
+            std::begin(weighted_substrings),
+            std::begin(weighted_substrings) + count + 1,
+            std::end(weighted_substrings), [](const auto & a, const auto &b ) {
+                return a.second > b.second;
+            }
+        );
         std::vector<std::string_view> filtered =
             weighted_substrings | ranges::view::take(count) |
             ranges::view::transform([](const auto& p) { return p.first; });
 
-        ranges::sort(filtered, std::greater<>{}, &std::string_view::size);
+        std::partial_sort(std::execution::par,
+            std::begin(filtered),
+            std::begin(filtered) + 11,
+            std::end(filtered), [](const auto & a, const auto &b ) {
+                return a.size() > b.size();
+            }
+        );
 
+        std::mutex mutex;
         for(const auto& s : filtered | ranges::view::take(10)) {
-            for(auto& c : incomplete) {
-                const auto bits = c.bits();
+            std::for_each(std::execution::par,
+                         ranges::begin(incomplete),
+                         ranges::end(incomplete),
+            [&] (auto & c){
+                const auto & bits = c.bits();
                 for(const auto& b : bits) {
                     const auto idx = b.second.find(s);
                     if(idx != std::string::npos) {
+                        std::lock_guard<std::mutex> guard(mutex);
                         if(c.add_sub(b.first + idx, s))
                             inc(all_used, s);
                     }
                 }
-            }
+            });
         }
         fmt::print("------\n");
     }
     auto strings = sorted_by_occurences(all_used);
 
 
-    std::unordered_map<int, block_group> grouped_blocks;
+    std::unordered_map<int, block> blocks;
     for(const auto& s : strings) {
-        auto it = grouped_blocks.find(s.first.size());
-        if(it == grouped_blocks.end()) {
-            it = grouped_blocks.emplace(s.first.size(), block_group{s.first.size()}).first;
+        auto it = blocks.find(s.first.size());
+        if(it == blocks.end()) {
+            it = blocks.emplace(s.first.size(), block{s.first.size()}).first;
         }
-        it->second.add_string(s.first);
+        it->second.data.insert((s.first));
+    }
+    std::vector<block> blocks_by_size;
+    for(const auto& [_, b] : blocks) {
+        if(b.data.size() <= 0xFE)
+            blocks_by_size.push_back(b);
+        else {
+            for(const auto& c : b.data | ranges::view::chunk(0xFE)) {
+                std::vector k = ranges::to<std::vector>(c);
+                blocks_by_size.push_back(block{b.elem_size,
+
+                std::unordered_set<std::string_view>(k.begin(), k.end()) } );
+            }
+        }
     }
 
-    std::vector<block> blocks;
-    for(auto& grp : grouped_blocks) {
-        for(const auto& b : grp.second.construct_blocks()) {
-            blocks.push_back(b);
-        }
-    }
     std::size_t dict_size = 0;
-    for(const auto& b : blocks) {
-        fmt::print("--- BLOCK : string size : {}, elements  {} -- total {} - alphabet: {} ({})\n",
-                   b.elem_size, b.size(), b.elem_size * b.size(),
-                   b.alphabet | ranges::to<std::string>, b.alphabet.size());
-        dict_size += (b.elem_size * b.size()) / (b.alphabet.size() <= 24 ? 2 : 1);
+    for(const auto& b : blocks_by_size) {
+        fmt::print("--- BLOCK : string size : {}, elements  {} -- total {} ({})\n",
+                   b.elem_size, b.size(), b.elem_size * b.data.size(),
+        dict_size += (b.elem_size * b.data.size()) );
     }
-    fmt::print("Total blocks: {}\n", blocks.size());
+    fmt::print("Total blocks: {}\n", blocks_by_size.size());
 
     std::size_t index_bytes = 0;
     std::unordered_map<int, int> lengths;
@@ -506,7 +432,7 @@ int main(int argc, char** argv) {
     auto f = fopen(argv[2], "w");
     fmt::print(f, "#pragma once\n#include <string_view>\n#include <array>\n\n");
 
-    print_dict(f, blocks);
+    print_dict(f, blocks_by_size);
 
     struct pos {
         int b;
@@ -515,7 +441,7 @@ int main(int argc, char** argv) {
 
     std::unordered_map<std::string_view, pos> indexes;
     int bi = 1;
-    for(const auto& b : blocks) {
+    for(const auto& b : blocks_by_size) {
         int idx = 0;
         for(const auto& str : b.data) {
             indexes[str] = pos{bi, idx++};

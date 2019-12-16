@@ -53,10 +53,10 @@ struct name_view {
             return c;
         }
         constexpr bool operator==(sentinel) const {
-            return m_block == -2;
+            return m_c == 0 || m_block == -2;
         };
         constexpr bool operator!=(sentinel) const {
-            return m_block != -2;
+            return m_c != 0 && m_block != -2;
         };
         constexpr bool operator==(iterator it) const {
             return m_c && it.m_c && m_block == it.m_block && m_str == it.m_str &&

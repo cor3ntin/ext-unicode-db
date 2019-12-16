@@ -36,6 +36,7 @@ TEST_CASE("Verify that all code point have the same name as in the DB") {
                 continue;
             const auto & name = it->second.name;
             const auto res = uni::cp_name(c).to_string();
+            fmt::print("{:0x} :  expected {} found {}\n", uint32_t(c), name, res );
             CHECK(res == name);
         }
     }

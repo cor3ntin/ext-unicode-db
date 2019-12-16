@@ -37,13 +37,13 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(third_party/fmt)
-add_subdirectory(third_party/pstl2019_20190320oss)
+add_subdirectory(third_party/pstl2019_20191006oss)
 add_executable(namesgen
     names.cpp
     tests/pugixml.cpp
 )
 target_link_libraries(namesgen PRIVATE fmt::fmt ParallelSTL)
-target_compile_options(namesgen PRIVATE "-fopenmp-simd" "-march=native" "-O3")
+target_compile_options(namesgen PRIVATE "-fopenmp-simd")
 target_include_directories(namesgen PUBLIC third_party/range-v3/include third_party/fmt/include)
 
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
@@ -64,14 +64,12 @@ add_custom_command(
     COMMAND pypy3 ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
     COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
     COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
-    COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h 
-                ${PROJECT_SOURCE_DIR}/base.h 
-                ${PROJECT_BINARY_DIR}/props.h 
-                ${PROJECT_SOURCE_DIR}/unicode.h 
+    COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h
+                ${PROJECT_SOURCE_DIR}/base.h
+                ${PROJECT_BINARY_DIR}/props.h
+                ${PROJECT_SOURCE_DIR}/unicode.h
                 ${PROJECT_BINARY_DIR}/extra.h > ${HEADERS_DIR}/properties.hpp
     DEPENDS
-        ${PROJECT_BINARY_DIR}/props.h
-        ${PROJECT_BINARY_DIR}/extra.h
         ${PROJECT_SOURCE_DIR}/base.h
         ${PROJECT_SOURCE_DIR}/unicode.h
         ${PROJECT_SOURCE_DIR}/regex.h
@@ -85,7 +83,7 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/name_to_cp.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND namesreversegen 
+    COMMAND namesreversegen
       ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml > ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/name_to_cp.hpp >> ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND clang-format ${HEADERS_DIR}/name_to_cp.hpp -i
@@ -99,7 +97,7 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/cp_to_name.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND namesgen 
+    COMMAND namesgen
       ${PROJECT_BINARY_DIR}/ucd/12.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND clang-format ${HEADERS_DIR}/cp_to_name.hpp -i
