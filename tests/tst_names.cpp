@@ -2,7 +2,7 @@
 #include <cedilla/name_to_cp.hpp>
 #include <cedilla/cp_to_name.hpp>
 #include <iostream>
-#include <format.hpp>
+#include <fmt/format.h>
 #include <set>
 #include "common.h"
 #include <catch2/catch.hpp>
