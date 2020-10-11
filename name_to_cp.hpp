@@ -1,5 +1,4 @@
 #include <string_view>
-#include <iostream>
 #include <tuple>
 #include <charconv>
 namespace uni {
@@ -102,7 +101,7 @@ namespace uni {
             return -1;
         }
 
-        constexpr std::tuple<node, bool, uint32_t> 
+        constexpr std::tuple<node, bool, uint32_t>
         compare_node(uint32_t offset, std::string_view name, uint32_t start = 0) {
             auto n = details::read_node(offset);
             auto cmp = details::compare(name, n.name, start);
