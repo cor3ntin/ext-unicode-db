@@ -24,7 +24,7 @@ constexpr category cp_category(char32_t cp) {
 }
 
 constexpr uni::version __age_from_string(std::string_view a) {
-    for(std::size_t i = 0; i < __age_strings.size(); ++i) {
+    for(std::size_t i = 0; i < std::size(__age_strings); ++i) {
         const auto res = __pronamecomp(a, __age_strings[i]);
         if(res == 0)
             return uni::version(i);
@@ -33,8 +33,7 @@ constexpr uni::version __age_from_string(std::string_view a) {
 }
 
 constexpr category __category_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __categories_names.size(); ++i) {
-        const auto& c = __categories_names[i];
+    for(const auto& c : __categories_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
             return category(c.value);
@@ -43,8 +42,7 @@ constexpr category __category_from_string(const std::string_view s) {
 }
 
 constexpr block __block_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __blocks_names.size(); ++i) {
-        const auto& c = __blocks_names[i];
+    for(const auto& c : __blocks_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
             return block(c.value);
@@ -53,8 +51,7 @@ constexpr block __block_from_string(const std::string_view s) {
 }
 
 constexpr script __script_from_string(const std::string_view s) {
-    for(std::size_t i = 0; i < __scripts_names.size(); ++i) {
-        const auto& c = __scripts_names[i];
+    for(const auto& c : __scripts_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
             return script(c.value);
@@ -266,9 +263,9 @@ constexpr bool cp_is<property::id_continue>(char32_t cp) {
 
 template<typename Array, typename Res = long long>
 constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
-    auto it = uni::lower_bound(array.begin(), array.end(), cp,
+    auto it = uni::lower_bound(std::begin(array), std::end(array), cp,
                                [](const auto& d, char32_t cp) { return d.first < cp; });
-    if(it == array.end() || it->first != cp)
+    if(it == std::end(array) || it->first != cp)
         return false;
     res = it->second;
     return true;

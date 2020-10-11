@@ -123,7 +123,7 @@ class ucd_cp(object):
 
 def write_string_array(f, array_name, strings_with_idx):
     dct = dict(strings_with_idx)
-    f.write("static constexpr const std::array {}  = {{".format(array_name))
+    f.write("static constexpr __string_with_idx {}[]  = {{".format(array_name))
     keys = list(filter(None,  dct.keys()))
     keys.sort()
 
@@ -586,7 +586,7 @@ def write_categories_data(characters, changed, categories_names, file):
         old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
         if len(old) == 0:
             continue
-        f.write("static constexpr std::array __cat_version_data_{} {{".format(age_name(k)))
+        f.write("static constexpr std::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
         for idx, (cp, gc) in enumerate(old):
             f.write("std::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
         f.write("};")
@@ -597,9 +597,9 @@ def write_categories_data(characters, changed, categories_names, file):
     for v in with_data:
         f.write("""
             if constexpr( v<= uni::version::{0} ) {{
-                const auto it = uni::lower_bound(__cat_version_data_{0}.begin(), __cat_version_data_{0}.end(), cp,
+                const auto it = uni::lower_bound(std::begin(__cat_version_data_{0}), std::end(__cat_version_data_{0}), cp,
                 [](const auto & e, char32_t cp) {{ return e.first < cp; }});
-            if (it != __cat_version_data_{0}.end() && cp == it->first)
+            if (it != std::end(__cat_version_data_{0}) && cp == it->first)
                 c = it->second;
         }}""".format(age_name(v)))
     f.write("return c; }")
@@ -620,7 +620,7 @@ def write_age_data(characters, f):
     f.write("};")
 
 
-    f.write("static constexpr std::array __age_strings = { \"unassigned\",")
+    f.write("static constexpr const char* __age_strings[] = { \"unassigned\",")
     for idx, age in enumerate(ages):
         f.write('"{}"{}'.format(age, "," if idx < len(ages) - 1 else ""))
     f.write("};\n")
@@ -668,7 +668,7 @@ def write_numeric_data(characters, f):
         if s == '8' :
             f.write("static constexpr _compact_list __numeric_data8 = {")
         else:
-            f.write("static constexpr std::array __numeric_data{} = {{ ".format(s))
+            f.write("static constexpr std::pair<char32_t, int{0}_t> __numeric_data{0}[] = {{ ".format(s))
 
 
         for idx, cp in enumerate(characters):
@@ -678,7 +678,7 @@ def write_numeric_data(characters, f):
                 f.write("std::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
         f.write("};")
 
-    f.write("static constexpr std::array __numeric_data_d = {")
+    f.write("static constexpr std::pair<char32_t, int16_t> __numeric_data_d[] = {")
     for cp in dvalues:
         f.write("std::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
     f.write("std::pair<char32_t, int16_t>{0x110000, 0} };\n")

@@ -52,8 +52,8 @@ add_executable(namesreversegen
     namesreverse.cpp
     tests/pugixml.cpp
 )
-target_link_libraries(namesreversegen PRIVATE fmt::fmt ParallelSTL "-fsanitize=undefined")
-target_compile_options(namesreversegen PRIVATE "-fsanitize=undefined" "-fopenmp-simd" "-march=native" "-g3")
+target_link_libraries(namesreversegen PRIVATE fmt::fmt ParallelSTL)
+target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native" "-g3")
 target_include_directories(namesreversegen PUBLIC third_party/range-v3/include third_party/fmt/include)
 
 add_custom_command(
