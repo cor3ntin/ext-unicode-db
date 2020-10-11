@@ -16,7 +16,7 @@ foreach(UCD_VERSION 13.0)
     endif()
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION}/emoji-data.txt)
     message(STATUS "Fetching emoji-data.txt")
-      file(DOWNLOAD "https://www.unicode.org/Public/emoji/${UCD_VERSION}/emoji-data.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION}/emoji-data.txt)
+      file(DOWNLOAD "ftp://ftp.unicode.org/Public/${UCD_VERSION}.0/ucd/emoji/emoji-data.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION}/emoji-data.txt)
     endif()
 endforeach()
 
@@ -68,7 +68,9 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/base.h
                 ${PROJECT_BINARY_DIR}/props.h
                 ${PROJECT_SOURCE_DIR}/unicode.h
-                ${PROJECT_BINARY_DIR}/extra.h > ${HEADERS_DIR}/properties.hpp
+                ${PROJECT_BINARY_DIR}/extra.h
+                ${PROJECT_SOURCE_DIR}/regex.h
+                > ${HEADERS_DIR}/properties.hpp
     DEPENDS
         ${PROJECT_SOURCE_DIR}/base.h
         ${PROJECT_SOURCE_DIR}/unicode.h
