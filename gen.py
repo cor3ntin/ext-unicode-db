@@ -198,13 +198,14 @@ def get_unicode_data(version = LAST_VERSION):
 
         elem.clear()
 
-    regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))\s*;\s*([a-z_A-Z]+).*")
+    regex = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*([a-z_A-Z]+).*")
     lines = [line.rstrip('\n') for line in open(os.path.join(DIR_WITH_UCD, version, "emoji-data.txt"), 'r')]
     for line in lines:
         m = regex.match(line)
         if m:
-            start = int(m.group(1), 16)
-            end   = int(m.group(2), 16) if m.groups(2) != None else start
+            end = start = int(m.group(1), 16)
+            if m.group(2) != None:
+                end = int(m.group(2), 16)
             v = m.group(3).lower()
             if not v in EMOJI_PROPERTIES:
                 continue

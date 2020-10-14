@@ -109,11 +109,12 @@ add_custom_command(
         namesgen
 )
 
-add_library(std_ext_uni
+add_library(std_ext_uni STATIC
   ${HEADERS_DIR}/cp_to_name.hpp
   ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}/properties.hpp
   empty.cpp
+  unicode.cpp
 )
 
 # add_custom_target("single-header")
@@ -127,6 +128,6 @@ else()
   # target_compile_options(std_ext_uni INTERFACE -Wall -Wextra -pedantic -Werror)
 endif()
 
-target_include_directories(std_ext_uni INTERFACE ${PROJECT_BINARY_DIR}/include/)
+target_include_directories(std_ext_uni PUBLIC ${PROJECT_BINARY_DIR}/include/)
 
 add_subdirectory(tests)
