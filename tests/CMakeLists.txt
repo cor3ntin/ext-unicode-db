@@ -7,7 +7,7 @@ macro(add_test name file)
     #target_link_libraries(${name} gcov)
     #setup_target_for_coverage(NAME ${name}_coverage DEPENDENCIES ${name} EXECUTABLE ${name})
     target_include_directories(${name} PUBLIC . ${CMAKE_SOURCE_DIR}/third_party/catch2/include)
-    target_compile_definitions(${name} PRIVATE -DUCDXML_FILE="${CMAKE_SOURCE_DIR}/ucd/13.0/ucd.nounihan.flat.xml")
+    target_compile_definitions(${name} PRIVATE -DUCDXML_FILE="${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml")
 endmacro()
 
 add_test(tst_prop_script prop_script.cpp)
