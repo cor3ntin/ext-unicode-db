@@ -39,7 +39,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(third_party/fmt)
 add_subdirectory(third_party/pstl2019_20191006oss)
 add_executable(namesgen
-    names.cpp
+    tools/names.cpp
     tests/pugixml.cpp
 )
 target_link_libraries(namesgen PRIVATE fmt::fmt ParallelSTL)
@@ -49,7 +49,7 @@ target_include_directories(namesgen PUBLIC third_party/range-v3/include third_pa
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
 
 add_executable(namesreversegen
-    namesreverse.cpp
+    tools/namesreverse.cpp
     tests/pugixml.cpp
 )
 target_link_libraries(namesreversegen PRIVATE fmt::fmt ParallelSTL)
@@ -61,7 +61,7 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/properties.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND pypy3 ${PROJECT_SOURCE_DIR}/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
+    COMMAND pypy3 ${PROJECT_SOURCE_DIR}/tools/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
     COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
     COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
     COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h
@@ -76,7 +76,7 @@ add_custom_command(
         ${PROJECT_SOURCE_DIR}/unicode.h
         ${PROJECT_SOURCE_DIR}/regex.h
         ${PROJECT_SOURCE_DIR}/single_header.h
-        ${PROJECT_SOURCE_DIR}/gen.py
+        ${PROJECT_SOURCE_DIR}/tools/gen.py
         ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml
     )
 
