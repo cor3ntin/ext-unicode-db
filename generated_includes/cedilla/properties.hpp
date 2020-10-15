@@ -1,7 +1,6 @@
 #define UNI_SINGLE_HEADER
 #pragma once
 #include <cstdint>
-#include <array>
 #include <algorithm>
 #include <string_view>
 namespace uni {
@@ -70,10 +69,10 @@ constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
 }
 template<typename T, auto N>
 struct _compact_range {
-    std::array<std::uint32_t, N> _data;
+    std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
-        const auto end = _data.end();
-        auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        const auto end = std::end(_data);
+        auto it = uni::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
             return cp < c;
         });
@@ -89,10 +88,10 @@ _compact_range(T, U...)->_compact_range<T, sizeof...(U) + 1>;
 
 template<typename T, auto N>
 struct _compact_list {
-    std::array<std::uint32_t, N> _data;
+    std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
-        const auto end = _data.end();
-        auto it = uni::lower_bound(_data.begin(), end, cp, [](uint32_t v, char32_t cp) {
+        const auto end = std::end(_data);
+        auto it = uni::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t cp) {
             char32_t c = (v >> 8);
             return c < cp;
         });
@@ -111,16 +110,16 @@ template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std
 struct __bool_trie {
 
     // not tries, just bitmaps for all code points 0..0x7FF (UTF-8 1- and 2-byte sequences)
-    std::array<std::uint64_t, 32> r1;
+    std::uint64_t r1[32];
 
     // trie for code points 0x800..0xFFFF (UTF-8 3-byte sequences, aka rest of BMP)
-    std::array<std::uint8_t, r2_s> r2;
-    std::array<std::uint64_t, r3_s> r3;    // leaves can be shared, so size isn't fixed
+    uint8_t r2[r2_s];
+    uint64_t r3[r3_s];    // leaves can be shared, so size isn't fixed
 
     // trie for 0x10000..0x10FFFF (UTF-8 4-byte sequences, aka non-BMP code points)
-    std::array<std::uint8_t, r4_s> r4;
-    std::array<std::uint8_t, r5_s> r5;     // two level to exploit sparseness of non-BMP
-    std::array<std::uint64_t, r6_s> r6;    // again, leaves are shared
+    std::uint8_t r4[r4_s];
+    std::uint8_t r5[r5_s];   // two level to exploit sparseness of non-BMP
+    std::uint64_t r6[r6_s];  // again, leaves are shared
 
     constexpr bool lookup(char32_t u) const {
         std::uint32_t c = u;
@@ -136,7 +135,7 @@ struct __bool_trie {
             if(i >= r2_t_f && i < r2_t_f + r2_s)
                 child = r2[i - r2_t_f];
 
-            return trie_range_leaf(c, r3.begin()[child]);
+            return trie_range_leaf(c, r3[child]);
         } else {
             if constexpr(r6_s == 0)
                 return false;
@@ -149,8 +148,8 @@ struct __bool_trie {
             std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
             auto leaf = 0;
             if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
-                leaf = r5.begin()[i5 - r5_t_f];
-            return trie_range_leaf(c, r6.begin()[leaf]);
+                leaf = r5[i5 - r5_t_f];
+            return trie_range_leaf(c, r6[leaf]);
         }
     }
 
@@ -161,17 +160,17 @@ struct __bool_trie {
 
 template<std::size_t size>
 struct flat_array {
-    std::array<char32_t, size> data;
+    char32_t data[size];
     constexpr bool lookup(char32_t u) const {
         if constexpr(size < 20) {
-            for(auto it = data.begin(); it != data.end(); ++it) {
+            for(auto it = std::begin(data); it != std::end(data); ++it) {
                 if(*it == u)
                     return true;
-                if(it == data.end())
+                if(it == std::end(data))
                     return false;
             }
         } else {
-            return uni::binary_search(data.begin(), data.end(), u);
+            return uni::binary_search(std::begin(data), std::end(data), u);
         }
         return false;
     }
@@ -180,10 +179,10 @@ struct flat_array {
 
 template<auto N>
 struct __range_array {
-    std::array<std::uint32_t, N> _data;
+    std::uint32_t _data[N];
     constexpr bool lookup(char32_t cp) const {
-        const auto end = _data.end();
-        auto it = uni::upper_bound(_data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+        const auto end = std::end(_data);
+        auto it = uni::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
             return cp < c;
         });
@@ -205,6 +204,7 @@ constexpr char __propcharnorm(char a) {
         return '_';
     return a;
 }
+
 constexpr int __propcharcomp(char a, char b) {
     a = __propcharnorm(a);
     b = __propcharnorm(b);
@@ -214,6 +214,7 @@ constexpr int __propcharcomp(char a, char b) {
         return -1;
     return 1;
 }
+
 constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
     // workaround, iterators in std::string_view are not constexpr in libc++ (for now)
     const char* a = sa.begin();
@@ -233,6 +234,17 @@ constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
         return 1;
     return 0;
 }
+
+template <typename A, typename B>
+struct pair
+{
+    A first;
+    B second;
+};
+
+template <typename A, typename B>
+pair(A, B) -> pair<A, B>;
+
 
 }    // namespace uni
 
@@ -4782,199 +4794,199 @@ static constexpr _compact_list __numeric_data8 = {
     0x01FBF707, 0x01FBF808, 0x01FBF909, 0x02000107, 0x02006404, 0x0200E204, 0x02012105, 0x02092A01,
     0x0209831E, 0x02098C28, 0x02099C28, 0x020AEA06, 0x020AFD03, 0x020B1903, 0x02239002, 0x02299803,
     0x023B1B03, 0x02626D04, 0x02F89009};
-static constexpr std::pair<char32_t, int16_t> __numeric_data16[] = {
-    std::pair<char32_t, int16_t>{0x0BF2, 1000},   std::pair<char32_t, int16_t>{0x0D72, 1000},
-    std::pair<char32_t, int16_t>{0x0F33, -1},     std::pair<char32_t, int16_t>{0x137C, 10000},
-    std::pair<char32_t, int16_t>{0x216E, 500},    std::pair<char32_t, int16_t>{0x216F, 1000},
-    std::pair<char32_t, int16_t>{0x217E, 500},    std::pair<char32_t, int16_t>{0x217F, 1000},
-    std::pair<char32_t, int16_t>{0x2180, 1000},   std::pair<char32_t, int16_t>{0x2181, 5000},
-    std::pair<char32_t, int16_t>{0x2182, 10000},  std::pair<char32_t, int16_t>{0x4E07, 10000},
-    std::pair<char32_t, int16_t>{0x4EDF, 1000},   std::pair<char32_t, int16_t>{0x5343, 1000},
-    std::pair<char32_t, int16_t>{0x842C, 10000},  std::pair<char32_t, int16_t>{0x9621, 1000},
-    std::pair<char32_t, int16_t>{0x1011A, 200},   std::pair<char32_t, int16_t>{0x1011B, 300},
-    std::pair<char32_t, int16_t>{0x1011C, 400},   std::pair<char32_t, int16_t>{0x1011D, 500},
-    std::pair<char32_t, int16_t>{0x1011E, 600},   std::pair<char32_t, int16_t>{0x1011F, 700},
-    std::pair<char32_t, int16_t>{0x10120, 800},   std::pair<char32_t, int16_t>{0x10121, 900},
-    std::pair<char32_t, int16_t>{0x10122, 1000},  std::pair<char32_t, int16_t>{0x10123, 2000},
-    std::pair<char32_t, int16_t>{0x10124, 3000},  std::pair<char32_t, int16_t>{0x10125, 4000},
-    std::pair<char32_t, int16_t>{0x10126, 5000},  std::pair<char32_t, int16_t>{0x10127, 6000},
-    std::pair<char32_t, int16_t>{0x10128, 7000},  std::pair<char32_t, int16_t>{0x10129, 8000},
-    std::pair<char32_t, int16_t>{0x1012A, 9000},  std::pair<char32_t, int16_t>{0x1012B, 10000},
-    std::pair<char32_t, int16_t>{0x1012C, 20000}, std::pair<char32_t, int16_t>{0x1012D, 30000},
-    std::pair<char32_t, int16_t>{0x10145, 500},   std::pair<char32_t, int16_t>{0x10146, 5000},
-    std::pair<char32_t, int16_t>{0x1014C, 500},   std::pair<char32_t, int16_t>{0x1014D, 1000},
-    std::pair<char32_t, int16_t>{0x1014E, 5000},  std::pair<char32_t, int16_t>{0x10153, 500},
-    std::pair<char32_t, int16_t>{0x10154, 1000},  std::pair<char32_t, int16_t>{0x10155, 10000},
-    std::pair<char32_t, int16_t>{0x1016B, 300},   std::pair<char32_t, int16_t>{0x1016C, 500},
-    std::pair<char32_t, int16_t>{0x1016D, 500},   std::pair<char32_t, int16_t>{0x1016E, 500},
-    std::pair<char32_t, int16_t>{0x1016F, 500},   std::pair<char32_t, int16_t>{0x10170, 500},
-    std::pair<char32_t, int16_t>{0x10171, 1000},  std::pair<char32_t, int16_t>{0x10172, 5000},
-    std::pair<char32_t, int16_t>{0x102F4, 200},   std::pair<char32_t, int16_t>{0x102F5, 300},
-    std::pair<char32_t, int16_t>{0x102F6, 400},   std::pair<char32_t, int16_t>{0x102F7, 500},
-    std::pair<char32_t, int16_t>{0x102F8, 600},   std::pair<char32_t, int16_t>{0x102F9, 700},
-    std::pair<char32_t, int16_t>{0x102FA, 800},   std::pair<char32_t, int16_t>{0x102FB, 900},
-    std::pair<char32_t, int16_t>{0x1034A, 900},   std::pair<char32_t, int16_t>{0x1085E, 1000},
-    std::pair<char32_t, int16_t>{0x1085F, 10000}, std::pair<char32_t, int16_t>{0x109D3, 200},
-    std::pair<char32_t, int16_t>{0x109D4, 300},   std::pair<char32_t, int16_t>{0x109D5, 400},
-    std::pair<char32_t, int16_t>{0x109D6, 500},   std::pair<char32_t, int16_t>{0x109D7, 600},
-    std::pair<char32_t, int16_t>{0x109D8, 700},   std::pair<char32_t, int16_t>{0x109D9, 800},
-    std::pair<char32_t, int16_t>{0x109DA, 900},   std::pair<char32_t, int16_t>{0x109DB, 1000},
-    std::pair<char32_t, int16_t>{0x109DC, 2000},  std::pair<char32_t, int16_t>{0x109DD, 3000},
-    std::pair<char32_t, int16_t>{0x109DE, 4000},  std::pair<char32_t, int16_t>{0x109DF, 5000},
-    std::pair<char32_t, int16_t>{0x109E0, 6000},  std::pair<char32_t, int16_t>{0x109E1, 7000},
-    std::pair<char32_t, int16_t>{0x109E2, 8000},  std::pair<char32_t, int16_t>{0x109E3, 9000},
-    std::pair<char32_t, int16_t>{0x109E4, 10000}, std::pair<char32_t, int16_t>{0x109E5, 20000},
-    std::pair<char32_t, int16_t>{0x109E6, 30000}, std::pair<char32_t, int16_t>{0x10A47, 1000},
-    std::pair<char32_t, int16_t>{0x10B5F, 1000},  std::pair<char32_t, int16_t>{0x10B7F, 1000},
-    std::pair<char32_t, int16_t>{0x10CFF, 1000},  std::pair<char32_t, int16_t>{0x10E73, 200},
-    std::pair<char32_t, int16_t>{0x10E74, 300},   std::pair<char32_t, int16_t>{0x10E75, 400},
-    std::pair<char32_t, int16_t>{0x10E76, 500},   std::pair<char32_t, int16_t>{0x10E77, 600},
-    std::pair<char32_t, int16_t>{0x10E78, 700},   std::pair<char32_t, int16_t>{0x10E79, 800},
-    std::pair<char32_t, int16_t>{0x10E7A, 900},   std::pair<char32_t, int16_t>{0x11065, 1000},
-    std::pair<char32_t, int16_t>{0x111F4, 1000},  std::pair<char32_t, int16_t>{0x16B5D, 10000},
-    std::pair<char32_t, int16_t>{0x1EC84, 200},   std::pair<char32_t, int16_t>{0x1EC85, 300},
-    std::pair<char32_t, int16_t>{0x1EC86, 400},   std::pair<char32_t, int16_t>{0x1EC87, 500},
-    std::pair<char32_t, int16_t>{0x1EC88, 600},   std::pair<char32_t, int16_t>{0x1EC89, 700},
-    std::pair<char32_t, int16_t>{0x1EC8A, 800},   std::pair<char32_t, int16_t>{0x1EC8B, 900},
-    std::pair<char32_t, int16_t>{0x1EC8C, 1000},  std::pair<char32_t, int16_t>{0x1EC8D, 2000},
-    std::pair<char32_t, int16_t>{0x1EC8E, 3000},  std::pair<char32_t, int16_t>{0x1EC8F, 4000},
-    std::pair<char32_t, int16_t>{0x1EC90, 5000},  std::pair<char32_t, int16_t>{0x1EC91, 6000},
-    std::pair<char32_t, int16_t>{0x1EC92, 7000},  std::pair<char32_t, int16_t>{0x1EC93, 8000},
-    std::pair<char32_t, int16_t>{0x1EC94, 9000},  std::pair<char32_t, int16_t>{0x1EC95, 10000},
-    std::pair<char32_t, int16_t>{0x1EC96, 20000}, std::pair<char32_t, int16_t>{0x1EC97, 30000},
-    std::pair<char32_t, int16_t>{0x1ECB3, 10000}, std::pair<char32_t, int16_t>{0x1ED14, 200},
-    std::pair<char32_t, int16_t>{0x1ED15, 300},   std::pair<char32_t, int16_t>{0x1ED16, 400},
-    std::pair<char32_t, int16_t>{0x1ED17, 500},   std::pair<char32_t, int16_t>{0x1ED18, 600},
-    std::pair<char32_t, int16_t>{0x1ED19, 700},   std::pair<char32_t, int16_t>{0x1ED1A, 800},
-    std::pair<char32_t, int16_t>{0x1ED1B, 900},   std::pair<char32_t, int16_t>{0x1ED1C, 1000},
-    std::pair<char32_t, int16_t>{0x1ED1D, 2000},  std::pair<char32_t, int16_t>{0x1ED1E, 3000},
-    std::pair<char32_t, int16_t>{0x1ED1F, 4000},  std::pair<char32_t, int16_t>{0x1ED20, 5000},
-    std::pair<char32_t, int16_t>{0x1ED21, 6000},  std::pair<char32_t, int16_t>{0x1ED22, 7000},
-    std::pair<char32_t, int16_t>{0x1ED23, 8000},  std::pair<char32_t, int16_t>{0x1ED24, 9000},
-    std::pair<char32_t, int16_t>{0x1ED25, 10000}, std::pair<char32_t, int16_t>{0x1ED26, 20000},
-    std::pair<char32_t, int16_t>{0x1ED27, 30000}, std::pair<char32_t, int16_t>{0x1ED38, 400},
-    std::pair<char32_t, int16_t>{0x1ED39, 600},   std::pair<char32_t, int16_t>{0x1ED3A, 2000},
-    std::pair<char32_t, int16_t>{0x1ED3B, 10000},
+static constexpr uni::pair<char32_t, int16_t> __numeric_data16[] = {
+    uni::pair<char32_t, int16_t>{0x0BF2, 1000},   uni::pair<char32_t, int16_t>{0x0D72, 1000},
+    uni::pair<char32_t, int16_t>{0x0F33, -1},     uni::pair<char32_t, int16_t>{0x137C, 10000},
+    uni::pair<char32_t, int16_t>{0x216E, 500},    uni::pair<char32_t, int16_t>{0x216F, 1000},
+    uni::pair<char32_t, int16_t>{0x217E, 500},    uni::pair<char32_t, int16_t>{0x217F, 1000},
+    uni::pair<char32_t, int16_t>{0x2180, 1000},   uni::pair<char32_t, int16_t>{0x2181, 5000},
+    uni::pair<char32_t, int16_t>{0x2182, 10000},  uni::pair<char32_t, int16_t>{0x4E07, 10000},
+    uni::pair<char32_t, int16_t>{0x4EDF, 1000},   uni::pair<char32_t, int16_t>{0x5343, 1000},
+    uni::pair<char32_t, int16_t>{0x842C, 10000},  uni::pair<char32_t, int16_t>{0x9621, 1000},
+    uni::pair<char32_t, int16_t>{0x1011A, 200},   uni::pair<char32_t, int16_t>{0x1011B, 300},
+    uni::pair<char32_t, int16_t>{0x1011C, 400},   uni::pair<char32_t, int16_t>{0x1011D, 500},
+    uni::pair<char32_t, int16_t>{0x1011E, 600},   uni::pair<char32_t, int16_t>{0x1011F, 700},
+    uni::pair<char32_t, int16_t>{0x10120, 800},   uni::pair<char32_t, int16_t>{0x10121, 900},
+    uni::pair<char32_t, int16_t>{0x10122, 1000},  uni::pair<char32_t, int16_t>{0x10123, 2000},
+    uni::pair<char32_t, int16_t>{0x10124, 3000},  uni::pair<char32_t, int16_t>{0x10125, 4000},
+    uni::pair<char32_t, int16_t>{0x10126, 5000},  uni::pair<char32_t, int16_t>{0x10127, 6000},
+    uni::pair<char32_t, int16_t>{0x10128, 7000},  uni::pair<char32_t, int16_t>{0x10129, 8000},
+    uni::pair<char32_t, int16_t>{0x1012A, 9000},  uni::pair<char32_t, int16_t>{0x1012B, 10000},
+    uni::pair<char32_t, int16_t>{0x1012C, 20000}, uni::pair<char32_t, int16_t>{0x1012D, 30000},
+    uni::pair<char32_t, int16_t>{0x10145, 500},   uni::pair<char32_t, int16_t>{0x10146, 5000},
+    uni::pair<char32_t, int16_t>{0x1014C, 500},   uni::pair<char32_t, int16_t>{0x1014D, 1000},
+    uni::pair<char32_t, int16_t>{0x1014E, 5000},  uni::pair<char32_t, int16_t>{0x10153, 500},
+    uni::pair<char32_t, int16_t>{0x10154, 1000},  uni::pair<char32_t, int16_t>{0x10155, 10000},
+    uni::pair<char32_t, int16_t>{0x1016B, 300},   uni::pair<char32_t, int16_t>{0x1016C, 500},
+    uni::pair<char32_t, int16_t>{0x1016D, 500},   uni::pair<char32_t, int16_t>{0x1016E, 500},
+    uni::pair<char32_t, int16_t>{0x1016F, 500},   uni::pair<char32_t, int16_t>{0x10170, 500},
+    uni::pair<char32_t, int16_t>{0x10171, 1000},  uni::pair<char32_t, int16_t>{0x10172, 5000},
+    uni::pair<char32_t, int16_t>{0x102F4, 200},   uni::pair<char32_t, int16_t>{0x102F5, 300},
+    uni::pair<char32_t, int16_t>{0x102F6, 400},   uni::pair<char32_t, int16_t>{0x102F7, 500},
+    uni::pair<char32_t, int16_t>{0x102F8, 600},   uni::pair<char32_t, int16_t>{0x102F9, 700},
+    uni::pair<char32_t, int16_t>{0x102FA, 800},   uni::pair<char32_t, int16_t>{0x102FB, 900},
+    uni::pair<char32_t, int16_t>{0x1034A, 900},   uni::pair<char32_t, int16_t>{0x1085E, 1000},
+    uni::pair<char32_t, int16_t>{0x1085F, 10000}, uni::pair<char32_t, int16_t>{0x109D3, 200},
+    uni::pair<char32_t, int16_t>{0x109D4, 300},   uni::pair<char32_t, int16_t>{0x109D5, 400},
+    uni::pair<char32_t, int16_t>{0x109D6, 500},   uni::pair<char32_t, int16_t>{0x109D7, 600},
+    uni::pair<char32_t, int16_t>{0x109D8, 700},   uni::pair<char32_t, int16_t>{0x109D9, 800},
+    uni::pair<char32_t, int16_t>{0x109DA, 900},   uni::pair<char32_t, int16_t>{0x109DB, 1000},
+    uni::pair<char32_t, int16_t>{0x109DC, 2000},  uni::pair<char32_t, int16_t>{0x109DD, 3000},
+    uni::pair<char32_t, int16_t>{0x109DE, 4000},  uni::pair<char32_t, int16_t>{0x109DF, 5000},
+    uni::pair<char32_t, int16_t>{0x109E0, 6000},  uni::pair<char32_t, int16_t>{0x109E1, 7000},
+    uni::pair<char32_t, int16_t>{0x109E2, 8000},  uni::pair<char32_t, int16_t>{0x109E3, 9000},
+    uni::pair<char32_t, int16_t>{0x109E4, 10000}, uni::pair<char32_t, int16_t>{0x109E5, 20000},
+    uni::pair<char32_t, int16_t>{0x109E6, 30000}, uni::pair<char32_t, int16_t>{0x10A47, 1000},
+    uni::pair<char32_t, int16_t>{0x10B5F, 1000},  uni::pair<char32_t, int16_t>{0x10B7F, 1000},
+    uni::pair<char32_t, int16_t>{0x10CFF, 1000},  uni::pair<char32_t, int16_t>{0x10E73, 200},
+    uni::pair<char32_t, int16_t>{0x10E74, 300},   uni::pair<char32_t, int16_t>{0x10E75, 400},
+    uni::pair<char32_t, int16_t>{0x10E76, 500},   uni::pair<char32_t, int16_t>{0x10E77, 600},
+    uni::pair<char32_t, int16_t>{0x10E78, 700},   uni::pair<char32_t, int16_t>{0x10E79, 800},
+    uni::pair<char32_t, int16_t>{0x10E7A, 900},   uni::pair<char32_t, int16_t>{0x11065, 1000},
+    uni::pair<char32_t, int16_t>{0x111F4, 1000},  uni::pair<char32_t, int16_t>{0x16B5D, 10000},
+    uni::pair<char32_t, int16_t>{0x1EC84, 200},   uni::pair<char32_t, int16_t>{0x1EC85, 300},
+    uni::pair<char32_t, int16_t>{0x1EC86, 400},   uni::pair<char32_t, int16_t>{0x1EC87, 500},
+    uni::pair<char32_t, int16_t>{0x1EC88, 600},   uni::pair<char32_t, int16_t>{0x1EC89, 700},
+    uni::pair<char32_t, int16_t>{0x1EC8A, 800},   uni::pair<char32_t, int16_t>{0x1EC8B, 900},
+    uni::pair<char32_t, int16_t>{0x1EC8C, 1000},  uni::pair<char32_t, int16_t>{0x1EC8D, 2000},
+    uni::pair<char32_t, int16_t>{0x1EC8E, 3000},  uni::pair<char32_t, int16_t>{0x1EC8F, 4000},
+    uni::pair<char32_t, int16_t>{0x1EC90, 5000},  uni::pair<char32_t, int16_t>{0x1EC91, 6000},
+    uni::pair<char32_t, int16_t>{0x1EC92, 7000},  uni::pair<char32_t, int16_t>{0x1EC93, 8000},
+    uni::pair<char32_t, int16_t>{0x1EC94, 9000},  uni::pair<char32_t, int16_t>{0x1EC95, 10000},
+    uni::pair<char32_t, int16_t>{0x1EC96, 20000}, uni::pair<char32_t, int16_t>{0x1EC97, 30000},
+    uni::pair<char32_t, int16_t>{0x1ECB3, 10000}, uni::pair<char32_t, int16_t>{0x1ED14, 200},
+    uni::pair<char32_t, int16_t>{0x1ED15, 300},   uni::pair<char32_t, int16_t>{0x1ED16, 400},
+    uni::pair<char32_t, int16_t>{0x1ED17, 500},   uni::pair<char32_t, int16_t>{0x1ED18, 600},
+    uni::pair<char32_t, int16_t>{0x1ED19, 700},   uni::pair<char32_t, int16_t>{0x1ED1A, 800},
+    uni::pair<char32_t, int16_t>{0x1ED1B, 900},   uni::pair<char32_t, int16_t>{0x1ED1C, 1000},
+    uni::pair<char32_t, int16_t>{0x1ED1D, 2000},  uni::pair<char32_t, int16_t>{0x1ED1E, 3000},
+    uni::pair<char32_t, int16_t>{0x1ED1F, 4000},  uni::pair<char32_t, int16_t>{0x1ED20, 5000},
+    uni::pair<char32_t, int16_t>{0x1ED21, 6000},  uni::pair<char32_t, int16_t>{0x1ED22, 7000},
+    uni::pair<char32_t, int16_t>{0x1ED23, 8000},  uni::pair<char32_t, int16_t>{0x1ED24, 9000},
+    uni::pair<char32_t, int16_t>{0x1ED25, 10000}, uni::pair<char32_t, int16_t>{0x1ED26, 20000},
+    uni::pair<char32_t, int16_t>{0x1ED27, 30000}, uni::pair<char32_t, int16_t>{0x1ED38, 400},
+    uni::pair<char32_t, int16_t>{0x1ED39, 600},   uni::pair<char32_t, int16_t>{0x1ED3A, 2000},
+    uni::pair<char32_t, int16_t>{0x1ED3B, 10000},
 };
-static constexpr std::pair<char32_t, int32_t> __numeric_data32[] = {
-    std::pair<char32_t, int32_t>{0x2187, 50000},
-    std::pair<char32_t, int32_t>{0x2188, 100000},
-    std::pair<char32_t, int32_t>{0x4EBF, 100000000},
-    std::pair<char32_t, int32_t>{0x5104, 100000000},
-    std::pair<char32_t, int32_t>{0x1012E, 40000},
-    std::pair<char32_t, int32_t>{0x1012F, 50000},
-    std::pair<char32_t, int32_t>{0x10130, 60000},
-    std::pair<char32_t, int32_t>{0x10131, 70000},
-    std::pair<char32_t, int32_t>{0x10132, 80000},
-    std::pair<char32_t, int32_t>{0x10133, 90000},
-    std::pair<char32_t, int32_t>{0x10147, 50000},
-    std::pair<char32_t, int32_t>{0x10156, 50000},
-    std::pair<char32_t, int32_t>{0x109E7, 40000},
-    std::pair<char32_t, int32_t>{0x109E8, 50000},
-    std::pair<char32_t, int32_t>{0x109E9, 60000},
-    std::pair<char32_t, int32_t>{0x109EA, 70000},
-    std::pair<char32_t, int32_t>{0x109EB, 80000},
-    std::pair<char32_t, int32_t>{0x109EC, 90000},
-    std::pair<char32_t, int32_t>{0x109ED, 100000},
-    std::pair<char32_t, int32_t>{0x109EE, 200000},
-    std::pair<char32_t, int32_t>{0x109EF, 300000},
-    std::pair<char32_t, int32_t>{0x109F0, 400000},
-    std::pair<char32_t, int32_t>{0x109F1, 500000},
-    std::pair<char32_t, int32_t>{0x109F2, 600000},
-    std::pair<char32_t, int32_t>{0x109F3, 700000},
-    std::pair<char32_t, int32_t>{0x109F4, 800000},
-    std::pair<char32_t, int32_t>{0x109F5, 900000},
-    std::pair<char32_t, int32_t>{0x12432, 216000},
-    std::pair<char32_t, int32_t>{0x12433, 432000},
-    std::pair<char32_t, int32_t>{0x16B5E, 1000000},
-    std::pair<char32_t, int32_t>{0x16B5F, 100000000},
-    std::pair<char32_t, int32_t>{0x1EC98, 40000},
-    std::pair<char32_t, int32_t>{0x1EC99, 50000},
-    std::pair<char32_t, int32_t>{0x1EC9A, 60000},
-    std::pair<char32_t, int32_t>{0x1EC9B, 70000},
-    std::pair<char32_t, int32_t>{0x1EC9C, 80000},
-    std::pair<char32_t, int32_t>{0x1EC9D, 90000},
-    std::pair<char32_t, int32_t>{0x1EC9E, 100000},
-    std::pair<char32_t, int32_t>{0x1EC9F, 200000},
-    std::pair<char32_t, int32_t>{0x1ECA0, 100000},
-    std::pair<char32_t, int32_t>{0x1ECA1, 10000000},
-    std::pair<char32_t, int32_t>{0x1ECA2, 20000000},
-    std::pair<char32_t, int32_t>{0x1ECB4, 100000},
-    std::pair<char32_t, int32_t>{0x1ED28, 40000},
-    std::pair<char32_t, int32_t>{0x1ED29, 50000},
-    std::pair<char32_t, int32_t>{0x1ED2A, 60000},
-    std::pair<char32_t, int32_t>{0x1ED2B, 70000},
-    std::pair<char32_t, int32_t>{0x1ED2C, 80000},
-    std::pair<char32_t, int32_t>{0x1ED2D, 90000},
+static constexpr uni::pair<char32_t, int32_t> __numeric_data32[] = {
+    uni::pair<char32_t, int32_t>{0x2187, 50000},
+    uni::pair<char32_t, int32_t>{0x2188, 100000},
+    uni::pair<char32_t, int32_t>{0x4EBF, 100000000},
+    uni::pair<char32_t, int32_t>{0x5104, 100000000},
+    uni::pair<char32_t, int32_t>{0x1012E, 40000},
+    uni::pair<char32_t, int32_t>{0x1012F, 50000},
+    uni::pair<char32_t, int32_t>{0x10130, 60000},
+    uni::pair<char32_t, int32_t>{0x10131, 70000},
+    uni::pair<char32_t, int32_t>{0x10132, 80000},
+    uni::pair<char32_t, int32_t>{0x10133, 90000},
+    uni::pair<char32_t, int32_t>{0x10147, 50000},
+    uni::pair<char32_t, int32_t>{0x10156, 50000},
+    uni::pair<char32_t, int32_t>{0x109E7, 40000},
+    uni::pair<char32_t, int32_t>{0x109E8, 50000},
+    uni::pair<char32_t, int32_t>{0x109E9, 60000},
+    uni::pair<char32_t, int32_t>{0x109EA, 70000},
+    uni::pair<char32_t, int32_t>{0x109EB, 80000},
+    uni::pair<char32_t, int32_t>{0x109EC, 90000},
+    uni::pair<char32_t, int32_t>{0x109ED, 100000},
+    uni::pair<char32_t, int32_t>{0x109EE, 200000},
+    uni::pair<char32_t, int32_t>{0x109EF, 300000},
+    uni::pair<char32_t, int32_t>{0x109F0, 400000},
+    uni::pair<char32_t, int32_t>{0x109F1, 500000},
+    uni::pair<char32_t, int32_t>{0x109F2, 600000},
+    uni::pair<char32_t, int32_t>{0x109F3, 700000},
+    uni::pair<char32_t, int32_t>{0x109F4, 800000},
+    uni::pair<char32_t, int32_t>{0x109F5, 900000},
+    uni::pair<char32_t, int32_t>{0x12432, 216000},
+    uni::pair<char32_t, int32_t>{0x12433, 432000},
+    uni::pair<char32_t, int32_t>{0x16B5E, 1000000},
+    uni::pair<char32_t, int32_t>{0x16B5F, 100000000},
+    uni::pair<char32_t, int32_t>{0x1EC98, 40000},
+    uni::pair<char32_t, int32_t>{0x1EC99, 50000},
+    uni::pair<char32_t, int32_t>{0x1EC9A, 60000},
+    uni::pair<char32_t, int32_t>{0x1EC9B, 70000},
+    uni::pair<char32_t, int32_t>{0x1EC9C, 80000},
+    uni::pair<char32_t, int32_t>{0x1EC9D, 90000},
+    uni::pair<char32_t, int32_t>{0x1EC9E, 100000},
+    uni::pair<char32_t, int32_t>{0x1EC9F, 200000},
+    uni::pair<char32_t, int32_t>{0x1ECA0, 100000},
+    uni::pair<char32_t, int32_t>{0x1ECA1, 10000000},
+    uni::pair<char32_t, int32_t>{0x1ECA2, 20000000},
+    uni::pair<char32_t, int32_t>{0x1ECB4, 100000},
+    uni::pair<char32_t, int32_t>{0x1ED28, 40000},
+    uni::pair<char32_t, int32_t>{0x1ED29, 50000},
+    uni::pair<char32_t, int32_t>{0x1ED2A, 60000},
+    uni::pair<char32_t, int32_t>{0x1ED2B, 70000},
+    uni::pair<char32_t, int32_t>{0x1ED2C, 80000},
+    uni::pair<char32_t, int32_t>{0x1ED2D, 90000},
 };
-static constexpr std::pair<char32_t, int64_t> __numeric_data64[] = {
-    std::pair<char32_t, int64_t>{0x5146, 1000000000000},
-    std::pair<char32_t, int64_t>{0x16B60, 10000000000},
-    std::pair<char32_t, int64_t>{0x16B61, 1000000000000},
+static constexpr uni::pair<char32_t, int64_t> __numeric_data64[] = {
+    uni::pair<char32_t, int64_t>{0x5146, 1000000000000},
+    uni::pair<char32_t, int64_t>{0x16B60, 10000000000},
+    uni::pair<char32_t, int64_t>{0x16B61, 1000000000000},
 };
-static constexpr std::pair<char32_t, int16_t> __numeric_data_d[] = {
-    std::pair<char32_t, int16_t>{0x00BC, 4},    std::pair<char32_t, int16_t>{0x00BD, 2},
-    std::pair<char32_t, int16_t>{0x00BE, 4},    std::pair<char32_t, int16_t>{0x09F4, 16},
-    std::pair<char32_t, int16_t>{0x09F5, 8},    std::pair<char32_t, int16_t>{0x09F6, 16},
-    std::pair<char32_t, int16_t>{0x09F7, 4},    std::pair<char32_t, int16_t>{0x09F8, 4},
-    std::pair<char32_t, int16_t>{0x0B72, 4},    std::pair<char32_t, int16_t>{0x0B73, 2},
-    std::pair<char32_t, int16_t>{0x0B74, 4},    std::pair<char32_t, int16_t>{0x0B75, 16},
-    std::pair<char32_t, int16_t>{0x0B76, 8},    std::pair<char32_t, int16_t>{0x0B77, 16},
-    std::pair<char32_t, int16_t>{0x0D58, 160},  std::pair<char32_t, int16_t>{0x0D59, 40},
-    std::pair<char32_t, int16_t>{0x0D5A, 80},   std::pair<char32_t, int16_t>{0x0D5B, 20},
-    std::pair<char32_t, int16_t>{0x0D5C, 10},   std::pair<char32_t, int16_t>{0x0D5D, 20},
-    std::pair<char32_t, int16_t>{0x0D5E, 5},    std::pair<char32_t, int16_t>{0x0D73, 4},
-    std::pair<char32_t, int16_t>{0x0D74, 2},    std::pair<char32_t, int16_t>{0x0D75, 4},
-    std::pair<char32_t, int16_t>{0x0D76, 16},   std::pair<char32_t, int16_t>{0x0D77, 8},
-    std::pair<char32_t, int16_t>{0x0D78, 16},   std::pair<char32_t, int16_t>{0x0F2A, 2},
-    std::pair<char32_t, int16_t>{0x0F2B, 2},    std::pair<char32_t, int16_t>{0x0F2C, 2},
-    std::pair<char32_t, int16_t>{0x0F2D, 2},    std::pair<char32_t, int16_t>{0x0F2E, 2},
-    std::pair<char32_t, int16_t>{0x0F2F, 2},    std::pair<char32_t, int16_t>{0x0F30, 2},
-    std::pair<char32_t, int16_t>{0x0F31, 2},    std::pair<char32_t, int16_t>{0x0F32, 2},
-    std::pair<char32_t, int16_t>{0x0F33, 2},    std::pair<char32_t, int16_t>{0x2150, 7},
-    std::pair<char32_t, int16_t>{0x2151, 9},    std::pair<char32_t, int16_t>{0x2152, 10},
-    std::pair<char32_t, int16_t>{0x2153, 3},    std::pair<char32_t, int16_t>{0x2154, 3},
-    std::pair<char32_t, int16_t>{0x2155, 5},    std::pair<char32_t, int16_t>{0x2156, 5},
-    std::pair<char32_t, int16_t>{0x2157, 5},    std::pair<char32_t, int16_t>{0x2158, 5},
-    std::pair<char32_t, int16_t>{0x2159, 6},    std::pair<char32_t, int16_t>{0x215A, 6},
-    std::pair<char32_t, int16_t>{0x215B, 8},    std::pair<char32_t, int16_t>{0x215C, 8},
-    std::pair<char32_t, int16_t>{0x215D, 8},    std::pair<char32_t, int16_t>{0x215E, 8},
-    std::pair<char32_t, int16_t>{0x2CFD, 2},    std::pair<char32_t, int16_t>{0xA830, 4},
-    std::pair<char32_t, int16_t>{0xA831, 2},    std::pair<char32_t, int16_t>{0xA832, 4},
-    std::pair<char32_t, int16_t>{0xA833, 16},   std::pair<char32_t, int16_t>{0xA834, 8},
-    std::pair<char32_t, int16_t>{0xA835, 16},   std::pair<char32_t, int16_t>{0x10140, 4},
-    std::pair<char32_t, int16_t>{0x10141, 2},   std::pair<char32_t, int16_t>{0x10175, 2},
-    std::pair<char32_t, int16_t>{0x10176, 2},   std::pair<char32_t, int16_t>{0x10177, 3},
-    std::pair<char32_t, int16_t>{0x10178, 4},   std::pair<char32_t, int16_t>{0x1018B, 4},
-    std::pair<char32_t, int16_t>{0x109BC, 12},  std::pair<char32_t, int16_t>{0x109BD, 2},
-    std::pair<char32_t, int16_t>{0x109F6, 12},  std::pair<char32_t, int16_t>{0x109F7, 12},
-    std::pair<char32_t, int16_t>{0x109F8, 12},  std::pair<char32_t, int16_t>{0x109F9, 12},
-    std::pair<char32_t, int16_t>{0x109FA, 12},  std::pair<char32_t, int16_t>{0x109FB, 12},
-    std::pair<char32_t, int16_t>{0x109FC, 12},  std::pair<char32_t, int16_t>{0x109FD, 12},
-    std::pair<char32_t, int16_t>{0x109FE, 12},  std::pair<char32_t, int16_t>{0x109FF, 12},
-    std::pair<char32_t, int16_t>{0x10A48, 2},   std::pair<char32_t, int16_t>{0x10E7B, 2},
-    std::pair<char32_t, int16_t>{0x10E7C, 4},   std::pair<char32_t, int16_t>{0x10E7D, 3},
-    std::pair<char32_t, int16_t>{0x10E7E, 3},   std::pair<char32_t, int16_t>{0x10F26, 2},
-    std::pair<char32_t, int16_t>{0x11FC0, 320}, std::pair<char32_t, int16_t>{0x11FC1, 160},
-    std::pair<char32_t, int16_t>{0x11FC2, 80},  std::pair<char32_t, int16_t>{0x11FC3, 64},
-    std::pair<char32_t, int16_t>{0x11FC4, 40},  std::pair<char32_t, int16_t>{0x11FC5, 32},
-    std::pair<char32_t, int16_t>{0x11FC6, 80},  std::pair<char32_t, int16_t>{0x11FC7, 64},
-    std::pair<char32_t, int16_t>{0x11FC8, 20},  std::pair<char32_t, int16_t>{0x11FC9, 16},
-    std::pair<char32_t, int16_t>{0x11FCA, 16},  std::pair<char32_t, int16_t>{0x11FCB, 10},
-    std::pair<char32_t, int16_t>{0x11FCC, 8},   std::pair<char32_t, int16_t>{0x11FCD, 20},
-    std::pair<char32_t, int16_t>{0x11FCE, 16},  std::pair<char32_t, int16_t>{0x11FCF, 5},
-    std::pair<char32_t, int16_t>{0x11FD0, 4},   std::pair<char32_t, int16_t>{0x11FD1, 2},
-    std::pair<char32_t, int16_t>{0x11FD2, 2},   std::pair<char32_t, int16_t>{0x11FD3, 4},
-    std::pair<char32_t, int16_t>{0x11FD4, 320}, std::pair<char32_t, int16_t>{0x1245A, 3},
-    std::pair<char32_t, int16_t>{0x1245B, 3},   std::pair<char32_t, int16_t>{0x1245C, 6},
-    std::pair<char32_t, int16_t>{0x1245D, 3},   std::pair<char32_t, int16_t>{0x1245E, 3},
-    std::pair<char32_t, int16_t>{0x1245F, 8},   std::pair<char32_t, int16_t>{0x12460, 4},
-    std::pair<char32_t, int16_t>{0x12461, 6},   std::pair<char32_t, int16_t>{0x12462, 4},
-    std::pair<char32_t, int16_t>{0x12463, 4},   std::pair<char32_t, int16_t>{0x12464, 2},
-    std::pair<char32_t, int16_t>{0x12465, 3},   std::pair<char32_t, int16_t>{0x12466, 3},
-    std::pair<char32_t, int16_t>{0x1ECAD, 4},   std::pair<char32_t, int16_t>{0x1ECAE, 2},
-    std::pair<char32_t, int16_t>{0x1ECAF, 4},   std::pair<char32_t, int16_t>{0x1ED3C, 2},
-    std::pair<char32_t, int16_t>{0x1ED3D, 6},   std::pair<char32_t, int16_t>{0x110000, 0}};
+static constexpr uni::pair<char32_t, int16_t> __numeric_data_d[] = {
+    uni::pair<char32_t, int16_t>{0x00BC, 4},    uni::pair<char32_t, int16_t>{0x00BD, 2},
+    uni::pair<char32_t, int16_t>{0x00BE, 4},    uni::pair<char32_t, int16_t>{0x09F4, 16},
+    uni::pair<char32_t, int16_t>{0x09F5, 8},    uni::pair<char32_t, int16_t>{0x09F6, 16},
+    uni::pair<char32_t, int16_t>{0x09F7, 4},    uni::pair<char32_t, int16_t>{0x09F8, 4},
+    uni::pair<char32_t, int16_t>{0x0B72, 4},    uni::pair<char32_t, int16_t>{0x0B73, 2},
+    uni::pair<char32_t, int16_t>{0x0B74, 4},    uni::pair<char32_t, int16_t>{0x0B75, 16},
+    uni::pair<char32_t, int16_t>{0x0B76, 8},    uni::pair<char32_t, int16_t>{0x0B77, 16},
+    uni::pair<char32_t, int16_t>{0x0D58, 160},  uni::pair<char32_t, int16_t>{0x0D59, 40},
+    uni::pair<char32_t, int16_t>{0x0D5A, 80},   uni::pair<char32_t, int16_t>{0x0D5B, 20},
+    uni::pair<char32_t, int16_t>{0x0D5C, 10},   uni::pair<char32_t, int16_t>{0x0D5D, 20},
+    uni::pair<char32_t, int16_t>{0x0D5E, 5},    uni::pair<char32_t, int16_t>{0x0D73, 4},
+    uni::pair<char32_t, int16_t>{0x0D74, 2},    uni::pair<char32_t, int16_t>{0x0D75, 4},
+    uni::pair<char32_t, int16_t>{0x0D76, 16},   uni::pair<char32_t, int16_t>{0x0D77, 8},
+    uni::pair<char32_t, int16_t>{0x0D78, 16},   uni::pair<char32_t, int16_t>{0x0F2A, 2},
+    uni::pair<char32_t, int16_t>{0x0F2B, 2},    uni::pair<char32_t, int16_t>{0x0F2C, 2},
+    uni::pair<char32_t, int16_t>{0x0F2D, 2},    uni::pair<char32_t, int16_t>{0x0F2E, 2},
+    uni::pair<char32_t, int16_t>{0x0F2F, 2},    uni::pair<char32_t, int16_t>{0x0F30, 2},
+    uni::pair<char32_t, int16_t>{0x0F31, 2},    uni::pair<char32_t, int16_t>{0x0F32, 2},
+    uni::pair<char32_t, int16_t>{0x0F33, 2},    uni::pair<char32_t, int16_t>{0x2150, 7},
+    uni::pair<char32_t, int16_t>{0x2151, 9},    uni::pair<char32_t, int16_t>{0x2152, 10},
+    uni::pair<char32_t, int16_t>{0x2153, 3},    uni::pair<char32_t, int16_t>{0x2154, 3},
+    uni::pair<char32_t, int16_t>{0x2155, 5},    uni::pair<char32_t, int16_t>{0x2156, 5},
+    uni::pair<char32_t, int16_t>{0x2157, 5},    uni::pair<char32_t, int16_t>{0x2158, 5},
+    uni::pair<char32_t, int16_t>{0x2159, 6},    uni::pair<char32_t, int16_t>{0x215A, 6},
+    uni::pair<char32_t, int16_t>{0x215B, 8},    uni::pair<char32_t, int16_t>{0x215C, 8},
+    uni::pair<char32_t, int16_t>{0x215D, 8},    uni::pair<char32_t, int16_t>{0x215E, 8},
+    uni::pair<char32_t, int16_t>{0x2CFD, 2},    uni::pair<char32_t, int16_t>{0xA830, 4},
+    uni::pair<char32_t, int16_t>{0xA831, 2},    uni::pair<char32_t, int16_t>{0xA832, 4},
+    uni::pair<char32_t, int16_t>{0xA833, 16},   uni::pair<char32_t, int16_t>{0xA834, 8},
+    uni::pair<char32_t, int16_t>{0xA835, 16},   uni::pair<char32_t, int16_t>{0x10140, 4},
+    uni::pair<char32_t, int16_t>{0x10141, 2},   uni::pair<char32_t, int16_t>{0x10175, 2},
+    uni::pair<char32_t, int16_t>{0x10176, 2},   uni::pair<char32_t, int16_t>{0x10177, 3},
+    uni::pair<char32_t, int16_t>{0x10178, 4},   uni::pair<char32_t, int16_t>{0x1018B, 4},
+    uni::pair<char32_t, int16_t>{0x109BC, 12},  uni::pair<char32_t, int16_t>{0x109BD, 2},
+    uni::pair<char32_t, int16_t>{0x109F6, 12},  uni::pair<char32_t, int16_t>{0x109F7, 12},
+    uni::pair<char32_t, int16_t>{0x109F8, 12},  uni::pair<char32_t, int16_t>{0x109F9, 12},
+    uni::pair<char32_t, int16_t>{0x109FA, 12},  uni::pair<char32_t, int16_t>{0x109FB, 12},
+    uni::pair<char32_t, int16_t>{0x109FC, 12},  uni::pair<char32_t, int16_t>{0x109FD, 12},
+    uni::pair<char32_t, int16_t>{0x109FE, 12},  uni::pair<char32_t, int16_t>{0x109FF, 12},
+    uni::pair<char32_t, int16_t>{0x10A48, 2},   uni::pair<char32_t, int16_t>{0x10E7B, 2},
+    uni::pair<char32_t, int16_t>{0x10E7C, 4},   uni::pair<char32_t, int16_t>{0x10E7D, 3},
+    uni::pair<char32_t, int16_t>{0x10E7E, 3},   uni::pair<char32_t, int16_t>{0x10F26, 2},
+    uni::pair<char32_t, int16_t>{0x11FC0, 320}, uni::pair<char32_t, int16_t>{0x11FC1, 160},
+    uni::pair<char32_t, int16_t>{0x11FC2, 80},  uni::pair<char32_t, int16_t>{0x11FC3, 64},
+    uni::pair<char32_t, int16_t>{0x11FC4, 40},  uni::pair<char32_t, int16_t>{0x11FC5, 32},
+    uni::pair<char32_t, int16_t>{0x11FC6, 80},  uni::pair<char32_t, int16_t>{0x11FC7, 64},
+    uni::pair<char32_t, int16_t>{0x11FC8, 20},  uni::pair<char32_t, int16_t>{0x11FC9, 16},
+    uni::pair<char32_t, int16_t>{0x11FCA, 16},  uni::pair<char32_t, int16_t>{0x11FCB, 10},
+    uni::pair<char32_t, int16_t>{0x11FCC, 8},   uni::pair<char32_t, int16_t>{0x11FCD, 20},
+    uni::pair<char32_t, int16_t>{0x11FCE, 16},  uni::pair<char32_t, int16_t>{0x11FCF, 5},
+    uni::pair<char32_t, int16_t>{0x11FD0, 4},   uni::pair<char32_t, int16_t>{0x11FD1, 2},
+    uni::pair<char32_t, int16_t>{0x11FD2, 2},   uni::pair<char32_t, int16_t>{0x11FD3, 4},
+    uni::pair<char32_t, int16_t>{0x11FD4, 320}, uni::pair<char32_t, int16_t>{0x1245A, 3},
+    uni::pair<char32_t, int16_t>{0x1245B, 3},   uni::pair<char32_t, int16_t>{0x1245C, 6},
+    uni::pair<char32_t, int16_t>{0x1245D, 3},   uni::pair<char32_t, int16_t>{0x1245E, 3},
+    uni::pair<char32_t, int16_t>{0x1245F, 8},   uni::pair<char32_t, int16_t>{0x12460, 4},
+    uni::pair<char32_t, int16_t>{0x12461, 6},   uni::pair<char32_t, int16_t>{0x12462, 4},
+    uni::pair<char32_t, int16_t>{0x12463, 4},   uni::pair<char32_t, int16_t>{0x12464, 2},
+    uni::pair<char32_t, int16_t>{0x12465, 3},   uni::pair<char32_t, int16_t>{0x12466, 3},
+    uni::pair<char32_t, int16_t>{0x1ECAD, 4},   uni::pair<char32_t, int16_t>{0x1ECAE, 2},
+    uni::pair<char32_t, int16_t>{0x1ECAF, 4},   uni::pair<char32_t, int16_t>{0x1ED3C, 2},
+    uni::pair<char32_t, int16_t>{0x1ED3D, 6},   uni::pair<char32_t, int16_t>{0x110000, 0}};
 enum class property {
     ahex,
     ascii_hex_digit = ahex,
@@ -7312,7 +7324,6 @@ static constexpr __bool_trie<32, 991, 1, 0, 149, 255, 1, 0, 1535, 1, 0, 164> __p
 #    pragma once
 #    include "props.h"
 #endif
-#include <string_view>
 
 namespace uni {
 
@@ -7341,7 +7352,7 @@ constexpr uni::version __age_from_string(std::string_view a) {
     return uni::version::unassigned;
 }
 
-constexpr category __category_from_string(const std::string_view s) {
+constexpr category __category_from_string(std::string_view s) {
     for(const auto& c : __categories_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -7350,7 +7361,7 @@ constexpr category __category_from_string(const std::string_view s) {
     return category::unassigned;
 }
 
-constexpr block __block_from_string(const std::string_view s) {
+constexpr block __block_from_string(std::string_view s) {
     for(const auto& c : __blocks_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -7359,7 +7370,7 @@ constexpr block __block_from_string(const std::string_view s) {
     return block::no_block;
 }
 
-constexpr script __script_from_string(const std::string_view s) {
+constexpr script __script_from_string(std::string_view s) {
     for(const auto& c : __scripts_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -7457,8 +7468,8 @@ constexpr version cp_age(char32_t cp) {
 }
 
 constexpr block cp_block(char32_t cp) {
-    const auto end = __block_data._data.end();
-    auto it = uni::upper_bound(__block_data._data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+    const auto end = std::end(__block_data._data);
+    auto it = uni::upper_bound(std::begin(__block_data._data), end, cp, [](char32_t cp, uint32_t v) {
         char32_t c = (v >> 8);
         return cp < c;
     });
@@ -7470,7 +7481,7 @@ constexpr block cp_block(char32_t cp) {
         return block::no_block;
     offset--;
 
-    const auto d = std::distance(__block_data._data.begin(), it);
+    const auto d = std::distance(std::begin(__block_data._data), it);
     return uni::block((d - offset) + 1);
 }
 
@@ -9543,7 +9554,7 @@ static constexpr __string_with_idx __binary_prop_names[] = {
 namespace uni {
 
 
-constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
+constexpr __binary_prop __binary_prop_from_string(std::string_view s) {
     for(const auto& c : __binary_prop_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
