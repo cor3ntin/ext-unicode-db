@@ -117,8 +117,11 @@ add_library(std_ext_uni STATIC
   unicode.cpp
 )
 
-# add_custom_target("single-header")
-# add_custom_command(TARGET "single-header" COMMAND cp ${PROJECT_BINARY_DIR}/singleheader/ext/unicode.hpp ${PROJECT_SOURCE_DIR}/singleheader/ext/unicode.hpp)
+add_custom_target("single-header")
+add_custom_command(TARGET "single-header"
+    COMMAND cp ${HEADERS_DIR}* ${PROJECT_SOURCE_DIR}/generated_includes/cedilla/
+    DEPENDS include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp include/cedilla/properties.hpp
+)
 
 target_compile_options(std_ext_uni INTERFACE -std=c++17)
 
