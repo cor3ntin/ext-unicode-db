@@ -8,7 +8,7 @@
 namespace uni {
 
 
-constexpr __binary_prop __binary_prop_from_string(const std::string_view s) {
+constexpr __binary_prop __binary_prop_from_string(std::string_view s) {
     for(const auto& c : __binary_prop_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)

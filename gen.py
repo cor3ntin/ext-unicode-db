@@ -214,7 +214,6 @@ def get_unicode_data(version = LAST_VERSION):
                     characters[i].props[v] = True
     return (characters, blocks)
 
-
 def write_script_data(characters, changed, scripts_names, file):
     f.write("enum class script {")
     indexes = {}
@@ -587,9 +586,9 @@ def write_categories_data(characters, changed, categories_names, file):
         old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
         if len(old) == 0:
             continue
-        f.write("static constexpr std::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
+        f.write("static constexpr uni::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
         for idx, (cp, gc) in enumerate(old):
-            f.write("std::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
+            f.write("uni::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
         f.write("};")
         modified.update(old)
         with_data.append(k)
@@ -669,20 +668,20 @@ def write_numeric_data(characters, f):
         if s == '8' :
             f.write("static constexpr _compact_list __numeric_data8 = {")
         else:
-            f.write("static constexpr std::pair<char32_t, int{0}_t> __numeric_data{0}[] = {{ ".format(s))
+            f.write("static constexpr uni::pair<char32_t, int{0}_t> __numeric_data{0}[] = {{ ".format(s))
 
 
         for idx, cp in enumerate(characters):
             if s == '8' :
                 f.write("{}{}".format(to_hex(((cp[0] << 8) | cp[1]) , 10), ',' if idx < len(characters) - 1 else ''))
             else:
-                f.write("std::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
+                f.write("uni::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
         f.write("};")
 
-    f.write("static constexpr std::pair<char32_t, int16_t> __numeric_data_d[] = {")
+    f.write("static constexpr uni::pair<char32_t, int16_t> __numeric_data_d[] = {")
     for cp in dvalues:
-        f.write("std::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
-    f.write("std::pair<char32_t, int16_t>{0x110000, 0} };\n")
+        f.write("uni::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
+    f.write("uni::pair<char32_t, int16_t>{0x110000, 0} };\n")
 
 
 def write_binary_properties(characters, f):

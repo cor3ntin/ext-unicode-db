@@ -32,7 +32,7 @@ constexpr uni::version __age_from_string(std::string_view a) {
     return uni::version::unassigned;
 }
 
-constexpr category __category_from_string(const std::string_view s) {
+constexpr category __category_from_string(std::string_view s) {
     for(const auto& c : __categories_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -41,7 +41,7 @@ constexpr category __category_from_string(const std::string_view s) {
     return category::unassigned;
 }
 
-constexpr block __block_from_string(const std::string_view s) {
+constexpr block __block_from_string(std::string_view s) {
     for(const auto& c : __blocks_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -50,7 +50,7 @@ constexpr block __block_from_string(const std::string_view s) {
     return block::no_block;
 }
 
-constexpr script __script_from_string(const std::string_view s) {
+constexpr script __script_from_string(std::string_view s) {
     for(const auto& c : __scripts_names) {
         const auto res = __pronamecomp(s, c.name);
         if(res == 0)
@@ -148,8 +148,8 @@ constexpr version cp_age(char32_t cp) {
 }
 
 constexpr block cp_block(char32_t cp) {
-    const auto end = __block_data._data.end();
-    auto it = uni::upper_bound(__block_data._data.begin(), end, cp, [](char32_t cp, uint32_t v) {
+    const auto end = std::end(__block_data._data);
+    auto it = uni::upper_bound(std::begin(__block_data._data), end, cp, [](char32_t cp, uint32_t v) {
         char32_t c = (v >> 8);
         return cp < c;
     });
@@ -161,7 +161,7 @@ constexpr block cp_block(char32_t cp) {
         return block::no_block;
     offset--;
 
-    const auto d = std::distance(__block_data._data.begin(), it);
+    const auto d = std::distance(std::begin(__block_data._data), it);
     return uni::block((d - offset) + 1);
 }
 
