@@ -65,6 +65,7 @@ add_custom_command(
     COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
     COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
     COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h
+                ${PROJECT_SOURCE_DIR}/synopsys.h
                 ${PROJECT_SOURCE_DIR}/base.h
                 ${PROJECT_BINARY_DIR}/props.h
                 ${PROJECT_SOURCE_DIR}/unicode.h
@@ -72,6 +73,7 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/regex.h
                 > ${HEADERS_DIR}/properties.hpp
     DEPENDS
+        ${PROJECT_SOURCE_DIR}/synopsys.h
         ${PROJECT_SOURCE_DIR}/base.h
         ${PROJECT_SOURCE_DIR}/unicode.h
         ${PROJECT_SOURCE_DIR}/regex.h

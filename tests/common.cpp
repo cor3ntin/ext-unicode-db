@@ -38,17 +38,17 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
         try {
             auto code = char32_t(std::stoi(cp.attribute("cp").value(), 0, 16));
             auto name = fixup_name(cp.attribute("na").value(), cp.attribute("cp").value());
-            auto age = uni::__age_from_string(cp.attribute("age").value());
-            auto category = uni::__category_from_string(cp.attribute("gc").value());
-            auto block = uni::__block_from_string(cp.attribute("blk").value());
-            auto script = uni::__script_from_string(cp.attribute("sc").value());
+            auto age = uni::detail::age_from_string(cp.attribute("age").value());
+            auto category = uni::detail::category_from_string(cp.attribute("gc").value());
+            auto block = uni::detail::block_from_string(cp.attribute("blk").value());
+            auto script = uni::detail::script_from_string(cp.attribute("sc").value());
 
             std::istringstream iss(cp.attribute("scx").value());
             std::vector<std::string> results((std::istream_iterator<std::string>(iss)),
                                              std::istream_iterator<std::string>());
             std::vector<uni::script> exts;
             for(auto&& x : results) {
-                exts.push_back(uni::__script_from_string(x));
+                exts.push_back(uni::detail::script_from_string(x));
             }
 
             std::string nv = cp.attribute("nv").value();

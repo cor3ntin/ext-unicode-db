@@ -6,149 +6,129 @@
 
 namespace uni {
 
-enum class property;
-
-
-template<uni::version v>
 constexpr category cp_category(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return category::cn;
-    }
     if(cp > 0x10FFFF)
         return category::unassigned;
-    return __get_category<uni::version::latest_version>(cp);
+    return detail::tables::get_category(cp);
 }
 
-constexpr uni::version __age_from_string(std::string_view a) {
-    for(std::size_t i = 0; i < std::size(__age_strings); ++i) {
-        const auto res = __pronamecomp(a, __age_strings[i]);
+constexpr uni::version detail::age_from_string(std::string_view a) {
+    for(std::size_t i = 0; i < std::size(detail::tables::age_strings); ++i) {
+        const auto res = detail::propnamecomp(a, detail::tables::age_strings[i]);
         if(res == 0)
             return uni::version(i);
     }
     return uni::version::unassigned;
 }
 
-constexpr category __category_from_string(std::string_view s) {
-    for(const auto& c : __categories_names) {
-        const auto res = __pronamecomp(s, c.name);
+constexpr category detail::category_from_string(std::string_view s) {
+    for(const auto& c : detail::tables::categories_names) {
+        const auto res = detail::propnamecomp(s, c.name);
         if(res == 0)
             return category(c.value);
     }
     return category::unassigned;
 }
 
-constexpr block __block_from_string(std::string_view s) {
-    for(const auto& c : __blocks_names) {
-        const auto res = __pronamecomp(s, c.name);
+constexpr block detail::block_from_string(std::string_view s) {
+    for(const auto& c : detail::tables::blocks_names) {
+        const auto res = detail::propnamecomp(s, c.name);
         if(res == 0)
             return block(c.value);
     }
     return block::no_block;
 }
 
-constexpr script __script_from_string(std::string_view s) {
-    for(const auto& c : __scripts_names) {
-        const auto res = __pronamecomp(s, c.name);
+constexpr script detail::script_from_string(std::string_view s) {
+    for(const auto& c : detail::tables::scripts_names) {
+        const auto res = detail::propnamecomp(s, c.name);
         if(res == 0)
             return script(c.value);
     }
     return script::unknown;
 }
 
-template<uni::version v = uni::version::standard_unicode_version>
-constexpr script cp_script(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return script::zzzz;
-    }
-    return __cp_script<0, v>(cp);
+constexpr bool detail::is_unassigned(category cat)
+{
+    return cat == category::unassigned;
 }
 
-template<uni::version v = uni::version::standard_unicode_version>
-struct script_extensions_view {
-    constexpr script_extensions_view(char32_t c) : c(c){};
+constexpr bool detail::is_unknown(script s)
+{
+    return s == script::unknown;
+}
 
-    struct sentinel {};
-    struct iterator {
+constexpr bool detail::is_unknown(block b) {
+    return b == block::no_block;
+}
 
-        using value_type = script;
-        using iterator_category = std::forward_iterator_tag;
+constexpr bool detail::is_unassigned(version v)
+{
+    return v == version::unassigned;
+}
 
-        constexpr iterator(char32_t c) : m_c(c), m_script(__get_cp_script<v>(m_c, 1)) {
-            if(m_script == script::unknown)
-                m_script = __cp_script<0, v>(m_c);
-        }
-        constexpr script operator*() const {
-            return m_script;
-        };
+constexpr script cp_script(char32_t cp) {
+    return detail::tables::cp_script<0>(cp);
+}
 
-        constexpr iterator& operator++(int) {
-            idx++;
-            m_script = __get_cp_script<v>(m_c, idx);
-            return this;
-        }
+constexpr script_extensions_view::script_extensions_view(char32_t c) : c(c){}
 
-        constexpr iterator operator++() {
-            auto c = *this;
-            idx++;
-            m_script = __get_cp_script<v>(m_c, idx);
-            return c;
-        }
-
-        constexpr bool operator==(sentinel) const {
-            return m_script == script::unknown;
-        };
-        constexpr bool operator!=(sentinel) const {
-            return m_script != script::unknown;
-        };
-        constexpr bool operator==(iterator it) const {
-            return m_script == it.m_script && m_c == it.m_c;
-        };
-        constexpr bool operator!=(iterator it) const {
-            return !(*this == it);
-        };
-
-    private:
-        char32_t m_c;
-        script m_script;
-        int idx = 1;
-    };
-
-    constexpr iterator begin() const {
-        return iterator{c};
-    }
-    constexpr sentinel end() const {
-        return {};
+constexpr script_extensions_view::iterator::iterator(char32_t c) : m_c(c), m_script(detail::tables::get_cp_script(m_c, 1)) {
+    if(m_script == script::unknown)
+        m_script = detail::tables::cp_script<0>(m_c);
     }
 
-private:
-    char32_t c;
+constexpr script script_extensions_view::iterator::operator*() const {
+    return m_script;
+}
+
+constexpr auto script_extensions_view::iterator::operator++(int) ->iterator & {
+    idx++;
+    m_script = detail::tables::get_cp_script(m_c, idx);
+    return *this;
+}
+
+constexpr auto script_extensions_view::iterator::operator++()  -> iterator {
+    auto c = *this;
+    idx++;
+    m_script = detail::tables::get_cp_script(m_c, idx);
+    return c;
+}
+
+constexpr bool script_extensions_view::iterator::operator==(sentinel) const {
+    return m_script == script::unknown;
+}
+
+constexpr bool script_extensions_view::iterator::operator!=(sentinel) const {
+    return m_script != script::unknown;
+}
+
+/*constexpr bool script_extensions_view::iterator::operator==(iterator it) const {
+    return m_script == it.m_script && m_c == it.m_c;
 };
+constexpr bool script_extensions_view::iterator::operator!=(iterator it) const {
+    return !(*this == it);
+};*/
 
-template<uni::version v = uni::version::standard_unicode_version>
-constexpr auto cp_script_extensions(char32_t cp) {
-    static_assert(v >= uni::version::minimum_version,
-                  "This version of the Unicode Database is not supported");
-    if constexpr(v != uni::version::latest_version) {
-        if(cp_age(cp) > v)
-            return script::zzzz;
-    }
-    return script_extensions_view<v>(cp);
+constexpr script_extensions_view::iterator script_extensions_view::begin() const {
+    return iterator{c};
+}
+constexpr script_extensions_view::sentinel script_extensions_view::end() const {
+    return {};
+}
+
+constexpr script_extensions_view cp_script_extensions(char32_t cp) {
+    return script_extensions_view(cp);
 }
 
 
 constexpr version cp_age(char32_t cp) {
-    return static_cast<version>(uni::__age_data.value(cp, uint8_t(version::unassigned)));
+    return static_cast<version>(detail::tables::age_data.value(cp, uint8_t(version::unassigned)));
 }
 
 constexpr block cp_block(char32_t cp) {
-    const auto end = std::end(__block_data._data);
-    auto it = uni::upper_bound(std::begin(__block_data._data), end, cp, [](char32_t cp, uint32_t v) {
+    const auto end = std::end(detail::tables::block_data._data);
+    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp, uint32_t v) {
         char32_t c = (v >> 8);
         return cp < c;
     });
@@ -160,7 +140,7 @@ constexpr block cp_block(char32_t cp) {
         return block::no_block;
     offset--;
 
-    const auto d = std::distance(std::begin(__block_data._data), it);
+    const auto d = std::distance(std::begin(detail::tables::block_data._data), it);
     return uni::block((d - offset) + 1);
 }
 
@@ -172,26 +152,26 @@ constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
 // http://unicode.org/reports/tr44/#Lowercase
 template<>
 constexpr bool cp_is<property::lowercase>(char32_t cp) {
-    return uni::__cat_ll.lookup(char32_t(cp)) || uni::__prop_olower_data.lookup(char32_t(cp));
+    return detail::tables::cat_ll.lookup(char32_t(cp)) || detail::tables::prop_olower_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Uppercase
 template<>
 constexpr bool cp_is<property::uppercase>(char32_t cp) {
-    return uni::__cat_lu.lookup(char32_t(cp)) || uni::__prop_oupper_data.lookup(char32_t(cp));
+    return detail::tables::cat_lu.lookup(char32_t(cp)) || detail::tables::prop_oupper_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Cased
 template<>
 constexpr bool cp_is<property::cased>(char32_t cp) {
     return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
-           uni::__cat_lt.lookup(char32_t(cp));
+           detail::tables::cat_lt.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Math
 template<>
 constexpr bool cp_is<property::math>(char32_t cp) {
-    return uni::__cat_sm.lookup(char32_t(cp)) || __prop_omath_data.lookup(cp);
+    return detail::tables::cat_sm.lookup(char32_t(cp)) || detail::tables::prop_omath_data.lookup(cp);
 }
 
 // http://unicode.org/reports/tr44/#Case_Ignorable
@@ -204,15 +184,15 @@ constexpr bool cp_is<property::case_ignorable>(char32_t) {
 // http://unicode.org/reports/tr44/#Grapheme_Extend
 template<>
 constexpr bool cp_is<property::grapheme_extend>(char32_t cp) {
-    return uni::__cat_me.lookup(char32_t(cp)) || uni::__cat_mn.lookup(char32_t(cp)) ||
-           __prop_ogr_ext_data.lookup(cp);
+    return detail::tables::cat_me.lookup(char32_t(cp)) || detail::tables::cat_mn.lookup(char32_t(cp)) ||
+           detail::tables::prop_ogr_ext_data.lookup(cp);
 }
 
 constexpr bool cp_is_valid(char32_t cp) {
     return char32_t(cp) <= 0x10FFFF;
 }
 constexpr bool cp_is_assigned(char32_t cp) {
-    return uni::__prop_assigned.lookup(char32_t(cp));
+    return detail::tables::prop_assigned.lookup(char32_t(cp));
 }
 
 constexpr bool cp_is_ascii(char32_t cp) {
@@ -222,8 +202,8 @@ constexpr bool cp_is_ascii(char32_t cp) {
 template<>
 constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
     const auto c = char32_t(cp);
-    const bool maybe = uni::__prop_odi_data.lookup(cp) || uni::__cat_cf.lookup(cp) ||
-                       uni::__prop_vs_data.lookup(cp);
+    const bool maybe = detail::tables::prop_odi_data.lookup(cp) || detail::tables::cat_cf.lookup(cp) ||
+                       detail::tables::prop_vs_data.lookup(cp);
     if(!maybe)
         return false;
     // ignore (Interlinear annotation format characters
@@ -233,9 +213,9 @@ constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
     // Ignore Egyptian hieroglyph format characters
     else if(c >= 0x13430 && c <= 0x13438) {
         return false;
-    } else if(uni::__prop_wspace_data.lookup(cp))
+    } else if(detail::tables::prop_wspace_data.lookup(cp))
         return false;
-    else if(uni::__prop_pcm_data.lookup(cp))
+    else if(detail::tables::prop_pcm_data.lookup(cp))
         return false;
     return true;
 }
@@ -244,25 +224,27 @@ constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
 template<>
 constexpr bool cp_is<property::id_start>(char32_t cp) {
     const bool maybe =
-        cp_is<category::letter>(cp) || __cat_nl.lookup(cp) || __prop_oids_data.lookup(cp);
+        cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
     if(!maybe)
         return false;
-    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
+    return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
 template<>
 constexpr bool cp_is<property::id_continue>(char32_t cp) {
-    const bool maybe = cp_is<category::letter>(cp) || __cat_nl.lookup(cp) ||
-                       __prop_oids_data.lookup(cp) || __cat_mn.lookup(cp) || __cat_mc.lookup(cp) ||
-                       __cat_nd.lookup(cp) || __cat_pc.lookup(cp) || __prop_oidc_data.lookup(cp);
+    const bool maybe = cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
+                       detail::tables::prop_oids_data.lookup(cp) || detail::tables::cat_mn.lookup(cp) || detail::tables::cat_mc.lookup(cp) ||
+                       detail::tables::cat_nd.lookup(cp) || detail::tables::cat_pc.lookup(cp) || detail::tables::prop_oidc_data.lookup(cp);
     if(!maybe)
         return false;
-    return !__prop_pat_syn_data.lookup(cp) && !__prop_pat_ws_data.lookup(cp);
+    return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
+namespace detail {
+
 template<typename Array, typename Res = long long>
-constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
-    auto it = uni::lower_bound(std::begin(array), std::end(array), cp,
+constexpr bool get_numeric_value(char32_t cp, const Array& array, Res& res) {
+    auto it = detail::lower_bound(std::begin(array), std::end(array), cp,
                                [](const auto& d, char32_t cp) { return d.first < cp; });
     if(it == std::end(array) || it->first != cp)
         return false;
@@ -270,18 +252,20 @@ constexpr bool _get_numeric_value(char32_t cp, const Array& array, Res& res) {
     return true;
 }
 
+}
+
 constexpr numeric_value cp_numeric_value(char32_t cp) {
     long long res = 0;
-    if(!(_get_numeric_value(cp, __numeric_data64, res) ||
-             _get_numeric_value(cp, __numeric_data32, res) ||
-             _get_numeric_value(cp, __numeric_data16, res) || [&res, cp]() -> bool {
-           res = __numeric_data8.value(cp, 255);
+    if(!(detail::get_numeric_value(cp, detail::tables::numeric_data64, res) ||
+             detail::get_numeric_value(cp, detail::tables::numeric_data32, res) ||
+             detail::get_numeric_value(cp, detail::tables::numeric_data16, res) || [&res, cp]() -> bool {
+           res = detail::tables::numeric_data8.value(cp, 255);
            return res != 255;
        }())) {
         return {};
     }
     uint16_t d = 1;
-    _get_numeric_value(cp, __numeric_data_d, d);
+    detail::get_numeric_value(cp, detail::tables::numeric_data_d, d);
     return numeric_value(res, d);
 }
 

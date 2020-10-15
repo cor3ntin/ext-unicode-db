@@ -5,7 +5,7 @@ import sys
 import os
 import re
 import collections
-#from intbitset import intbitset
+from io import StringIO
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[3])
 LAST_VERSION = "13.0"
@@ -123,12 +123,12 @@ class ucd_cp(object):
 
 def write_string_array(f, array_name, strings_with_idx):
     dct = dict(strings_with_idx)
-    f.write("static constexpr __string_with_idx {}[]  = {{".format(array_name))
+    f.write("static constexpr string_with_idx {}[]  = {{".format(array_name))
     keys = list(filter(None,  dct.keys()))
     keys.sort()
 
     for idx, key in enumerate(keys):
-        f.write('__string_with_idx{{ "{}", {} }} {}'.format(key, dct[key], "," if idx < len(keys) -1 else ""))
+        f.write('string_with_idx{{ "{}", {} }} {}'.format(key, dct[key], "," if idx < len(keys) -1 else ""))
     f.write("};\n")
 
 def get_scripts_names():
@@ -214,24 +214,26 @@ def get_unicode_data(version = LAST_VERSION):
                     characters[i].props[v] = True
     return (characters, blocks)
 
-def write_script_data(characters, changed, scripts_names, file):
+def write_enum_scripts(scripts_names, file):
     f.write("enum class script {")
-    indexes = {}
     for i, script in enumerate(scripts_names):
-        indexes[script[0]] = i
         f.write(script[0] + ", //{}\n".format(i))
         if script[1] != script[0]:
             f.write(script[1] + " = " + script[0] +",")
-    f.write("__max };\n")
+    f.write("max };\n")
 
-    write_string_array(f, "__scripts_names", [(script[0], idx) for idx, script in enumerate(scripts_names)]
+def write_script_data(characters, scripts_names, file):
+    indexes = {}
+    for i, script in enumerate(scripts_names):
+        indexes[script[0]] = i
+    write_string_array(f, "scripts_names", [(script[0], idx) for idx, script in enumerate(scripts_names)]
                                            + [(script[1], idx) for idx, script in enumerate(scripts_names)])
 
-    f.write("template <auto N> struct __script_data;")
+    f.write("template <auto N> struct script_data;")
 
-    def write_block(idx, characters, changed):
-        f.write("template <> struct __script_data<{}> {{".format(idx))
-        f.write("static constexpr const _compact_range scripts_data= {")
+    def write_block(idx, characters):
+        f.write("template <> struct script_data<{}> {{".format(idx))
+        f.write("static constexpr const compact_range scripts_data= {")
         prev = ''
         block = dict([(cp.cp, cp.scx) for cp in characters])
         for cp in range(0x10FFFF):
@@ -240,75 +242,69 @@ def write_script_data(characters, changed, scripts_names, file):
                 f.write("{},".format(to_hex((cp << 8) | indexes[script], 10)))
             prev = script
         f.write("0xFFFFFFFF")
-        f.write("};")
+        f.write("};};")
 
-        modified = block
-        data = []
-        for k, v in changed.items():
-            old = collections.OrderedDict([(cp.cp, cp.scx) for cp in v if not cp.cp in modified or cp.scx != modified[cp.cp]])
-            for cp, v in old.items():
-                if len(v) < len(modified[cp]):
-                    old[cp].append('zzzz')
-            old = [(cp, scx) for cp, scx in old.items() if len(scx) > idx and (len(modified[cp]) <= idx or scx[idx] != modified[cp][idx])]
+        # modified = block
+        # data = []
+        # for k, v in changed.items():
+        #     old = collections.OrderedDict([(cp.cp, cp.scx) for cp in v if not cp.cp in modified or cp.scx != modified[cp.cp]])
+        #     for cp, v in old.items():
+        #         if len(v) < len(modified[cp]):
+        #             old[cp].append('zzzz')
+        #     old = [(cp, scx) for cp, scx in old.items() if len(scx) > idx and (len(modified[cp]) <= idx or scx[idx] != modified[cp][idx])]
 
-            if len(old) > 0:
-                data.append((age_name(k), old))
-            modified.update(dict(old))
+        #     if len(old) > 0:
+        #         data.append((age_name(k), old))
+        #     modified.update(dict(old))
 
-        for version, d in data:
-            f.write("static constexpr const _compact_list scripts_data_compat_{} = {{".format(version))
-            for i, (cp, script) in enumerate(d):
-                f.write("{}{}".format(to_hex((cp << 8) | indexes[script[idx]], 10), "," if i < len(d) - 1 else ""))
-            f.write("};")
-        f.write("template <uni::version v> constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {")
-        for version, _ in data:
-            f.write("""
-                if constexpr(v <= uni::version::{0}) {{
-                    sc = static_cast<uni::script>(scripts_data_compat_{0}.value(cp, uint8_t(sc)));
-                }}
-            """.format(version))
-        f.write("return sc;}")
-        f.write("};")
+        # for version, d in data:
+        #     f.write("static constexpr const compact_list scripts_data_compat_{} = {{".format(version))
+        #     for i, (cp, script) in enumerate(d):
+        #         f.write("{}{}".format(to_hex((cp << 8) | indexes[script[idx]], 10), "," if i < len(d) - 1 else ""))
+        #     f.write("};")
+        # f.write("template <uni::version v> constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {")
+        # for version, _ in data:
+        #     f.write("""
+        #         if constexpr(v <= uni::version::{0}) {{
+        #             sc = static_cast<uni::script>(scripts_data_compat_{0}.value(cp, uint8_t(sc)));
+        #         }}
+        #     """.format(version))
+        # f.write("return sc;}")
+        # f.write("};")
 
     l = max([len(cp.scx) for cp in characters])
-    for _, v in changed.items():
-        m = max([len(cp.scx) for cp in v])
-        if m > l: l = m
+    # for _, v in changed.items():
+    #     m = max([len(cp.scx) for cp in v])
+    #     if m > l: l = m
 
     for i in range(l):
-        write_block(i, characters, changed)
+        write_block(i, characters)
 
     f.write("""
-    template<auto N, uni::version v = uni::version::standard_unicode_version>
-    constexpr script __cp_script(char32_t cp) {
-    if(cp > 0x10FFFF)
-        return script::unknown;
+    template<auto N>
+    constexpr script cp_script(char32_t cp) {
+        if(cp > 0x10FFFF)
+            return script::unknown;
 
-    uni::script sc = static_cast<uni::script>(__script_data<N>::scripts_data.value(cp, uint8_t(script::unknown)));
-    if constexpr(v < uni::version::v12_0) {
-        return __script_data<N>::older_cp_script(cp, sc);
-    }
-    return sc;
+        uni::script sc = static_cast<uni::script>(script_data<N>::scripts_data.value(cp, uint8_t(script::unknown)));
+        return sc;
     }
     """)
 
-    f.write("template<uni::version v = uni::version::standard_unicode_version>")
-    f.write("constexpr script __get_cp_script(char32_t cp, int idx) {")
+    f.write("constexpr script get_cp_script(char32_t cp, int idx) {")
     f.write("switch(idx) {")
     for i in range(l):
-        f.write("case {0}: return __cp_script<{0}, v>(cp);".format(i))
+        f.write("case {0}: return cp_script<{0}>(cp);".format(i))
     f.write("} return script::zzzz;}")
 
 
-def write_blocks_data(blocks_names, blocks, file):
+def write_enum_blocks(blocks_names, blocks, file):
     aliases = dict([(block[0], block[1:]) for block in blocks_names])
     aliases.update(dict([(block[1], block) for block in blocks_names]))
     all = set()
-
-    f.write("enum class block { ")
+    file.write("enum class block { ")
     names = []
-
-    # no_block needs to be first
+     # no_block needs to be first
     for i, block in enumerate(["no_block"] + [block.name for block in blocks]):
         f.write(block + ",")
         all.add(block)
@@ -320,15 +316,16 @@ def write_blocks_data(blocks_names, blocks, file):
                 f.write(alias + " = " + block +",")
                 all.add(alias)
                 names.append((alias, i))
-    f.write("__max };\n")
+    file.write("__max };\n")
+    return names
 
-    write_string_array(f, "__blocks_names", names)
-
+def write_blocks_data(indexed_names, blocks, file):
+    write_string_array(file, "blocks_names", indexed_names)
     ## Blocks are stored as a compact range where
     ##  * if the low bit is 0, the range is not assigned to a block
     ##  * otherwise the low bit is an offset to substract from the index of the range entry to get the
     ##  value of the block as specified by the enum
-    f.write("static constexpr const _compact_range __block_data = {")
+    f.write("static constexpr const compact_range block_data = {")
     prev = -1
     offset = 0;
     for i, b in enumerate(blocks):
@@ -419,7 +416,7 @@ def emit_bool_trie(f, name, trie_data):
     r4data = ','.join(str(node) for node in trie_data[3][0])
     r5data = ','.join(str(node) for node in trie_data[4][0])
     r6data = ','.join('0x%016x' % chunk for chunk in trie_data[5])
-    f.write("static constexpr __bool_trie<{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}> {} {{".format(
+    f.write("static constexpr bool_trie<{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}> {} {{".format(
         len(trie_data[0]),      #r1
         len(trie_data[1][0]),   #r2
         trie_data[1][1],
@@ -461,7 +458,7 @@ def construct_range_data(data):
     return len(elems) * 4, elems
 
 def emit_bool_ranges(f, name, range_data):
-    f.write("static constexpr __range_array {} = {{".format(name))
+    f.write("static constexpr range_array {} = {{".format(name))
     for idx, e in enumerate(range_data):
         f.write("{}".format(to_hex((e[0] << 8) | (1 if e[1] else 0), 10)))
         if idx != len(range_data) - 1: f.write(",")
@@ -499,14 +496,16 @@ def emit_trie_or_table(f, name, data):
     print("{} : {} element(s) - type: {} - size: {}  (array: {}, range: {}, trie : {}".format(name, len(data), t, size, asize, rsize, tsize))
     return size
 
-def write_categories_data(characters, changed, categories_names, file):
+def write_enum_categories(categories_names, file):
     f.write("enum class category {")
     for cat in categories_names:
         f.write(cat[0] + ",")
         f.write(cat[1] + " = " + cat[0] +",")
-    f.write("__max };\n")
+    f.write("max };\n")
 
-    write_string_array(f, "__categories_names", [(c[0], idx) for idx, c in enumerate(categories_names)]
+def write_categories_data(characters, categories_names, file):
+
+    write_string_array(f, "  categories_names", [(c[0], idx) for idx, c in enumerate(categories_names)]
                                               + [(c[1], idx) for idx, c in enumerate(categories_names)])
 
     size = 0
@@ -519,7 +518,7 @@ def write_categories_data(characters, changed, categories_names, file):
         cats[cp.gc].append(cp.cp)
     sorted_by_len = []
     for k, v in cats.items():
-        size += emit_trie_or_table(f, "__cat_{}".format(k), set(v))
+        size += emit_trie_or_table(f, "cat_{}".format(k), set(v))
         sorted_by_len.append((len(v), k))
     meta_cats = {
         "cased_letter" : ['lu', 'lt', 'll'],
@@ -535,97 +534,94 @@ def write_categories_data(characters, changed, categories_names, file):
     sorted_by_len.sort(reverse=True)
 
     f.write("""
-    template<uni::version v = uni::version::standard_unicode_version>
-    constexpr category cp_category(char32_t cp);
-    template<version v>
-    constexpr category __get_category_for_version(char32_t, category c);
-    template <version v>
-    constexpr category __get_category(char32_t c) {
-    if(auto cat = __get_category_for_version<v>(c, category::cn); cat != category::cn)
-        return cat;
-
+    constexpr category get_category(char32_t c) {
     """)
     for _, cat in sorted_by_len:
-        f.write("if (__cat_{0}.lookup(c)) return category::{0};".format(cat))
+        f.write("if (cat_{0}.lookup(c)) return category::{0};".format(cat))
     f.write("return category::cn;}")
 
 
+    f.write("}")
+
     for _, cat in sorted_by_len:
-        f.write("""template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::{0}, int> = 0>
-        constexpr bool cp_is(char32_t c) {{
-            return __get_category_for_version<v>(c, __cat_{0}.lookup(c) ?  category::{0} : category::cn) == category::{0}; }}
+        f.write("""template <>
+        constexpr bool cp_is<category::{0}>(char32_t c) {{
+            return detail::tables::cat_{0}.lookup(c); }}
         """.format(cat))
 
     for name, cats in meta_cats.items():
-        f.write("""template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::{}, int> = 0>
-        constexpr bool cp_is(char32_t c) {{
-            category cat = category::cn;
+        f.write("""template <>
+        constexpr bool cp_is<category::{}>(char32_t c) {{
             """.format(name))
         for _, cat in sorted_by_len:
             if cat in cats:
-                f.write("if(cat == category::cn && __cat_{0}.lookup(c)) {{ if constexpr(v == uni::version::latest_version) return true; cat = category::{0}; }}".format(cat))
-        f.write("cat =  __get_category_for_version<v>(c, cat); return ")
-        for _, cat in sorted_by_len:
-            if cat in cats:
-                f.write("cat == category::{0} ||".format(cat))
-        f.write("false;}")
+                f.write("if(detail::tables::cat_{0}.lookup(c)) return true;".format(cat))
+        f.write("return false;}")
 
     f.write("""
-        template <category category_, version v = uni::version::standard_unicode_version, std::enable_if_t<category_ == category::unassigned, int> = 0>
-        constexpr bool cp_is(char32_t c) {
+        template <>
+        constexpr bool cp_is<category::unassigned>(char32_t c) {
             return cp_category(c) == category::unassigned;
         }
     """
     )
 
+    f.write("namespace detail::tables {")
+
     #changed characters
     print("total size : {}".format(size / 1024.0))
-    with_data = []
-    modified = dict([(cp.cp, cp.gc) for cp in characters])
-    for k, v in changed.items():
-        old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
-        if len(old) == 0:
-            continue
-        f.write("static constexpr uni::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
-        for idx, (cp, gc) in enumerate(old):
-            f.write("uni::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
-        f.write("};")
-        modified.update(old)
-        with_data.append(k)
+    # with_data = []
+    # modified = dict([(cp.cp, cp.gc) for cp in characters])
+    # for k, v in changed.items():
+    #     old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
+    #     if len(old) == 0:
+    #         continue
+    #     f.write("static constexpr uni::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
+    #     for idx, (cp, gc) in enumerate(old):
+    #         f.write("uni::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
+    #     f.write("};")
+    #     modified.update(old)
+    #     with_data.append(k)
 
-    f.write("template <version v> constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {")
-    for v in with_data:
-        f.write("""
-            if constexpr( v<= uni::version::{0} ) {{
-                const auto it = uni::lower_bound(std::begin(__cat_version_data_{0}), std::end(__cat_version_data_{0}), cp,
-                [](const auto & e, char32_t cp) {{ return e.first < cp; }});
-            if (it != std::end(__cat_version_data_{0}) && cp == it->first)
-                c = it->second;
-        }}""".format(age_name(v)))
-    f.write("return c; }")
+    # f.write("template <version v> constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {")
+    # for v in with_data:
+    #     f.write("""
+    #         if constexpr( v<= uni::version::{0} ) {{
+    #             const auto it = uni::lower_bound(std::begin(__cat_version_data_{0}), std::end(__cat_version_data_{0}), cp,
+    #             [](const auto & e, char32_t cp) {{ return e.first < cp; }});
+    #         if (it != std::end(__cat_version_data_{0}) && cp == it->first)
+    #             c = it->second;
+    #     }}""".format(age_name(v)))
+    # f.write("return c; }")
 
-def write_age_data(characters, f):
-    ages = list(set([float(cp.age) for cp in characters if cp.age != 'unassigned']))
-    ages.sort()
-    indexes = {}
+def characters_ages(characters):
+    return sorted(list(set([float(cp.age) for cp in characters if cp.age != 'unassigned'])))
+
+def write_enum_age(characters, f):
+    ages = characters_ages(characters)
     f.write("enum class version : uint8_t {")
     f.write("unassigned,")
-    indexes["unassigned"] = 0
     for i, age in enumerate(ages):
-        indexes[age_name(age)] = i+1;
         f.write(age_name(age) + ",")
-    f.write("standard_unicode_version = {},".format(age_name(STANDARD_VERSION)))
-    f.write("minimum_version = {},".format(age_name(MIN_VERSION)))
+    #f.write("standard_unicode_version = {},".format(age_name(STANDARD_VERSION)))
+    #f.write("minimum_version = {},".format(age_name(MIN_VERSION)))
     f.write("latest_version = {}".format(age_name(LAST_VERSION)))
     f.write("};")
 
+def write_age_data(characters, f):
+    ages = characters_ages(characters)
+    indexes = {}
+    indexes["unassigned"] = 0
+    for i, age in enumerate(ages):
+        indexes[age_name(age)] = i+1;
 
-    f.write("static constexpr const char* __age_strings[] = { \"unassigned\",")
+
+    f.write("static constexpr const char* age_strings[] = { \"unassigned\",")
     for idx, age in enumerate(ages):
         f.write('"{}"{}'.format(age, "," if idx < len(ages) - 1 else ""))
     f.write("};\n")
 
-    f.write("static constexpr _compact_range __age_data = {")
+    f.write("static constexpr compact_range age_data = {")
     known  = dict([(cp.cp, age_name(cp.age)) for cp in characters])
     prev  = ""
     size = 0
@@ -666,22 +662,22 @@ def write_numeric_data(characters, f):
 
     for s, characters in values.items():
         if s == '8' :
-            f.write("static constexpr _compact_list __numeric_data8 = {")
+            f.write("static constexpr compact_list numeric_data8 = {")
         else:
-            f.write("static constexpr uni::pair<char32_t, int{0}_t> __numeric_data{0}[] = {{ ".format(s))
+            f.write("static constexpr uni::detail::pair<char32_t, int{0}_t> numeric_data{0}[] = {{ ".format(s))
 
 
         for idx, cp in enumerate(characters):
             if s == '8' :
                 f.write("{}{}".format(to_hex(((cp[0] << 8) | cp[1]) , 10), ',' if idx < len(characters) - 1 else ''))
             else:
-                f.write("uni::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
+                f.write("uni::detail::pair<char32_t, int{}_t> {{ {}, {} }},".format(s, to_hex(cp[0], 6), cp[1]))
         f.write("};")
 
-    f.write("static constexpr uni::pair<char32_t, int16_t> __numeric_data_d[] = {")
+    f.write("static constexpr uni::detail::pair<char32_t, int16_t> numeric_data_d[] = {")
     for cp in dvalues:
-        f.write("uni::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
-    f.write("uni::pair<char32_t, int16_t>{0x110000, 0} };\n")
+        f.write("uni::detail::pair<char32_t, int16_t> {{ {}, {} }},".format(to_hex(cp[0], 6), cp[1]))
+    f.write("uni::detail::pair<char32_t, int16_t>{0x110000, 0} };\n")
 
 
 def write_binary_properties(characters, f):
@@ -754,16 +750,20 @@ def write_binary_properties(characters, f):
             if not alias in known:
                 f.write("{} = {} ,".format(alias, v[0]))
                 known.add(alias)
-    f.write("__max };\n")
+    f.write("max };\n")
 
 
+    f.write("namespace detail::tables {")
     for prop in props:
         if not prop in custom_impl:
-            emit_binary_data(f, "__prop_{}_data".format(prop), characters, lambda c : prop in c.props and c.props[prop])
+            emit_binary_data(f, "prop_{}_data".format(prop), characters, lambda c : prop in c.props and c.props[prop])
+    f.write("}")
+
 
     for prop in props:
         if not prop in custom_impl and not prop in details:
-            f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return __prop_{0}_data.lookup(c); }}".format(prop))
+            f.write("template <> constexpr bool uni::cp_is<property::{0}>(char32_t c) {{ return detail::tables::prop_{0}_data.lookup(c); }}".format(prop))
+
 
     return [prop for prop in values if not prop[0] in details and not prop[0] in unsupported_props]
 
@@ -776,24 +776,21 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         d[p[0]] = p
 
 
-    f.write("enum class __binary_prop {")
+    f.write("enum class binary_prop {")
     for p in d.keys():
         f.write("{} ,".format(p))
     f.write("unknown };\n")
 
 
     f.write("""
-        template<uni::__binary_prop p>
-        constexpr bool __get_binary_prop(char32_t) = delete;
-        //Forward declared - defined in unicode.h
-        template<uni::version v>
-        constexpr script cp_script(char32_t cp);
+        template<binary_prop p>
+        constexpr bool get_binary_prop(char32_t) = delete;
     """)
 
     for prop in supported_properties:
         f.write("""
         template<>
-        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool get_binary_prop<binary_prop::{0}>(char32_t c) {{
             return cp_is<property::{0}>(c);
         }}
     """.format(prop[0]))
@@ -802,7 +799,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for cat in categories_names:
         f.write("""
         template<>
-        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool get_binary_prop<binary_prop::{0}>(char32_t c) {{
             return cp_is<category::{0}>(c);
         }}
     """.format(cat[0]))
@@ -810,7 +807,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for script in scripts_names:
         f.write("""
         template<>
-        constexpr bool __get_binary_prop<__binary_prop::{0}>(char32_t c) {{
+        constexpr bool get_binary_prop<binary_prop::{0}>(char32_t c) {{
             return cp_script(c) == script::{0};
         }}
     """.format(script[0]))
@@ -819,7 +816,9 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for idx, (_, aliases) in enumerate(d.items()):
         names = names + [(n, idx) for n in aliases]
 
-    write_string_array(f, "__binary_prop_names", names)
+    f.write("namespace tables{")
+    write_string_array(f, "binary_prop_names", names)
+    f.write("}")
 
 
 def emit_binary_data(f, name, characters, pred):
@@ -832,30 +831,34 @@ if __name__ == "__main__":
     block_names = get_blocks_names()
     all_characters, blocks = get_unicode_data()
     characters = list(filter(lambda c : c != None, all_characters))
+
     categories_name = get_cats_names()
 
 
-    changed = {}
-    new = all_characters
-    for v in  SUPPORTED_VERSIONS:
-        changed[v] = []
-        print("Getting informations for Unicode {}".format(v))
-        old, _ = get_unicode_data(v)
-        for o in old:
-            try:
-                c = new[o.cp]
-                if c.reserved:
-                    continue
-                if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
-                    changed[v].append(o)
-                    continue
-                for k in c.props.keys():
-                    if c.props[k] != o.props[k]:
-                        changed[v].append(o)
-                        break
-            except:
-                pass
-        new = old
+
+
+
+    # changed = {}
+    # new = all_characters
+    # for v in  SUPPORTED_VERSIONS:
+    #     changed[v] = []
+    #     print("Getting informations for Unicode {}".format(v))
+    #     old, _ = get_unicode_data(v)
+    #     for o in old:
+    #         try:
+    #             c = new[o.cp]
+    #             if c.reserved:
+    #                 continue
+    #             if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
+    #                 changed[v].append(o)
+    #                 continue
+    #             for k in c.props.keys():
+    #                 if c.props[k] != o.props[k]:
+    #                     changed[v].append(o)
+    #                     break
+    #         except:
+    #             pass
+    #     new = old
 
     with open(sys.argv[1], "w") as f:
         f.write("""
@@ -863,31 +866,43 @@ if __name__ == "__main__":
 #pragma once
 #include "base.h"
 #endif
+
 namespace uni {
 """)
-        f.write("struct __string_with_idx { const char* name; uint32_t value; };")
+
+        write_enum_age(characters, f)
+        write_enum_categories(categories_name,f)
+        indexed_block_name = write_enum_blocks(block_names, blocks,f)
+        write_enum_scripts(scripts_names, f)
+
+
+
+        f.write("namespace detail::tables {")
 
         print("Age data")
         write_age_data(characters, f)
 
         print("Category data")
-        write_categories_data(characters, changed, categories_name,f)
+        write_categories_data(characters, categories_name,f)
+
+        print("Block data")
+        write_blocks_data(indexed_block_name, blocks, f)
 
         characters = list(filter(lambda c : not c.reserved, characters))
 
-        print("Block data")
-        write_blocks_data(block_names, blocks, f)
-
         print("Script data")
-        write_script_data(characters, changed, scripts_names, f)
+        write_script_data(characters, scripts_names, f)
 
         print("Numeric Data")
         write_numeric_data(characters, f)
 
-        print("Binary properties")
-        supported_properties = write_binary_properties(characters, f)
 
-        emit_binary_data(f, "__prop_assigned", characters, lambda c : True)
+        print("Binary properties")
+        emit_binary_data(f, "prop_assigned", characters, lambda c : True)
+
+        # exit detail ns
+        f.write("}")
+        supported_properties = write_binary_properties(characters, f)
 
         f.write("}//namespace uni")
 
@@ -897,10 +912,10 @@ namespace uni {
 #pragma once
 #include "unicode.h"
 #endif
-namespace uni {
+namespace uni::detail {
 """)
         write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
-        f.write("}//namespace uni\n\n")
+        f.write("}\n\n")
 
 
 

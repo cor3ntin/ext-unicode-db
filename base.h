@@ -1,8 +1,13 @@
-#pragma once
 #include <cstdint>
 #include <algorithm>
 #include <string_view>
-namespace uni {
+
+#ifndef UNI_SINGLE_HEADER
+#    pragma once
+#    include "synopsys.h"
+#endif
+
+namespace uni::detail {
 
 template<class ForwardIt, class T, class Compare>
 constexpr ForwardIt upper_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp) {
@@ -63,15 +68,15 @@ constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value)
 
 template<class ForwardIt, class T>
 constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
-    first = uni::lower_bound(first, last, value);
+    first = detail::lower_bound(first, last, value);
     return (!(first == last) && !(value < *first));
 }
 template<typename T, auto N>
-struct _compact_range {
+struct compact_range {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = uni::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
             return cp < c;
         });
@@ -82,15 +87,15 @@ struct _compact_range {
     }
 };
 template<class T, class... U>
-_compact_range(T, U...)->_compact_range<T, sizeof...(U) + 1>;
+compact_range(T, U...) -> compact_range<T, sizeof...(U) + 1>;
 
 
 template<typename T, auto N>
-struct _compact_list {
+struct compact_list {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = uni::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t cp) {
+        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t cp) {
             char32_t c = (v >> 8);
             return c < cp;
         });
@@ -100,25 +105,41 @@ struct _compact_list {
     }
 };
 template<class T, class... U>
-_compact_list(T, U...)->_compact_list<T, sizeof...(U) + 1>;
+compact_list(T, U...)-> compact_list<T, sizeof...(U) + 1>;
+
+
+template <typename T, std::size_t N>
+struct array {
+    using type = T[N];
+};
+
+template <typename T>
+struct array<T, 0> {
+    using type = T*;
+};
+
+template <typename T, std::size_t N>
+using array_t = typename array<T, N>::type;
+
 
 
 template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
          std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
          int16_t r5_t_b, std::size_t r6_s>
-struct __bool_trie {
+struct bool_trie {
 
     // not tries, just bitmaps for all code points 0..0x7FF (UTF-8 1- and 2-byte sequences)
     std::uint64_t r1[32];
 
     // trie for code points 0x800..0xFFFF (UTF-8 3-byte sequences, aka rest of BMP)
+
     uint8_t r2[r2_s];
-    uint64_t r3[r3_s];    // leaves can be shared, so size isn't fixed
+    array_t<std::uint64_t, r3_s> r3;    // leaves can be shared, so size isn't fixed
 
     // trie for 0x10000..0x10FFFF (UTF-8 4-byte sequences, aka non-BMP code points)
-    std::uint8_t r4[r4_s];
-    std::uint8_t r5[r5_s];   // two level to exploit sparseness of non-BMP
-    std::uint64_t r6[r6_s];  // again, leaves are shared
+    array_t<std::uint8_t, r4_s> r4;
+    array_t<std::uint8_t, r5_s> r5;   // two level to exploit sparseness of non-BMP
+    array_t<std::uint64_t, r6_s> r6;  // again, leaves are shared
 
     constexpr bool lookup(char32_t u) const {
         std::uint32_t c = u;
@@ -169,7 +190,7 @@ struct flat_array {
                     return false;
             }
         } else {
-            return uni::binary_search(std::begin(data), std::end(data), u);
+            return detail::binary_search(std::begin(data), std::end(data), u);
         }
         return false;
     }
@@ -177,11 +198,11 @@ struct flat_array {
 
 
 template<auto N>
-struct __range_array {
+struct range_array {
     std::uint32_t _data[N];
     constexpr bool lookup(char32_t cp) const {
         const auto end = std::end(_data);
-        auto it = uni::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
             char32_t c = (v >> 8);
             return cp < c;
         });
@@ -193,10 +214,10 @@ struct __range_array {
 };
 
 template<class... U>
-__range_array(U...)->__range_array<sizeof...(U)>;
+range_array(U...)->range_array<sizeof...(U)>;
 
 
-constexpr char __propcharnorm(char a) {
+constexpr char propcharnorm(char a) {
     if(a >= 'A' && a <= 'Z')
         return a + 32;
     if(a == ' ' || a == '-')
@@ -204,9 +225,9 @@ constexpr char __propcharnorm(char a) {
     return a;
 }
 
-constexpr int __propcharcomp(char a, char b) {
-    a = __propcharnorm(a);
-    b = __propcharnorm(b);
+constexpr int propcharcomp(char a, char b) {
+    a = propcharnorm(a);
+    b = propcharnorm(b);
     if(a == b)
         return 0;
     if(a < b)
@@ -214,7 +235,7 @@ constexpr int __propcharcomp(char a, char b) {
     return 1;
 }
 
-constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
+constexpr int propnamecomp(std::string_view sa, std::string_view sb) {
     // workaround, iterators in std::string_view are not constexpr in libc++ (for now)
     const char* a = sa.begin();
     const char* b = sb.begin();
@@ -223,7 +244,7 @@ constexpr int __pronamecomp(std::string_view sa, std::string_view sb) {
     const char* be = sb.end();
 
     for(; a != ae && b != be; a++, b++) {
-        auto res = __propcharcomp(*a, *b);
+        auto res = propcharcomp(*a, *b);
         if(res != 0)
             return res;
     }
@@ -244,61 +265,30 @@ struct pair
 template <typename A, typename B>
 pair(A, B) -> pair<A, B>;
 
+struct string_with_idx { const char* name; uint32_t value; };
 
-}    // namespace uni
+
+}    // namespace uni::detail
 
 namespace uni {
 
+constexpr double numeric_value::value() const {
+    return numerator() / double(_d);
+}
 
-enum class script;
-enum class block;
-enum class category;
-enum class property;
-enum class version : uint8_t;
+constexpr long long numeric_value::numerator() const {
+    return _n;
+}
 
-template<uni::script>
-bool cp_is(char32_t) = delete;
+constexpr int numeric_value::denominator() const {
+    return _d;
+}
 
+constexpr bool numeric_value::is_valid() const {
+    return _d != 0;
+}
 
-template<uni::property>
-bool cp_is(char32_t) = delete;
-
-
-constexpr version cp_age(char32_t cp);
-constexpr block cp_block(char32_t cp);
-
-constexpr bool cp_is_valid(char32_t cp);
-constexpr bool cp_is_assigned(char32_t cp);
-constexpr bool cp_is_ascii(char32_t cp);
-
-struct numeric_value {
-
-    constexpr double value() const {
-        return numerator() / double(_d);
-    }
-
-    constexpr long long numerator() const {
-        return _n;
-    }
-
-    constexpr int denominator() const {
-        return _d;
-    }
-
-    constexpr bool is_valid() const {
-        return _d != 0;
-    }
-
-protected:
-    constexpr numeric_value() = default;
-    constexpr numeric_value(long long n, int16_t d) : _n(n), _d(d) {}
-
-    long long _n = 0;
-    int16_t _d = 0;
-    friend constexpr numeric_value cp_numeric_value(char32_t cp);
-};
-
-constexpr numeric_value cp_numeric_value(char32_t cp);
+constexpr numeric_value::numeric_value(long long n, int16_t d) : _n(n), _d(d) {}
 
 
 }    // namespace uni

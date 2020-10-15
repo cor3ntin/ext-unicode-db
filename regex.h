@@ -5,31 +5,36 @@
 
 // More regex support for ctre
 
-namespace uni {
+namespace uni::detail {
 
 
-constexpr __binary_prop __binary_prop_from_string(std::string_view s) {
-    for(const auto& c : __binary_prop_names) {
-        const auto res = __pronamecomp(s, c.name);
+constexpr binary_prop binary_prop_from_string(std::string_view s) {
+    for(const auto& c : tables::binary_prop_names) {
+        const auto res = propnamecomp(s, c.name);
         if(res == 0)
-            return __binary_prop(c.value);
+            return binary_prop(c.value);
     }
-    return __binary_prop::unknown;
+    return binary_prop::unknown;
 }
 
 template<>
-constexpr bool __get_binary_prop<__binary_prop::ascii>(char32_t c) {
+constexpr bool get_binary_prop<binary_prop::ascii>(char32_t c) {
     return cp_is_ascii(c);
 }
 
 template<>
-constexpr bool __get_binary_prop<__binary_prop::assigned>(char32_t c) {
+constexpr bool get_binary_prop<binary_prop::assigned>(char32_t c) {
     return cp_is_assigned(c);
 }
 
 template<>
-constexpr bool __get_binary_prop<__binary_prop::any>(char32_t c) {
+constexpr bool get_binary_prop<binary_prop::any>(char32_t c) {
     return cp_is_valid(c);
 }
 
-}    // namespace uni
+constexpr bool is_unknown(binary_prop s)
+{
+    return s == binary_prop::unknown;
+}
+
+}    // namespace uni::detail
