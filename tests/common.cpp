@@ -30,13 +30,25 @@ std::string fixup_name(std::string n, std::string_view cp) {
 
 std::unordered_map<char32_t, cp_test_data> load_test_data() {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(UCDXML_FILE);
+    doc.load_file(UCDXML_FILE);
     std::unordered_map<char32_t, cp_test_data> db;
 
     pugi::xml_node rep = doc.child("ucd").child("repertoire");
     for(pugi::xml_node cp : rep.children("char")) {
         try {
-            auto code = char32_t(std::stoi(cp.attribute("cp").value(), 0, 16));
+            uint32_t first;
+            uint32_t last;
+
+            if(!cp.attribute("cp").empty())
+            {
+                first = last = char32_t(std::stoi(cp.attribute("cp").value(), 0, 16));
+            }
+            else
+            {
+                first = char32_t(std::stoi(cp.attribute("first-cp").value(), 0, 16));
+                last  = char32_t(std::stoi(cp.attribute("last-cp").value(), 0, 16));
+
+            }
             auto name = fixup_name(cp.attribute("na").value(), cp.attribute("cp").value());
             auto age = uni::detail::age_from_string(cp.attribute("age").value());
             auto category = uni::detail::category_from_string(cp.attribute("gc").value());
@@ -48,6 +60,9 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
                                              std::istream_iterator<std::string>());
             std::vector<uni::script> exts;
             for(auto&& x : results) {
+                auto n = uni::detail::script_from_string(x);
+                if(n == uni::script::unknown)
+                    continue;
                 exts.push_back(uni::detail::script_from_string(x));
             }
 
@@ -62,8 +77,8 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
                     std::from_chars(nv.data() + idx + 1, nv.data() + nv.size(), d);
                 }
             }
-
-            db[code] = {code, name, age, category, block, script, exts, n, d, generated(code)};
+            for(auto code = first; code <= last; code++)
+                db[code] = {code, name, age, category, block, script, exts, n, d, generated(code)};
         } catch(...) {    // stoi...
         }
     }

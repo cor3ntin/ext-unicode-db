@@ -26,7 +26,7 @@ TEST_CASE("Verify that all code point have the block as in the DB") {
             expected = it->second.block;
         else
             continue;
-        REQUIRE(uni::cp_block(c) == expected);
+        CHECK(uni::cp_block(c) == expected);
     }
 }
 
@@ -41,7 +41,7 @@ TEST_CASE("Verify that all code point have the same category as in the DB") {
         // std::cout << "cat " << std::hex << c << std::dec << " " << int(uni::cp_category(c)) << "
         // "
         //          << int(expected) << "\n";
-        REQUIRE(uni::cp_category(c) == expected);
+        CHECK(uni::cp_category(c) == expected);
     }
 }
 
@@ -55,7 +55,8 @@ TEST_CASE("Verify that all code point have the script as in the DB") {
             expected = it->second.script;
         else
             continue;
-        REQUIRE(uni::cp_script(c) == expected);
+        CHECK(uni::cp_script(c) == expected);
+        //std::cout << "script " << std::hex << c << std::dec << " " << int(uni::cp_script(c)) << " "  << int(expected) << "\n";
     }
 }
 
@@ -72,7 +73,9 @@ TEST_CASE("Verify that all code point have the script extensions as in the DB") 
             extensions.push_back(s);
         }
         using namespace Catch::Matchers;
-        REQUIRE_THAT(expected, UnorderedEquals(extensions));
+        //std::cout << "script " << std::hex << c << std::dec << " " << int(uni::cp_script(c)) << "\n";
+
+        CHECK_THAT(expected, UnorderedEquals(extensions));
     }
 }
 

@@ -80,6 +80,8 @@ add_custom_command(
         ${PROJECT_SOURCE_DIR}/single_header.h
         ${PROJECT_SOURCE_DIR}/tools/gen.py
         ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
+        ${PROJECT_BINARY_DIR}/ucd/13.0/emoji-data.txt
     )
 
 add_custom_command(
@@ -130,7 +132,7 @@ target_compile_options(std_ext_uni INTERFACE -std=c++17)
 if(MSVC)
   target_compile_options(std_ext_uni INTERFACE /W4 /WX)
 else()
-  # target_compile_options(std_ext_uni INTERFACE -Wall -Wextra -pedantic -Werror)
+  target_compile_options(std_ext_uni INTERFACE -Wall -Wextra -Werror)
 endif()
 
 target_include_directories(std_ext_uni PUBLIC ${PROJECT_BINARY_DIR}/include/)

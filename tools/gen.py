@@ -5,6 +5,7 @@ import sys
 import os
 import re
 import collections
+import copy
 from io import StringIO
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[3])
@@ -180,10 +181,11 @@ def get_unicode_data(version = LAST_VERSION):
             if f != None and l != None: # Handle range
                 f = cp_code(f)
                 l = cp_code(l)
-                template =  ucd_cp(c, elem)
-                for c in range(f, l):
+                template = ucd_cp(c, elem)
+                for c in range(f, l +1):
                     template.cp = c
-                    characters[c] = template
+                    characters[c] = copy.copy(template)
+                    #print(to_hex(c))
                 continue
             c = elem.get("cp")
             if c == None:
@@ -193,6 +195,7 @@ def get_unicode_data(version = LAST_VERSION):
                 continue
             zfound = True
             characters[c] = ucd_cp(c, elem)
+            #print(to_hex(c))
         elif elem.tag in["{http://www.unicode.org/ns/2003/ucd/1.0}block"]:
             blocks.append(ucd_block(elem))
 
@@ -226,18 +229,22 @@ def write_script_data(characters, scripts_names, file):
     indexes = {}
     for i, script in enumerate(scripts_names):
         indexes[script[0]] = i
+        indexes[script[1]] = i
     write_string_array(f, "scripts_names", [(script[0], idx) for idx, script in enumerate(scripts_names)]
                                            + [(script[1], idx) for idx, script in enumerate(scripts_names)])
 
     f.write("template <auto N> struct script_data;")
 
+    character_map = dict((c.cp, c.scx) for c in characters)
+
     def write_block(idx, characters):
         f.write("template <> struct script_data<{}> {{".format(idx))
         f.write("static constexpr const compact_range scripts_data= {")
         prev = ''
-        block = dict([(cp.cp, cp.scx) for cp in characters])
         for cp in range(0x10FFFF):
-            script = block[cp][idx] if (cp in block and len(block[cp])) > idx else 'zzzz'
+            script = 'zzzz'
+            if (cp in characters and len(characters[cp]) > idx):
+                script = characters[cp][idx]
             if script != prev:
                 f.write("{},".format(to_hex((cp << 8) | indexes[script], 10)))
             prev = script
@@ -278,7 +285,7 @@ def write_script_data(characters, scripts_names, file):
     #     if m > l: l = m
 
     for i in range(l):
-        write_block(i, characters)
+        write_block(i, character_map)
 
     f.write("""
     template<auto N>
@@ -306,7 +313,7 @@ def write_enum_blocks(blocks_names, blocks, file):
     names = []
      # no_block needs to be first
     for i, block in enumerate(["no_block"] + [block.name for block in blocks]):
-        f.write(block + ",")
+        f.write(block + ", // " + str(i) + "\n")
         all.add(block)
         names.append((block, i))
         if block in aliases:
@@ -332,10 +339,9 @@ def write_blocks_data(indexed_names, blocks, file):
         if (b.first != prev + 1):
             f.write("{},".format(to_hex(((prev + 1) << 8), 10)))
             offset = offset + 1
-        f.write("{}{}".format(to_hex(((b.first) << 8) | (offset + 1), 10), "," if i < len(blocks) - 1 else ""))
-
-
+        f.write("{},".format(to_hex(((b.first) << 8) | (offset + 1), 10)))
         prev = b.last
+    f.write("0xFFFFFFFF")
     f.write("};\n")
 
 
@@ -762,7 +768,7 @@ def write_binary_properties(characters, f):
 
     for prop in props:
         if not prop in custom_impl and not prop in details:
-            f.write("template <> constexpr bool uni::cp_is<property::{0}>(char32_t c) {{ return detail::tables::prop_{0}_data.lookup(c); }}".format(prop))
+            f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return detail::tables::prop_{0}_data.lookup(c); }}".format(prop))
 
 
     return [prop for prop in values if not prop[0] in details and not prop[0] in unsupported_props]
@@ -780,12 +786,6 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
     for p in d.keys():
         f.write("{} ,".format(p))
     f.write("unknown };\n")
-
-
-    f.write("""
-        template<binary_prop p>
-        constexpr bool get_binary_prop(char32_t) = delete;
-    """)
 
     for prop in supported_properties:
         f.write("""
@@ -888,7 +888,7 @@ namespace uni {
         print("Block data")
         write_blocks_data(indexed_block_name, blocks, f)
 
-        characters = list(filter(lambda c : not c.reserved, characters))
+        characters = list(filter(lambda c: not c.reserved, characters))
 
         print("Script data")
         write_script_data(characters, scripts_names, f)

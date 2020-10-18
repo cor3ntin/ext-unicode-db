@@ -1,4 +1,5 @@
 
+#include <iterator>
 #ifndef UNI_SINGLE_HEADER
 #    pragma once
 #    include "props.h"
@@ -271,3 +272,16 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
 
 
 }    // namespace uni
+
+namespace std
+{
+    template<>
+    struct iterator_traits<uni::script_extensions_view::iterator>
+    {
+        using difference_type = std::ptrdiff_t;
+        using value_type = uni::script;
+        using pointer =  uni::script *;
+        using reference	=  uni::script;
+        using iterator_category = std::forward_iterator_tag;
+    };
+}
