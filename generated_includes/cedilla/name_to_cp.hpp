@@ -14606,8 +14606,8 @@ namespace details {
 
 
     constexpr int compare(std::string_view str, std::string_view needle, uint32_t start) {
-        int str_i = start;
-        int needle_i = 0;
+        std::size_t str_i = start;
+        std::size_t needle_i = 0;
         if(needle.size() == 0)
             return -1;
         bool had_space = start == 0 ? true : str[start - 1] == ' ';
