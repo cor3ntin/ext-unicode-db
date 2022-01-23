@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 find_package(PythonInterp 3 REQUIRED)
 
-foreach(UCD_VERSION 13.0)
+foreach(UCD_VERSION 14.0)
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION})
         file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION})
     endif()
@@ -27,11 +27,11 @@ endif()
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/NormalizationTest.txt)
   message(STATUS "Fetching unicode tests")
-  file(DOWNLOAD "ftp://ftp.unicode.org/Public/13.0.0/ucd/NormalizationTest.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/NormalizationTest.txt)
+  file(DOWNLOAD "ftp://ftp.unicode.org/Public/14.0.0/ucd/NormalizationTest.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/NormalizationTest.txt)
 endif()
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/PropertyValueAliases.txt)
   message(STATUS "Fetching PropertyValueAliases.txt")
-  file(DOWNLOAD "ftp://ftp.unicode.org/Public/13.0.0/ucd/PropertyValueAliases.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/PropertyValueAliases.txt)
+  file(DOWNLOAD "ftp://ftp.unicode.org/Public/14.0.0/ucd/PropertyValueAliases.txt" ${CMAKE_CURRENT_BINARY_DIR}/ucd/PropertyValueAliases.txt)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -79,9 +79,9 @@ add_custom_command(
         ${PROJECT_SOURCE_DIR}/regex.h
         ${PROJECT_SOURCE_DIR}/single_header.h
         ${PROJECT_SOURCE_DIR}/tools/gen.py
-        ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
-        ${PROJECT_BINARY_DIR}/ucd/13.0/emoji-data.txt
+        ${PROJECT_BINARY_DIR}/ucd/14.0/emoji-data.txt
     )
 
 add_custom_command(
@@ -90,11 +90,11 @@ add_custom_command(
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
     COMMAND namesreversegen
-      ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml > ${HEADERS_DIR}/name_to_cp.hpp
+      ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml > ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/name_to_cp.hpp >> ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND clang-format ${HEADERS_DIR}/name_to_cp.hpp -i
     DEPENDS
-        ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_SOURCE_DIR}/name_to_cp.hpp
 )
 
@@ -104,18 +104,18 @@ add_custom_command(
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
     COMMAND namesgen
-      ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
+      ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND clang-format ${HEADERS_DIR}/cp_to_name.hpp -i
     DEPENDS
-        ${PROJECT_BINARY_DIR}/ucd/13.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_SOURCE_DIR}/names.hpp
         namesgen
 )
 
 add_library(std_ext_uni STATIC
-  ${HEADERS_DIR}/cp_to_name.hpp
-  ${HEADERS_DIR}/name_to_cp.hpp
+  #${HEADERS_DIR}/cp_to_name.hpp
+  #${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}/properties.hpp
   empty.cpp
   unicode.cpp
@@ -124,7 +124,9 @@ add_library(std_ext_uni STATIC
 add_custom_target("single-header")
 add_custom_command(TARGET "single-header"
     COMMAND cp ${HEADERS_DIR}* ${PROJECT_SOURCE_DIR}/generated_includes/cedilla/
-    DEPENDS include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp include/cedilla/properties.hpp
+    DEPENDS
+    # include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp
+    include/cedilla/properties.hpp
 )
 
 target_compile_options(std_ext_uni INTERFACE -std=c++17)

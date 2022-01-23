@@ -9,10 +9,10 @@ import copy
 from io import StringIO
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[3])
-LAST_VERSION = "13.0"
-STANDARD_VERSION = "13.0"
+LAST_VERSION = "14.0"
+STANDARD_VERSION = "14.0"
 SUPPORTED_VERSIONS = [] # "9.0", "8.0", "7.0"]
-MIN_VERSION = "13.0"
+MIN_VERSION = "14.0"
 PROPS_VALUE_FILE = os.path.join(DIR_WITH_UCD, "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR_WITH_UCD, "binary_props.txt")
 

@@ -72,9 +72,9 @@ constexpr script cp_script(char32_t cp) {
     return detail::tables::cp_script<0>(cp);
 }
 
-constexpr script_extensions_view::script_extensions_view(char32_t c) : c(c){}
+constexpr script_extensions_view::script_extensions_view(char32_t c_) : c(c_){}
 
-constexpr script_extensions_view::iterator::iterator(char32_t c) : m_c(c), m_script(detail::tables::get_cp_script(m_c, 1)) {
+constexpr script_extensions_view::iterator::iterator(char32_t c_) : m_c(c_), m_script(detail::tables::get_cp_script(m_c, 1)) {
     if(m_script == script::unknown)
         m_script = detail::tables::cp_script<0>(m_c);
     }
@@ -129,9 +129,9 @@ constexpr version cp_age(char32_t cp) {
 
 constexpr block cp_block(char32_t cp) {
     const auto end = std::end(detail::tables::block_data._data);
-    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp, uint32_t v) {
+    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp_, uint32_t v) {
         char32_t c = (v >> 8);
-        return cp < c;
+        return cp_ < c;
     });
     if(it == end)
         return block::no_block;
@@ -246,7 +246,7 @@ namespace detail {
 template<typename Array, typename Res = long long>
 constexpr bool get_numeric_value(char32_t cp, const Array& array, Res& res) {
     auto it = detail::lower_bound(std::begin(array), std::end(array), cp,
-                               [](const auto& d, char32_t cp) { return d.first < cp; });
+                               [](const auto& d, char32_t cp_) { return d.first < cp_; });
     if(it == std::end(array) || it->first != cp)
         return false;
     res = it->second;
@@ -265,7 +265,7 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
        }())) {
         return {};
     }
-    uint16_t d = 1;
+    int16_t d = 1;
     detail::get_numeric_value(cp, detail::tables::numeric_data_d, d);
     return numeric_value(res, d);
 }

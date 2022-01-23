@@ -76,9 +76,9 @@ struct compact_range {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return local_cp < c;
         });
         if(it == end)
             return default_value;
@@ -95,9 +95,9 @@ struct compact_list {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t cp) {
+        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t local_cp) {
             char32_t c = (v >> 8);
-            return c < cp;
+            return c < local_cp;
         });
         if(it == end || ((*it) >> 8) != cp)
             return default_value;
@@ -171,7 +171,7 @@ struct bool_trie {
                     child = r4[i4 - r4_t_f];
             }
 
-            std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
+            std::size_t i5 = static_cast<std::size_t>((child << 6) + ((c >> 6) & 0x3f));
             auto leaf = 0;
             if constexpr(r5_s > 0) {
                 if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
@@ -197,10 +197,10 @@ struct flat_array {
                 if(it == std::end(data))
                     return false;
             }
+            return false;
         } else {
             return detail::binary_search(std::begin(data), std::end(data), u);
         }
-        return false;
     }
 };
 
@@ -210,9 +210,9 @@ struct range_array {
     std::uint32_t _data[N];
     constexpr bool lookup(char32_t cp) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return local_cp < c;
         });
         if(it == end)
             return false;
@@ -281,7 +281,7 @@ struct string_with_idx { const char* name; uint32_t value; };
 namespace uni {
 
 constexpr double numeric_value::value() const {
-    return numerator() / double(_d);
+    return static_cast<double>(numerator()) / static_cast<double>(_d);
 }
 
 constexpr long long numeric_value::numerator() const {
