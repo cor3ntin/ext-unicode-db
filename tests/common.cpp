@@ -2,6 +2,7 @@
 #include "pugixml.hpp"
 #include <string>
 #include <iostream>
+#include <array>
 #include <charconv>
 
 bool generated(char32_t c) {

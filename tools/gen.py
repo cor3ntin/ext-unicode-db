@@ -551,13 +551,13 @@ def write_categories_data(characters, categories_names, file):
 
     for _, cat in sorted_by_len:
         f.write("""template <>
-        constexpr bool cp_is<category::{0}>(char32_t c) {{
+        constexpr bool cp_category_is<category::{0}>(char32_t c) {{
             return detail::tables::cat_{0}.lookup(c); }}
         """.format(cat))
 
     for name, cats in meta_cats.items():
         f.write("""template <>
-        constexpr bool cp_is<category::{}>(char32_t c) {{
+        constexpr bool cp_category_is<category::{}>(char32_t c) {{
             """.format(name))
         for _, cat in sorted_by_len:
             if cat in cats:
@@ -566,7 +566,7 @@ def write_categories_data(characters, categories_names, file):
 
     f.write("""
         template <>
-        constexpr bool cp_is<category::unassigned>(char32_t c) {
+        constexpr bool cp_category_is<category::unassigned>(char32_t c) {
             return cp_category(c) == category::unassigned;
         }
     """
@@ -768,7 +768,7 @@ def write_binary_properties(characters, f):
 
     for prop in props:
         if not prop in custom_impl and not prop in details:
-            f.write("template <> constexpr bool cp_is<property::{0}>(char32_t c) {{ return detail::tables::prop_{0}_data.lookup(c); }}".format(prop))
+            f.write("template <> constexpr bool cp_property_is<property::{0}>(char32_t c) {{ return detail::tables::prop_{0}_data.lookup(c); }}".format(prop))
 
 
     return [prop for prop in values if not prop[0] in details and not prop[0] in unsupported_props]
@@ -791,7 +791,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         f.write("""
         template<>
         constexpr bool get_binary_prop<binary_prop::{0}>(char32_t c) {{
-            return cp_is<property::{0}>(c);
+            return cp_property_is<property::{0}>(c);
         }}
     """.format(prop[0]))
 
@@ -800,7 +800,7 @@ def write_regex_support(f, characters, supported_properties, categories_names, s
         f.write("""
         template<>
         constexpr bool get_binary_prop<binary_prop::{0}>(char32_t c) {{
-            return cp_is<category::{0}>(c);
+            return cp_category_is<category::{0}>(c);
         }}
     """.format(cat[0]))
 

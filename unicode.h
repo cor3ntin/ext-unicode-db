@@ -146,45 +146,45 @@ constexpr block cp_block(char32_t cp) {
 }
 
 template<>
-constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
+constexpr bool cp_property_is<property::noncharacter_code_point>(char32_t cp) {
     return (char32_t(cp) & 0xfffe) == 0xfffe || (char32_t(cp) >= 0xfdd0 && char32_t(cp) <= 0xfdef);
 }
 
 // http://unicode.org/reports/tr44/#Lowercase
 template<>
-constexpr bool cp_is<property::lowercase>(char32_t cp) {
+constexpr bool cp_property_is<property::lowercase>(char32_t cp) {
     return detail::tables::cat_ll.lookup(char32_t(cp)) || detail::tables::prop_olower_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Uppercase
 template<>
-constexpr bool cp_is<property::uppercase>(char32_t cp) {
+constexpr bool cp_property_is<property::uppercase>(char32_t cp) {
     return detail::tables::cat_lu.lookup(char32_t(cp)) || detail::tables::prop_oupper_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Cased
 template<>
-constexpr bool cp_is<property::cased>(char32_t cp) {
-    return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
+constexpr bool cp_property_is<property::cased>(char32_t cp) {
+    return cp_property_is<property::lower>(cp) || cp_property_is<property::upper>(cp) ||
            detail::tables::cat_lt.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Math
 template<>
-constexpr bool cp_is<property::math>(char32_t cp) {
+constexpr bool cp_property_is<property::math>(char32_t cp) {
     return detail::tables::cat_sm.lookup(char32_t(cp)) || detail::tables::prop_omath_data.lookup(cp);
 }
 
 // http://unicode.org/reports/tr44/#Case_Ignorable
 template<>
-constexpr bool cp_is<property::case_ignorable>(char32_t) {
+constexpr bool cp_property_is<property::case_ignorable>(char32_t) {
     return false;
 }
 
 
 // http://unicode.org/reports/tr44/#Grapheme_Extend
 template<>
-constexpr bool cp_is<property::grapheme_extend>(char32_t cp) {
+constexpr bool cp_property_is<property::grapheme_extend>(char32_t cp) {
     return detail::tables::cat_me.lookup(char32_t(cp)) || detail::tables::cat_mn.lookup(char32_t(cp)) ||
            detail::tables::prop_ogr_ext_data.lookup(cp);
 }
@@ -201,7 +201,7 @@ constexpr bool cp_is_ascii(char32_t cp) {
 }
 
 template<>
-constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
+constexpr bool cp_property_is<property::default_ignorable_code_point>(char32_t cp) {
     const auto c = char32_t(cp);
     const bool maybe = detail::tables::prop_odi_data.lookup(cp) || detail::tables::cat_cf.lookup(cp) ||
                        detail::tables::prop_vs_data.lookup(cp);
@@ -223,17 +223,17 @@ constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
 
 // http://www.unicode.org/reports/tr31/#D1
 template<>
-constexpr bool cp_is<property::id_start>(char32_t cp) {
+constexpr bool cp_property_is<property::id_start>(char32_t cp) {
     const bool maybe =
-        cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
+        cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
     if(!maybe)
         return false;
     return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
 template<>
-constexpr bool cp_is<property::id_continue>(char32_t cp) {
-    const bool maybe = cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
+constexpr bool cp_property_is<property::id_continue>(char32_t cp) {
+    const bool maybe = cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
                        detail::tables::prop_oids_data.lookup(cp) || detail::tables::cat_mn.lookup(cp) || detail::tables::cat_mc.lookup(cp) ||
                        detail::tables::cat_nd.lookup(cp) || detail::tables::cat_pc.lookup(cp) || detail::tables::prop_oidc_data.lookup(cp);
     if(!maybe)

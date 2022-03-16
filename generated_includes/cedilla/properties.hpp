@@ -14,7 +14,7 @@ namespace uni
     enum class block;
 
     struct script_extensions_view {
-        constexpr script_extensions_view(char32_t c);
+        constexpr script_extensions_view(char32_t);
 
         struct sentinel {};
         struct iterator {
@@ -69,11 +69,11 @@ namespace uni
     constexpr numeric_value cp_numeric_value(char32_t cp);
 
     template<script>
-    constexpr bool cp_is(char32_t);
+    constexpr bool cp_script_is(char32_t);
     template<property>
-    constexpr bool cp_is(char32_t);
+    constexpr bool cp_property_is(char32_t);
     template<category>
-    constexpr bool cp_is(char32_t);
+    constexpr bool cp_category_is(char32_t);
 
     namespace detail
     {
@@ -176,9 +176,9 @@ struct compact_range {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return local_cp < c;
         });
         if(it == end)
             return default_value;
@@ -195,9 +195,9 @@ struct compact_list {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t cp) {
+        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t local_cp) {
             char32_t c = (v >> 8);
-            return c < cp;
+            return c < local_cp;
         });
         if(it == end || ((*it) >> 8) != cp)
             return default_value;
@@ -271,7 +271,7 @@ struct bool_trie {
                     child = r4[i4 - r4_t_f];
             }
 
-            std::size_t i5 = (child << 6) + ((c >> 6) & 0x3f);
+            std::size_t i5 = static_cast<std::size_t>((child << 6) + ((c >> 6) & 0x3f));
             auto leaf = 0;
             if constexpr(r5_s > 0) {
                 if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
@@ -297,10 +297,10 @@ struct flat_array {
                 if(it == std::end(data))
                     return false;
             }
+            return false;
         } else {
             return detail::binary_search(std::begin(data), std::end(data), u);
         }
-        return false;
     }
 };
 
@@ -310,9 +310,9 @@ struct range_array {
     std::uint32_t _data[N];
     constexpr bool lookup(char32_t cp) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t cp, uint32_t v) {
+        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
             char32_t c = (v >> 8);
-            return cp < c;
+            return local_cp < c;
         });
         if(it == end)
             return false;
@@ -345,11 +345,11 @@ constexpr int propcharcomp(char a, char b) {
 
 constexpr int propnamecomp(std::string_view sa, std::string_view sb) {
     // workaround, iterators in std::string_view are not constexpr in libc++ (for now)
-    const char* a = sa.begin();
-    const char* b = sb.begin();
+    const char* a = sa.data();
+    const char* b = sb.data();
 
-    const char* ae = sa.end();
-    const char* be = sb.end();
+    const char* ae = sa.data() + sa.size();
+    const char* be = sb.data() + sb.size();
 
     for(; a != ae && b != be; a++, b++) {
         auto res = propcharcomp(*a, *b);
@@ -381,7 +381,7 @@ struct string_with_idx { const char* name; uint32_t value; };
 namespace uni {
 
 constexpr double numeric_value::value() const {
-    return numerator() / double(_d);
+    return static_cast<double>(numerator()) / static_cast<double>(_d);
 }
 
 constexpr long long numeric_value::numerator() const {
@@ -1989,10 +1989,10 @@ namespace detail::tables {
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6},
         {0x0000000000000000, 0x0800000008000002, 0x0020000000200000, 0x0000800000008000,
          0x0000020000000200, 0x0000000000000008, 0x0003000000000000}};
-    static constexpr flat_array<26> cat_pd{{0x002D, 0x058A, 0x05BE, 0x1400, 0x1806, 0x2010, 0x2011,
-                                            0x2012, 0x2013, 0x2014, 0x2015, 0x2E17, 0x2E1A, 0x2E3A,
-                                            0x2E3B, 0x2E40, 0x2E5D, 0x301C, 0x3030, 0x30A0, 0xFE31,
-                                            0xFE32, 0xFE58, 0xFE63, 0xFF0D, 0x10EAD}};
+    static constexpr flat_array<26> cat_pd{{0x1400, 0x1806,  0x058A, 0xFF0D, 0x2010, 0x2011, 0x2012,
+                                            0x2013, 0x2014,  0x2015, 0x2E17, 0x2E1A, 0x301C, 0x30A0,
+                                            0x002D, 0x10EAD, 0x3030, 0xFE31, 0xFE32, 0x2E3A, 0x2E3B,
+                                            0x05BE, 0x2E40,  0xFE58, 0x2E5D, 0xFE63}};
     static constexpr bool_trie<32, 984, 5, 3, 9, 255, 1, 0, 414, 18, 16, 8> cat_nd{
         {0x03ff000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
          0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -2197,7 +2197,7 @@ namespace detail::tables {
         {1},
         {0x0000000000000000, 0xf800000000000000}};
     static constexpr flat_array<10> cat_pc{
-        {0x005F, 0x203F, 0x2040, 0x2054, 0xFE33, 0xFE34, 0xFE4D, 0xFE4E, 0xFE4F, 0xFF3F}};
+        {0x2040, 0xFE4D, 0xFE4E, 0xFE4F, 0xFE33, 0x2054, 0xFE34, 0xFF3F, 0x005F, 0x203F}};
     static constexpr bool_trie<32, 955, 35, 2, 30, 255, 1, 0, 342, 16, 26, 27> cat_ll{
         {0x0000000000000000, 0x07fffffe00000000, 0x0020000000000000, 0xff7fffff80000000,
          0x55aaaaaaaaaaaaaa, 0xd4aaaaaaaaaaab55, 0xe6512d2a4e243129, 0xaa29aaaab5555240,
@@ -2576,8 +2576,8 @@ namespace detail::tables {
          0x00001fffffffffff, 0x0000000000004000, 0x7fff6f7f00000000, 0x000000000000001f,
          0x0af7fe96ffffffef, 0x5ef7f796aa96ea84, 0x0ffffbee0ffffbff, 0x00000000ffffffff,
          0xffff0003ffffffff, 0x00000001ffffffff, 0x00000000000007ff}};
-    static constexpr flat_array<12> cat_pi{{0x00AB, 0x2018, 0x201B, 0x201C, 0x201F, 0x2039, 0x2E02,
-                                            0x2E04, 0x2E09, 0x2E0C, 0x2E1C, 0x2E20}};
+    static constexpr flat_array<12> cat_pi{{0x2E20, 0x2E02, 0x2E04, 0x2E09, 0x00AB, 0x2E0C, 0x2018,
+                                            0x2039, 0x201B, 0x201C, 0x2E1C, 0x201F}};
     static constexpr range_array cat_cf = {
         0x00000000, 0x0000AD01, 0x0000AE00, 0x00060001, 0x00060600, 0x00061C01, 0x00061D00,
         0x0006DD01, 0x0006DE00, 0x00070F01, 0x00071000, 0x00089001, 0x00089200, 0x0008E201,
@@ -2663,7 +2663,7 @@ namespace detail::tables {
          0x000000000000ff80, 0xfffe000000000000, 0x001eefffffffffff, 0x3fffbffffffffffe,
          0x0000000000001fff}};
     static constexpr flat_array<10> cat_pf{
-        {0x00BB, 0x2019, 0x201D, 0x203A, 0x2E03, 0x2E05, 0x2E0A, 0x2E0D, 0x2E1D, 0x2E21}};
+        {0x2E21, 0x2E1D, 0x2E03, 0x2E05, 0x2E0A, 0x2E0D, 0x2019, 0x203A, 0x00BB, 0x201D}};
     static constexpr range_array cat_lt = {
         0x00000000, 0x0001C501, 0x0001C600, 0x0001C801, 0x0001C900, 0x0001CB01, 0x0001CC00,
         0x0001F201, 0x0001F300, 0x001F8801, 0x001F9000, 0x001F9801, 0x001FA000, 0x001FA801,
@@ -3000,123 +3000,123 @@ namespace detail::tables {
     }
 }    // namespace detail::tables
 template<>
-constexpr bool cp_is<category::co>(char32_t c) {
+constexpr bool cp_category_is<category::co>(char32_t c) {
     return detail::tables::cat_co.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::lo>(char32_t c) {
+constexpr bool cp_category_is<category::lo>(char32_t c) {
     return detail::tables::cat_lo.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::so>(char32_t c) {
+constexpr bool cp_category_is<category::so>(char32_t c) {
     return detail::tables::cat_so.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::ll>(char32_t c) {
+constexpr bool cp_category_is<category::ll>(char32_t c) {
     return detail::tables::cat_ll.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::cs>(char32_t c) {
+constexpr bool cp_category_is<category::cs>(char32_t c) {
     return detail::tables::cat_cs.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::mn>(char32_t c) {
+constexpr bool cp_category_is<category::mn>(char32_t c) {
     return detail::tables::cat_mn.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::lu>(char32_t c) {
+constexpr bool cp_category_is<category::lu>(char32_t c) {
     return detail::tables::cat_lu.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::sm>(char32_t c) {
+constexpr bool cp_category_is<category::sm>(char32_t c) {
     return detail::tables::cat_sm.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::no>(char32_t c) {
+constexpr bool cp_category_is<category::no>(char32_t c) {
     return detail::tables::cat_no.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::nd>(char32_t c) {
+constexpr bool cp_category_is<category::nd>(char32_t c) {
     return detail::tables::cat_nd.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::po>(char32_t c) {
+constexpr bool cp_category_is<category::po>(char32_t c) {
     return detail::tables::cat_po.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::mc>(char32_t c) {
+constexpr bool cp_category_is<category::mc>(char32_t c) {
     return detail::tables::cat_mc.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::lm>(char32_t c) {
+constexpr bool cp_category_is<category::lm>(char32_t c) {
     return detail::tables::cat_lm.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::nl>(char32_t c) {
+constexpr bool cp_category_is<category::nl>(char32_t c) {
     return detail::tables::cat_nl.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::cf>(char32_t c) {
+constexpr bool cp_category_is<category::cf>(char32_t c) {
     return detail::tables::cat_cf.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::sk>(char32_t c) {
+constexpr bool cp_category_is<category::sk>(char32_t c) {
     return detail::tables::cat_sk.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::ps>(char32_t c) {
+constexpr bool cp_category_is<category::ps>(char32_t c) {
     return detail::tables::cat_ps.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::pe>(char32_t c) {
+constexpr bool cp_category_is<category::pe>(char32_t c) {
     return detail::tables::cat_pe.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::cc>(char32_t c) {
+constexpr bool cp_category_is<category::cc>(char32_t c) {
     return detail::tables::cat_cc.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::sc>(char32_t c) {
+constexpr bool cp_category_is<category::sc>(char32_t c) {
     return detail::tables::cat_sc.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::lt>(char32_t c) {
+constexpr bool cp_category_is<category::lt>(char32_t c) {
     return detail::tables::cat_lt.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::pd>(char32_t c) {
+constexpr bool cp_category_is<category::pd>(char32_t c) {
     return detail::tables::cat_pd.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::zs>(char32_t c) {
+constexpr bool cp_category_is<category::zs>(char32_t c) {
     return detail::tables::cat_zs.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::me>(char32_t c) {
+constexpr bool cp_category_is<category::me>(char32_t c) {
     return detail::tables::cat_me.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::pi>(char32_t c) {
+constexpr bool cp_category_is<category::pi>(char32_t c) {
     return detail::tables::cat_pi.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::pf>(char32_t c) {
+constexpr bool cp_category_is<category::pf>(char32_t c) {
     return detail::tables::cat_pf.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::pc>(char32_t c) {
+constexpr bool cp_category_is<category::pc>(char32_t c) {
     return detail::tables::cat_pc.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::zp>(char32_t c) {
+constexpr bool cp_category_is<category::zp>(char32_t c) {
     return detail::tables::cat_zp.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::zl>(char32_t c) {
+constexpr bool cp_category_is<category::zl>(char32_t c) {
     return detail::tables::cat_zl.lookup(c);
 }
 template<>
-constexpr bool cp_is<category::cased_letter>(char32_t c) {
+constexpr bool cp_category_is<category::cased_letter>(char32_t c) {
     if(detail::tables::cat_ll.lookup(c))
         return true;
     if(detail::tables::cat_lu.lookup(c))
@@ -3126,7 +3126,7 @@ constexpr bool cp_is<category::cased_letter>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::letter>(char32_t c) {
+constexpr bool cp_category_is<category::letter>(char32_t c) {
     if(detail::tables::cat_lo.lookup(c))
         return true;
     if(detail::tables::cat_ll.lookup(c))
@@ -3140,7 +3140,7 @@ constexpr bool cp_is<category::letter>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::mark>(char32_t c) {
+constexpr bool cp_category_is<category::mark>(char32_t c) {
     if(detail::tables::cat_mn.lookup(c))
         return true;
     if(detail::tables::cat_mc.lookup(c))
@@ -3150,7 +3150,7 @@ constexpr bool cp_is<category::mark>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::number>(char32_t c) {
+constexpr bool cp_category_is<category::number>(char32_t c) {
     if(detail::tables::cat_no.lookup(c))
         return true;
     if(detail::tables::cat_nd.lookup(c))
@@ -3160,7 +3160,7 @@ constexpr bool cp_is<category::number>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::punctuation>(char32_t c) {
+constexpr bool cp_category_is<category::punctuation>(char32_t c) {
     if(detail::tables::cat_po.lookup(c))
         return true;
     if(detail::tables::cat_ps.lookup(c))
@@ -3178,7 +3178,7 @@ constexpr bool cp_is<category::punctuation>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::symbol>(char32_t c) {
+constexpr bool cp_category_is<category::symbol>(char32_t c) {
     if(detail::tables::cat_so.lookup(c))
         return true;
     if(detail::tables::cat_sm.lookup(c))
@@ -3190,7 +3190,7 @@ constexpr bool cp_is<category::symbol>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::separator>(char32_t c) {
+constexpr bool cp_category_is<category::separator>(char32_t c) {
     if(detail::tables::cat_zs.lookup(c))
         return true;
     if(detail::tables::cat_zp.lookup(c))
@@ -3200,7 +3200,7 @@ constexpr bool cp_is<category::separator>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::other>(char32_t c) {
+constexpr bool cp_category_is<category::other>(char32_t c) {
     if(detail::tables::cat_co.lookup(c))
         return true;
     if(detail::tables::cat_cs.lookup(c))
@@ -3212,7 +3212,7 @@ constexpr bool cp_is<category::other>(char32_t c) {
     return false;
 }
 template<>
-constexpr bool cp_is<category::unassigned>(char32_t c) {
+constexpr bool cp_category_is<category::unassigned>(char32_t c) {
     return cp_category(c) == category::unassigned;
 }
 namespace detail::tables {
@@ -5752,12 +5752,12 @@ namespace detail::tables {
         {0x0000000000000000, 0x0000001fc0000000, 0xf800000000000000, 0x0000000000000001,
          0xffffffffffffffff, 0x000000003fffffff}};
     static constexpr flat_array<30> prop_dash_data{
-        {0x002D, 0x058A, 0x05BE, 0x1400, 0x1806, 0x2010, 0x2011, 0x2012, 0x2013, 0x2014,
-         0x2015, 0x2053, 0x207B, 0x208B, 0x2212, 0x2E17, 0x2E1A, 0x2E3A, 0x2E3B, 0x2E40,
-         0x2E5D, 0x301C, 0x3030, 0x30A0, 0xFE31, 0xFE32, 0xFE58, 0xFE63, 0xFF0D, 0x10EAD}};
-    static constexpr flat_array<15> prop_dep_data{{0x0149, 0x0673, 0x0F77, 0x0F79, 0x17A3, 0x17A4,
-                                                   0x206A, 0x206B, 0x206C, 0x206D, 0x206E, 0x206F,
-                                                   0x2329, 0x232A, 0xE0001}};
+        {0x1400, 0x1806, 0x058A, 0x208B, 0xFF0D, 0x2010, 0x2011, 0x2012,  0x2013, 0x2014,
+         0x2015, 0x2212, 0x2E17, 0x2E1A, 0x301C, 0x30A0, 0x002D, 0x10EAD, 0x3030, 0xFE31,
+         0xFE32, 0x2E3A, 0x2E3B, 0x05BE, 0x2E40, 0x2053, 0xFE58, 0x2E5D,  0xFE63, 0x207B}};
+    static constexpr flat_array<15> prop_dep_data{{0xE0001, 0x17A3, 0x17A4, 0x0149, 0x206A, 0x206B,
+                                                   0x206C, 0x206D, 0x206E, 0x206F, 0x2329, 0x232A,
+                                                   0x0673, 0x0F77, 0x0F79}};
     static constexpr bool_trie<32, 991, 1, 0, 64, 255, 1, 0, 475, 11, 26, 42> prop_dia_data{
         {0x0000000000000000, 0x0000000140000000, 0x0190810000000000, 0x0000000000000000,
          0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -5932,11 +5932,11 @@ namespace detail::tables {
              0x1ff01800e0e7103f, 0x00010fff00000000, 0xf7fffffffffff000, 0xffffffffffffffbf,
              0x1f1f000000000000, 0x07ff1fffffff007f, 0x007f00ff03ff003f}};
     static constexpr flat_array<50> prop_ext_data{
-        {0x00B7,  0x02D0,  0x02D1,  0x0640,  0x07FA,  0x0B55,  0x0E46,  0x0EC6,  0x180A,  0x1843,
-         0x1AA7,  0x1C36,  0x1C7B,  0x3005,  0x3031,  0x3032,  0x3033,  0x3034,  0x3035,  0x309D,
-         0x309E,  0x30FC,  0x30FD,  0x30FE,  0xA015,  0xA60C,  0xA9CF,  0xA9E6,  0xAA70,  0xAADD,
-         0xAAF3,  0xAAF4,  0xFF70,  0x10781, 0x10782, 0x1135D, 0x115C6, 0x115C7, 0x115C8, 0x11A98,
-         0x16B42, 0x16B43, 0x16FE0, 0x16FE1, 0x16FE3, 0x1E13C, 0x1E13D, 0x1E944, 0x1E945, 0x1E946}};
+        {0x10781, 0x10782, 0x3005,  0x180A,  0xA60C, 0xA015, 0x11A98, 0x309D,  0x309E,  0x1AA7,
+         0x3031,  0x3032,  0x3033,  0x3034,  0x3035, 0x1C36, 0x00B7,  0x1E13C, 0x1E13D, 0x0640,
+         0x16B42, 0x1843,  0x16B43, 0x1E944, 0x0E46, 0x0EC6, 0x115C6, 0x115C7, 0x115C8, 0x1E945,
+         0x1E946, 0xA9CF,  0x02D0,  0x02D1,  0x0B55, 0xAADD, 0x1135D, 0x16FE0, 0x16FE1, 0x16FE3,
+         0xA9E6,  0xAA70,  0xFF70,  0xAAF3,  0xAAF4, 0x07FA, 0x1C7B,  0x30FC,  0x30FD,  0x30FE}};
     static constexpr bool_trie<32, 75, 96, 821, 22, 1, 15, 240, 44, 64, 20, 22>
         prop_extended_pictographic_data{
             {0x0000000000000000, 0x0000000000000000, 0x0000420000000000, 0x0000000000000000,
@@ -6314,7 +6314,7 @@ namespace detail::tables {
          0xfffffffffffe8000, 0x00000000000780ff, 0x0003000000000000, 0x0000000040000000,
          0x000007dbf9ffff7f, 0x0000000000000080, 0xffff03ffffff03ff, 0x00000000000003ff}};
     static constexpr flat_array<7> prop_odi_data{
-        {0x034F, 0x115F, 0x1160, 0x17B4, 0x17B5, 0x3164, 0xFFA0}};
+        {0x1160, 0xFFA0, 0x3164, 0x034F, 0x17B4, 0x17B5, 0x115F}};
     static constexpr bool_trie<0, 985, 6, 1, 9, 208, 1, 47, 118, 76, 62, 9> prop_ogr_ext_data{
         {},
         {1, 2, 0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 3, 1, 2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -6370,7 +6370,7 @@ namespace detail::tables {
     static constexpr range_array prop_oidc_data = {0x00000000, 0x0000B701, 0x0000B800,
                                                    0x00038701, 0x00038800, 0x00136901,
                                                    0x00137200, 0x0019DA01, 0x0019DB00};
-    static constexpr flat_array<6> prop_oids_data{{0x1885, 0x1886, 0x2118, 0x212E, 0x309B, 0x309C}};
+    static constexpr flat_array<6> prop_oids_data{{0x1885, 0x1886, 0x212E, 0x2118, 0x309B, 0x309C}};
     static constexpr range_array prop_olower_data = {
         0x00000000, 0x0000AA01, 0x0000AB00, 0x0000BA01, 0x0000BB00, 0x0002B001, 0x0002B900,
         0x0002C001, 0x0002C200, 0x0002E001, 0x0002E500, 0x00034501, 0x00034600, 0x00037A01,
@@ -6488,10 +6488,10 @@ namespace detail::tables {
         {},
         {}};
     static constexpr flat_array<11> prop_pat_ws_data{
-        {0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0020, 0x0085, 0x200E, 0x200F, 0x2028, 0x2029}};
+        {0x0020, 0x0085, 0x2028, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x200E, 0x200F, 0x2029}};
     static constexpr flat_array<13> prop_pcm_data{{0x0600, 0x0601, 0x0602, 0x0603, 0x0604, 0x0605,
-                                                   0x06DD, 0x070F, 0x0890, 0x0891, 0x08E2, 0x110BD,
-                                                   0x110CD}};
+                                                   0x08E2, 0x110CD, 0x070F, 0x0890, 0x0891, 0x110BD,
+                                                   0x06DD}};
     static constexpr range_array prop_qmark_data = {
         0x00000000, 0x00002201, 0x00002300, 0x00002701, 0x00002800, 0x0000AB01, 0x0000AC00,
         0x0000BB01, 0x0000BC00, 0x00201801, 0x00202000, 0x00203901, 0x00203B00, 0x002E4201,
@@ -6501,11 +6501,11 @@ namespace detail::tables {
         0x00000000, 0x002E8001, 0x002E9A00, 0x002E9B01, 0x002EF400, 0x002F0001, 0x002FD600};
     static constexpr range_array prop_ri_data = {0x00000000, 0x01F1E601, 0x01F20000};
     static constexpr flat_array<47> prop_sd_data{
-        {0x0069,  0x006A,  0x012F,  0x0249,  0x0268,  0x029D,  0x02B2,  0x03F3,  0x0456,  0x0458,
-         0x1D62,  0x1D96,  0x1DA4,  0x1DA8,  0x1E2D,  0x1ECB,  0x2071,  0x2148,  0x2149,  0x2C7C,
-         0x1D422, 0x1D423, 0x1D456, 0x1D457, 0x1D48A, 0x1D48B, 0x1D4BE, 0x1D4BF, 0x1D4F2, 0x1D4F3,
-         0x1D526, 0x1D527, 0x1D55A, 0x1D55B, 0x1D58E, 0x1D58F, 0x1D5C2, 0x1D5C3, 0x1D5F6, 0x1D5F7,
-         0x1D62A, 0x1D62B, 0x1D65E, 0x1D65F, 0x1D692, 0x1D693, 0x1DF1A}};
+        {0x1D48A, 0x1D48B, 0x1D58E, 0x1D58F, 0x1D692, 0x1D693, 0x1D96,  0x1DF1A, 0x029D, 0x1D422,
+         0x1D423, 0x1DA4,  0x1D526, 0x1D527, 0x1DA8,  0x1D62A, 0x1D62B, 0x1E2D,  0x012F, 0x02B2,
+         0x1D4BE, 0x1D4BF, 0x1D5C2, 0x1D5C3, 0x2148,  0x2149,  0x0249,  0x1ECB,  0x0456, 0x1D456,
+         0x0458,  0x1D457, 0x1D55A, 0x1D55B, 0x1D65E, 0x1D65F, 0x1D62,  0x0268,  0x0069, 0x006A,
+         0x2071,  0x1D4F2, 0x03F3,  0x1D4F3, 0x1D5F6, 0x1D5F7, 0x2C7C}};
     static constexpr bool_trie<32, 991, 1, 0, 30, 255, 1, 0, 322, 41, 21, 25> prop_sterm_data{
         {0x8000400200000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
          0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000,
@@ -7118,143 +7118,143 @@ namespace detail::tables {
          0xffff0003ffffffff, 0x00000001ffffffff, 0x000000003fffffff, 0x00000000000007ff}};
 }    // namespace detail::tables
 template<>
-constexpr bool cp_is<property::ahex>(char32_t c) {
+constexpr bool cp_property_is<property::ahex>(char32_t c) {
     return detail::tables::prop_ahex_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::alpha>(char32_t c) {
+constexpr bool cp_property_is<property::alpha>(char32_t c) {
     return detail::tables::prop_alpha_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::bidi_c>(char32_t c) {
+constexpr bool cp_property_is<property::bidi_c>(char32_t c) {
     return detail::tables::prop_bidi_c_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::bidi_m>(char32_t c) {
+constexpr bool cp_property_is<property::bidi_m>(char32_t c) {
     return detail::tables::prop_bidi_m_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::dash>(char32_t c) {
+constexpr bool cp_property_is<property::dash>(char32_t c) {
     return detail::tables::prop_dash_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::dep>(char32_t c) {
+constexpr bool cp_property_is<property::dep>(char32_t c) {
     return detail::tables::prop_dep_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::dia>(char32_t c) {
+constexpr bool cp_property_is<property::dia>(char32_t c) {
     return detail::tables::prop_dia_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::emoji>(char32_t c) {
+constexpr bool cp_property_is<property::emoji>(char32_t c) {
     return detail::tables::prop_emoji_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::emoji_component>(char32_t c) {
+constexpr bool cp_property_is<property::emoji_component>(char32_t c) {
     return detail::tables::prop_emoji_component_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::emoji_modifier>(char32_t c) {
+constexpr bool cp_property_is<property::emoji_modifier>(char32_t c) {
     return detail::tables::prop_emoji_modifier_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::emoji_modifier_base>(char32_t c) {
+constexpr bool cp_property_is<property::emoji_modifier_base>(char32_t c) {
     return detail::tables::prop_emoji_modifier_base_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::emoji_presentation>(char32_t c) {
+constexpr bool cp_property_is<property::emoji_presentation>(char32_t c) {
     return detail::tables::prop_emoji_presentation_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::ext>(char32_t c) {
+constexpr bool cp_property_is<property::ext>(char32_t c) {
     return detail::tables::prop_ext_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::extended_pictographic>(char32_t c) {
+constexpr bool cp_property_is<property::extended_pictographic>(char32_t c) {
     return detail::tables::prop_extended_pictographic_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::gr_base>(char32_t c) {
+constexpr bool cp_property_is<property::gr_base>(char32_t c) {
     return detail::tables::prop_gr_base_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::hex>(char32_t c) {
+constexpr bool cp_property_is<property::hex>(char32_t c) {
     return detail::tables::prop_hex_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::ideo>(char32_t c) {
+constexpr bool cp_property_is<property::ideo>(char32_t c) {
     return detail::tables::prop_ideo_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::idsb>(char32_t c) {
+constexpr bool cp_property_is<property::idsb>(char32_t c) {
     return detail::tables::prop_idsb_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::idst>(char32_t c) {
+constexpr bool cp_property_is<property::idst>(char32_t c) {
     return detail::tables::prop_idst_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::join_c>(char32_t c) {
+constexpr bool cp_property_is<property::join_c>(char32_t c) {
     return detail::tables::prop_join_c_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::loe>(char32_t c) {
+constexpr bool cp_property_is<property::loe>(char32_t c) {
     return detail::tables::prop_loe_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::pat_syn>(char32_t c) {
+constexpr bool cp_property_is<property::pat_syn>(char32_t c) {
     return detail::tables::prop_pat_syn_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::pat_ws>(char32_t c) {
+constexpr bool cp_property_is<property::pat_ws>(char32_t c) {
     return detail::tables::prop_pat_ws_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::pcm>(char32_t c) {
+constexpr bool cp_property_is<property::pcm>(char32_t c) {
     return detail::tables::prop_pcm_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::qmark>(char32_t c) {
+constexpr bool cp_property_is<property::qmark>(char32_t c) {
     return detail::tables::prop_qmark_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::radical>(char32_t c) {
+constexpr bool cp_property_is<property::radical>(char32_t c) {
     return detail::tables::prop_radical_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::ri>(char32_t c) {
+constexpr bool cp_property_is<property::ri>(char32_t c) {
     return detail::tables::prop_ri_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::sd>(char32_t c) {
+constexpr bool cp_property_is<property::sd>(char32_t c) {
     return detail::tables::prop_sd_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::sterm>(char32_t c) {
+constexpr bool cp_property_is<property::sterm>(char32_t c) {
     return detail::tables::prop_sterm_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::term>(char32_t c) {
+constexpr bool cp_property_is<property::term>(char32_t c) {
     return detail::tables::prop_term_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::uideo>(char32_t c) {
+constexpr bool cp_property_is<property::uideo>(char32_t c) {
     return detail::tables::prop_uideo_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::vs>(char32_t c) {
+constexpr bool cp_property_is<property::vs>(char32_t c) {
     return detail::tables::prop_vs_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::wspace>(char32_t c) {
+constexpr bool cp_property_is<property::wspace>(char32_t c) {
     return detail::tables::prop_wspace_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::xidc>(char32_t c) {
+constexpr bool cp_property_is<property::xidc>(char32_t c) {
     return detail::tables::prop_xidc_data.lookup(c);
 }
 template<>
-constexpr bool cp_is<property::xids>(char32_t c) {
+constexpr bool cp_property_is<property::xids>(char32_t c) {
     return detail::tables::prop_xids_data.lookup(c);
 }
 }    // namespace uni
@@ -7331,9 +7331,9 @@ constexpr script cp_script(char32_t cp) {
     return detail::tables::cp_script<0>(cp);
 }
 
-constexpr script_extensions_view::script_extensions_view(char32_t c) : c(c){}
+constexpr script_extensions_view::script_extensions_view(char32_t c_) : c(c_){}
 
-constexpr script_extensions_view::iterator::iterator(char32_t c) : m_c(c), m_script(detail::tables::get_cp_script(m_c, 1)) {
+constexpr script_extensions_view::iterator::iterator(char32_t c_) : m_c(c_), m_script(detail::tables::get_cp_script(m_c, 1)) {
     if(m_script == script::unknown)
         m_script = detail::tables::cp_script<0>(m_c);
     }
@@ -7388,9 +7388,9 @@ constexpr version cp_age(char32_t cp) {
 
 constexpr block cp_block(char32_t cp) {
     const auto end = std::end(detail::tables::block_data._data);
-    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp, uint32_t v) {
+    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp_, uint32_t v) {
         char32_t c = (v >> 8);
-        return cp < c;
+        return cp_ < c;
     });
     if(it == end)
         return block::no_block;
@@ -7405,45 +7405,45 @@ constexpr block cp_block(char32_t cp) {
 }
 
 template<>
-constexpr bool cp_is<property::noncharacter_code_point>(char32_t cp) {
+constexpr bool cp_property_is<property::noncharacter_code_point>(char32_t cp) {
     return (char32_t(cp) & 0xfffe) == 0xfffe || (char32_t(cp) >= 0xfdd0 && char32_t(cp) <= 0xfdef);
 }
 
 // http://unicode.org/reports/tr44/#Lowercase
 template<>
-constexpr bool cp_is<property::lowercase>(char32_t cp) {
+constexpr bool cp_property_is<property::lowercase>(char32_t cp) {
     return detail::tables::cat_ll.lookup(char32_t(cp)) || detail::tables::prop_olower_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Uppercase
 template<>
-constexpr bool cp_is<property::uppercase>(char32_t cp) {
+constexpr bool cp_property_is<property::uppercase>(char32_t cp) {
     return detail::tables::cat_lu.lookup(char32_t(cp)) || detail::tables::prop_oupper_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Cased
 template<>
-constexpr bool cp_is<property::cased>(char32_t cp) {
-    return cp_is<property::lower>(cp) || cp_is<property::upper>(cp) ||
+constexpr bool cp_property_is<property::cased>(char32_t cp) {
+    return cp_property_is<property::lower>(cp) || cp_property_is<property::upper>(cp) ||
            detail::tables::cat_lt.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Math
 template<>
-constexpr bool cp_is<property::math>(char32_t cp) {
+constexpr bool cp_property_is<property::math>(char32_t cp) {
     return detail::tables::cat_sm.lookup(char32_t(cp)) || detail::tables::prop_omath_data.lookup(cp);
 }
 
 // http://unicode.org/reports/tr44/#Case_Ignorable
 template<>
-constexpr bool cp_is<property::case_ignorable>(char32_t) {
+constexpr bool cp_property_is<property::case_ignorable>(char32_t) {
     return false;
 }
 
 
 // http://unicode.org/reports/tr44/#Grapheme_Extend
 template<>
-constexpr bool cp_is<property::grapheme_extend>(char32_t cp) {
+constexpr bool cp_property_is<property::grapheme_extend>(char32_t cp) {
     return detail::tables::cat_me.lookup(char32_t(cp)) || detail::tables::cat_mn.lookup(char32_t(cp)) ||
            detail::tables::prop_ogr_ext_data.lookup(cp);
 }
@@ -7460,7 +7460,7 @@ constexpr bool cp_is_ascii(char32_t cp) {
 }
 
 template<>
-constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
+constexpr bool cp_property_is<property::default_ignorable_code_point>(char32_t cp) {
     const auto c = char32_t(cp);
     const bool maybe = detail::tables::prop_odi_data.lookup(cp) || detail::tables::cat_cf.lookup(cp) ||
                        detail::tables::prop_vs_data.lookup(cp);
@@ -7482,17 +7482,17 @@ constexpr bool cp_is<property::default_ignorable_code_point>(char32_t cp) {
 
 // http://www.unicode.org/reports/tr31/#D1
 template<>
-constexpr bool cp_is<property::id_start>(char32_t cp) {
+constexpr bool cp_property_is<property::id_start>(char32_t cp) {
     const bool maybe =
-        cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
+        cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
     if(!maybe)
         return false;
     return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
 template<>
-constexpr bool cp_is<property::id_continue>(char32_t cp) {
-    const bool maybe = cp_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
+constexpr bool cp_property_is<property::id_continue>(char32_t cp) {
+    const bool maybe = cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
                        detail::tables::prop_oids_data.lookup(cp) || detail::tables::cat_mn.lookup(cp) || detail::tables::cat_mc.lookup(cp) ||
                        detail::tables::cat_nd.lookup(cp) || detail::tables::cat_pc.lookup(cp) || detail::tables::prop_oidc_data.lookup(cp);
     if(!maybe)
@@ -7505,7 +7505,7 @@ namespace detail {
 template<typename Array, typename Res = long long>
 constexpr bool get_numeric_value(char32_t cp, const Array& array, Res& res) {
     auto it = detail::lower_bound(std::begin(array), std::end(array), cp,
-                               [](const auto& d, char32_t cp) { return d.first < cp; });
+                               [](const auto& d, char32_t cp_) { return d.first < cp_; });
     if(it == std::end(array) || it->first != cp)
         return false;
     res = it->second;
@@ -7524,7 +7524,7 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
        }())) {
         return {};
     }
-    uint16_t d = 1;
+    int16_t d = 1;
     detail::get_numeric_value(cp, detail::tables::numeric_data_d, d);
     return numeric_value(res, d);
 }
@@ -7544,6 +7544,7 @@ namespace std
         using iterator_category = std::forward_iterator_tag;
     };
 }
+
 #ifndef UNI_SINGLE_HEADER
 #    pragma once
 #    include "unicode.h"
@@ -7804,417 +7805,417 @@ enum class binary_prop {
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ahex>(char32_t c) {
-    return cp_is<property::ahex>(c);
+    return cp_property_is<property::ahex>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::alpha>(char32_t c) {
-    return cp_is<property::alpha>(c);
+    return cp_property_is<property::alpha>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::bidi_c>(char32_t c) {
-    return cp_is<property::bidi_c>(c);
+    return cp_property_is<property::bidi_c>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::bidi_m>(char32_t c) {
-    return cp_is<property::bidi_m>(c);
+    return cp_property_is<property::bidi_m>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::cased>(char32_t c) {
-    return cp_is<property::cased>(c);
+    return cp_property_is<property::cased>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ci>(char32_t c) {
-    return cp_is<property::ci>(c);
+    return cp_property_is<property::ci>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::dash>(char32_t c) {
-    return cp_is<property::dash>(c);
+    return cp_property_is<property::dash>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::dep>(char32_t c) {
-    return cp_is<property::dep>(c);
+    return cp_property_is<property::dep>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::di>(char32_t c) {
-    return cp_is<property::di>(c);
+    return cp_property_is<property::di>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::dia>(char32_t c) {
-    return cp_is<property::dia>(c);
+    return cp_property_is<property::dia>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::emoji>(char32_t c) {
-    return cp_is<property::emoji>(c);
+    return cp_property_is<property::emoji>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::emoji_component>(char32_t c) {
-    return cp_is<property::emoji_component>(c);
+    return cp_property_is<property::emoji_component>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::emoji_modifier>(char32_t c) {
-    return cp_is<property::emoji_modifier>(c);
+    return cp_property_is<property::emoji_modifier>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::emoji_modifier_base>(char32_t c) {
-    return cp_is<property::emoji_modifier_base>(c);
+    return cp_property_is<property::emoji_modifier_base>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::emoji_presentation>(char32_t c) {
-    return cp_is<property::emoji_presentation>(c);
+    return cp_property_is<property::emoji_presentation>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ext>(char32_t c) {
-    return cp_is<property::ext>(c);
+    return cp_property_is<property::ext>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::extended_pictographic>(char32_t c) {
-    return cp_is<property::extended_pictographic>(c);
+    return cp_property_is<property::extended_pictographic>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::gr_base>(char32_t c) {
-    return cp_is<property::gr_base>(c);
+    return cp_property_is<property::gr_base>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::gr_ext>(char32_t c) {
-    return cp_is<property::gr_ext>(c);
+    return cp_property_is<property::gr_ext>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::hex>(char32_t c) {
-    return cp_is<property::hex>(c);
+    return cp_property_is<property::hex>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::idc>(char32_t c) {
-    return cp_is<property::idc>(c);
+    return cp_property_is<property::idc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ideo>(char32_t c) {
-    return cp_is<property::ideo>(c);
+    return cp_property_is<property::ideo>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ids>(char32_t c) {
-    return cp_is<property::ids>(c);
+    return cp_property_is<property::ids>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::idsb>(char32_t c) {
-    return cp_is<property::idsb>(c);
+    return cp_property_is<property::idsb>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::idst>(char32_t c) {
-    return cp_is<property::idst>(c);
+    return cp_property_is<property::idst>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::join_c>(char32_t c) {
-    return cp_is<property::join_c>(c);
+    return cp_property_is<property::join_c>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::loe>(char32_t c) {
-    return cp_is<property::loe>(c);
+    return cp_property_is<property::loe>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lower>(char32_t c) {
-    return cp_is<property::lower>(c);
+    return cp_property_is<property::lower>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::math>(char32_t c) {
-    return cp_is<property::math>(c);
+    return cp_property_is<property::math>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::nchar>(char32_t c) {
-    return cp_is<property::nchar>(c);
+    return cp_property_is<property::nchar>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pat_syn>(char32_t c) {
-    return cp_is<property::pat_syn>(c);
+    return cp_property_is<property::pat_syn>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pat_ws>(char32_t c) {
-    return cp_is<property::pat_ws>(c);
+    return cp_property_is<property::pat_ws>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pcm>(char32_t c) {
-    return cp_is<property::pcm>(c);
+    return cp_property_is<property::pcm>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::qmark>(char32_t c) {
-    return cp_is<property::qmark>(c);
+    return cp_property_is<property::qmark>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::radical>(char32_t c) {
-    return cp_is<property::radical>(c);
+    return cp_property_is<property::radical>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ri>(char32_t c) {
-    return cp_is<property::ri>(c);
+    return cp_property_is<property::ri>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::sd>(char32_t c) {
-    return cp_is<property::sd>(c);
+    return cp_property_is<property::sd>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::sterm>(char32_t c) {
-    return cp_is<property::sterm>(c);
+    return cp_property_is<property::sterm>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::term>(char32_t c) {
-    return cp_is<property::term>(c);
+    return cp_property_is<property::term>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::uideo>(char32_t c) {
-    return cp_is<property::uideo>(c);
+    return cp_property_is<property::uideo>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::upper>(char32_t c) {
-    return cp_is<property::upper>(c);
+    return cp_property_is<property::upper>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::vs>(char32_t c) {
-    return cp_is<property::vs>(c);
+    return cp_property_is<property::vs>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::wspace>(char32_t c) {
-    return cp_is<property::wspace>(c);
+    return cp_property_is<property::wspace>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::xidc>(char32_t c) {
-    return cp_is<property::xidc>(c);
+    return cp_property_is<property::xidc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::xids>(char32_t c) {
-    return cp_is<property::xids>(c);
+    return cp_property_is<property::xids>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::c>(char32_t c) {
-    return cp_is<category::c>(c);
+    return cp_category_is<category::c>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::cc>(char32_t c) {
-    return cp_is<category::cc>(c);
+    return cp_category_is<category::cc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::cf>(char32_t c) {
-    return cp_is<category::cf>(c);
+    return cp_category_is<category::cf>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::cn>(char32_t c) {
-    return cp_is<category::cn>(c);
+    return cp_category_is<category::cn>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::co>(char32_t c) {
-    return cp_is<category::co>(c);
+    return cp_category_is<category::co>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::cs>(char32_t c) {
-    return cp_is<category::cs>(c);
+    return cp_category_is<category::cs>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::l>(char32_t c) {
-    return cp_is<category::l>(c);
+    return cp_category_is<category::l>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lc>(char32_t c) {
-    return cp_is<category::lc>(c);
+    return cp_category_is<category::lc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ll>(char32_t c) {
-    return cp_is<category::ll>(c);
+    return cp_category_is<category::ll>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lm>(char32_t c) {
-    return cp_is<category::lm>(c);
+    return cp_category_is<category::lm>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lo>(char32_t c) {
-    return cp_is<category::lo>(c);
+    return cp_category_is<category::lo>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lt>(char32_t c) {
-    return cp_is<category::lt>(c);
+    return cp_category_is<category::lt>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::lu>(char32_t c) {
-    return cp_is<category::lu>(c);
+    return cp_category_is<category::lu>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::m>(char32_t c) {
-    return cp_is<category::m>(c);
+    return cp_category_is<category::m>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::mc>(char32_t c) {
-    return cp_is<category::mc>(c);
+    return cp_category_is<category::mc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::me>(char32_t c) {
-    return cp_is<category::me>(c);
+    return cp_category_is<category::me>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::mn>(char32_t c) {
-    return cp_is<category::mn>(c);
+    return cp_category_is<category::mn>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::n>(char32_t c) {
-    return cp_is<category::n>(c);
+    return cp_category_is<category::n>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::nd>(char32_t c) {
-    return cp_is<category::nd>(c);
+    return cp_category_is<category::nd>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::nl>(char32_t c) {
-    return cp_is<category::nl>(c);
+    return cp_category_is<category::nl>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::no>(char32_t c) {
-    return cp_is<category::no>(c);
+    return cp_category_is<category::no>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::p>(char32_t c) {
-    return cp_is<category::p>(c);
+    return cp_category_is<category::p>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pc>(char32_t c) {
-    return cp_is<category::pc>(c);
+    return cp_category_is<category::pc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pd>(char32_t c) {
-    return cp_is<category::pd>(c);
+    return cp_category_is<category::pd>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pe>(char32_t c) {
-    return cp_is<category::pe>(c);
+    return cp_category_is<category::pe>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pf>(char32_t c) {
-    return cp_is<category::pf>(c);
+    return cp_category_is<category::pf>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::pi>(char32_t c) {
-    return cp_is<category::pi>(c);
+    return cp_category_is<category::pi>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::po>(char32_t c) {
-    return cp_is<category::po>(c);
+    return cp_category_is<category::po>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::ps>(char32_t c) {
-    return cp_is<category::ps>(c);
+    return cp_category_is<category::ps>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::s>(char32_t c) {
-    return cp_is<category::s>(c);
+    return cp_category_is<category::s>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::sc>(char32_t c) {
-    return cp_is<category::sc>(c);
+    return cp_category_is<category::sc>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::sk>(char32_t c) {
-    return cp_is<category::sk>(c);
+    return cp_category_is<category::sk>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::sm>(char32_t c) {
-    return cp_is<category::sm>(c);
+    return cp_category_is<category::sm>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::so>(char32_t c) {
-    return cp_is<category::so>(c);
+    return cp_category_is<category::so>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::z>(char32_t c) {
-    return cp_is<category::z>(c);
+    return cp_category_is<category::z>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::zl>(char32_t c) {
-    return cp_is<category::zl>(c);
+    return cp_category_is<category::zl>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::zp>(char32_t c) {
-    return cp_is<category::zp>(c);
+    return cp_category_is<category::zp>(c);
 }
 
 template<>
 constexpr bool get_binary_prop<binary_prop::zs>(char32_t c) {
-    return cp_is<category::zs>(c);
+    return cp_category_is<category::zs>(c);
 }
 
 template<>
