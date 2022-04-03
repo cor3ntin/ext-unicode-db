@@ -10,9 +10,6 @@ from io import StringIO
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[3])
 LAST_VERSION = "14.0"
-STANDARD_VERSION = "14.0"
-SUPPORTED_VERSIONS = [] # "9.0", "8.0", "7.0"]
-MIN_VERSION = "14.0"
 PROPS_VALUE_FILE = os.path.join(DIR_WITH_UCD, "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR_WITH_UCD, "binary_props.txt")
 
@@ -251,38 +248,7 @@ def write_script_data(characters, scripts_names, file):
         f.write("0xFFFFFFFF")
         f.write("};};")
 
-        # modified = block
-        # data = []
-        # for k, v in changed.items():
-        #     old = collections.OrderedDict([(cp.cp, cp.scx) for cp in v if not cp.cp in modified or cp.scx != modified[cp.cp]])
-        #     for cp, v in old.items():
-        #         if len(v) < len(modified[cp]):
-        #             old[cp].append('zzzz')
-        #     old = [(cp, scx) for cp, scx in old.items() if len(scx) > idx and (len(modified[cp]) <= idx or scx[idx] != modified[cp][idx])]
-
-        #     if len(old) > 0:
-        #         data.append((age_name(k), old))
-        #     modified.update(dict(old))
-
-        # for version, d in data:
-        #     f.write("static constexpr const compact_list scripts_data_compat_{} = {{".format(version))
-        #     for i, (cp, script) in enumerate(d):
-        #         f.write("{}{}".format(to_hex((cp << 8) | indexes[script[idx]], 10), "," if i < len(d) - 1 else ""))
-        #     f.write("};")
-        # f.write("template <uni::version v> constexpr script older_cp_script([[maybe_unused]] char32_t cp, script sc) {")
-        # for version, _ in data:
-        #     f.write("""
-        #         if constexpr(v <= uni::version::{0}) {{
-        #             sc = static_cast<uni::script>(scripts_data_compat_{0}.value(cp, uint8_t(sc)));
-        #         }}
-        #     """.format(version))
-        # f.write("return sc;}")
-        # f.write("};")
-
     l = max([len(cp.scx) for cp in characters])
-    # for _, v in changed.items():
-    #     m = max([len(cp.scx) for cp in v])
-    #     if m > l: l = m
 
     for i in range(l):
         write_block(i, character_map)
@@ -573,32 +539,7 @@ def write_categories_data(characters, categories_names, file):
     )
 
     f.write("namespace detail::tables {")
-
-    #changed characters
     print("total size : {}".format(size / 1024.0))
-    # with_data = []
-    # modified = dict([(cp.cp, cp.gc) for cp in characters])
-    # for k, v in changed.items():
-    #     old =  [(cp.cp, cp.gc) for cp in v if cp.gc != modified[cp.cp]]
-    #     if len(old) == 0:
-    #         continue
-    #     f.write("static constexpr uni::pair<int, category> __cat_version_data_{}[] {{".format(age_name(k)))
-    #     for idx, (cp, gc) in enumerate(old):
-    #         f.write("uni::pair{{ {}, category::{} }}{}".format(to_hex(cp, 6), gc, "," if idx < len(old) - 1 else ""))
-    #     f.write("};")
-    #     modified.update(old)
-    #     with_data.append(k)
-
-    # f.write("template <version v> constexpr category __get_category_for_version([[maybe_unused]] char32_t cp, category c) {")
-    # for v in with_data:
-    #     f.write("""
-    #         if constexpr( v<= uni::version::{0} ) {{
-    #             const auto it = uni::lower_bound(std::begin(__cat_version_data_{0}), std::end(__cat_version_data_{0}), cp,
-    #             [](const auto & e, char32_t cp) {{ return e.first < cp; }});
-    #         if (it != std::end(__cat_version_data_{0}) && cp == it->first)
-    #             c = it->second;
-    #     }}""".format(age_name(v)))
-    # f.write("return c; }")
 
 def characters_ages(characters):
     return sorted(list(set([float(cp.age) for cp in characters if cp.age != 'unassigned'])))
@@ -609,8 +550,6 @@ def write_enum_age(characters, f):
     f.write("unassigned,")
     for i, age in enumerate(ages):
         f.write(age_name(age) + ",")
-    #f.write("standard_unicode_version = {},".format(age_name(STANDARD_VERSION)))
-    #f.write("minimum_version = {},".format(age_name(MIN_VERSION)))
     f.write("latest_version = {}".format(age_name(LAST_VERSION)))
     f.write("};")
 
@@ -834,32 +773,6 @@ if __name__ == "__main__":
 
     categories_name = get_cats_names()
 
-
-
-
-
-    # changed = {}
-    # new = all_characters
-    # for v in  SUPPORTED_VERSIONS:
-    #     changed[v] = []
-    #     print("Getting informations for Unicode {}".format(v))
-    #     old, _ = get_unicode_data(v)
-    #     for o in old:
-    #         try:
-    #             c = new[o.cp]
-    #             if c.reserved:
-    #                 continue
-    #             if c.sc != o.sc or c.scx != o.scx or c.gc != o.gc or c.nv != o.nv:
-    #                 changed[v].append(o)
-    #                 continue
-    #             for k in c.props.keys():
-    #                 if c.props[k] != o.props[k]:
-    #                     changed[v].append(o)
-    #                     break
-    #         except:
-    #             pass
-    #     new = old
-
     with open(sys.argv[1], "w") as f:
         f.write("""
 #pragma once
@@ -912,23 +825,3 @@ namespace uni::detail {
 """)
         write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
         f.write("}\n\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
