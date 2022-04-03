@@ -1,9 +1,9 @@
-project(cedilla)
-
 cmake_minimum_required(VERSION 3.5)
 
+project(cedilla VERSION 1.0)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
-find_package(PythonInterp 3 REQUIRED)
+find_package(Python3)
 
 foreach(UCD_VERSION 14.0)
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION})
@@ -61,7 +61,7 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/properties.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND pypy3 ${PROJECT_SOURCE_DIR}/tools/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
     COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
     COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
     COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h
