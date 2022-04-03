@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <execution>
 #include <fmt/ranges.h>
 #include <fmt/ostream.h>
 #include <fmt/format.h>
@@ -24,12 +25,6 @@
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 #include <range/v3/algorithm/copy.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include "pstl/algorithm"
-#include "pstl/execution"
-#include "tbb/task_scheduler_init.h"
-#include "tbb/concurrent_unordered_map.h"
-#include "tbb/concurrent_unordered_set.h"
 #include "range/v3/view/span.hpp"
 
 #include <mutex>
@@ -123,14 +118,16 @@ struct character_name {
 
 template<typename R>
 auto substrings(R&& r) {
-    tbb::concurrent_unordered_set<std::string_view, std::hash<std::string_view>> set;
+    std::mutex m;
+    std::unordered_set<std::string_view, std::hash<std::string_view>> set;
     std::for_each(std::execution::par_unseq, ranges::begin(r), ranges::end(r),
-                      [&set](const character_name& c) {
+                      [&](const character_name& c) {
         for(const auto& b : c.bits()) {
             for(auto i : ranges::view::iota(1, b.second.size() + 1)) {
                 auto sub = b.second.substr(0, i);
                 if(sub.size() == 0)
                     break;
+                std::unique_lock _(m);
                 set.insert(sub);
             }
         }
@@ -262,9 +259,9 @@ int main(int argc, char** argv) {
                  }) |
                  ranges::to<std::vector>;
 
-
+    std::mutex m;
     std::unordered_map<std::string_view, int> all_used;
-    tbb::concurrent_unordered_map<std::string_view, int, std::hash<std::string_view>> used_substrings;
+    std::unordered_map<std::string_view, int, std::hash<std::string_view>> used_substrings;
 
     auto end = names.end();
 
@@ -289,7 +286,6 @@ int main(int argc, char** argv) {
             });
             return tmp;
         }();
-
 
         used_substrings.clear();
         for(const auto& s : subs) {

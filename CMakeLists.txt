@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.18)
 
 project(cedilla VERSION 1.0)
 
+set(PY_VERSION 3.7)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
-find_package(Python3)
+set(Python_FIND_IMPLEMENTATIONS PyPy)
+find_package(Python3 COMPONENTS Interpreter)
+message("-- Found Python ${Python3_EXECUTABLE}")
 
 foreach(UCD_VERSION 14.0)
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ucd/${UCD_VERSION})
@@ -37,13 +40,13 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(third_party/fmt)
-add_subdirectory(third_party/pstl2019_20191006oss)
 add_executable(namesgen
     tools/names.cpp
     tests/pugixml.cpp
 )
-target_link_libraries(namesgen PRIVATE fmt::fmt ParallelSTL)
-target_compile_options(namesgen PRIVATE "-fopenmp-simd")
+
+find_package(TBB REQUIRED)
+target_link_libraries(namesgen PRIVATE fmt::fmt TBB::tbb)
 target_include_directories(namesgen PUBLIC third_party/range-v3/include third_party/fmt/include)
 
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
@@ -52,7 +55,7 @@ add_executable(namesreversegen
     tools/namesreverse.cpp
     tests/pugixml.cpp
 )
-target_link_libraries(namesreversegen PRIVATE fmt::fmt ParallelSTL)
+
 target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native" "-g3")
 target_include_directories(namesreversegen PUBLIC third_party/range-v3/include third_party/fmt/include)
 
