@@ -14968,7 +14968,7 @@ namespace details {
         const bool has_value = name & 0x80;
         name &= ~0xC0;
         if(long_name) {
-            uint32_t name_offset = (index[offset++] << 8);
+            uint32_t name_offset = (index[offset++] << 8u);
             name_offset |= index[offset++];
             n.name = std::string_view(dict + name_offset, name);
         } else {
@@ -14978,14 +14978,14 @@ namespace details {
             uint8_t h = index[offset++];
             uint8_t m = index[offset++];
             uint8_t l = index[offset++];
-            n.value = ((h << 16) | (m << 8) | l) >> 3;
+            n.value = uint32_t((h << 16u) | (m << 8u) | l) >> 3u;
 
             bool has_children = l & 0x02;
             n.has_sibling = l & 0x01;
 
             if(has_children) {
-                n.children_offset = (index[offset++] << 16);
-                n.children_offset |= (index[offset++] << 8);
+                n.children_offset = uint32_t(index[offset++] << 16u);
+                n.children_offset |= uint32_t(index[offset++] << 8u);
                 n.children_offset |= index[offset++];
             }
         } else {
@@ -14994,8 +14994,8 @@ namespace details {
             bool has_children = h & 0x40;
             h &= ~0xC0;
             if(has_children) {
-                n.children_offset = (h << 16);
-                n.children_offset |= (uint32_t(index[offset++]) << 8);
+                n.children_offset = (h << 16u);
+                n.children_offset |= (uint32_t(index[offset++]) << 8u);
                 n.children_offset |= index[offset++];
             }
         }
@@ -15043,7 +15043,7 @@ namespace details {
         if(cmp == -1) {
             return {n, false, 0};
         }
-        start = cmp;
+        start = uint32_t(cmp);
         if(name.size() == start)
             return {n, true, n.value};
         if(n.has_children()) {
@@ -15120,7 +15120,7 @@ namespace details {
         return str.size() >= needle.size() && str.compare(0, needle.size(), needle) == 0;
     }
 
-    constexpr int find_syllable(std::string_view str, int& pos, int count, int column) {
+    constexpr uint32_t find_syllable(std::string_view str, int& pos, int count, int column) {
         int len = -1;
         for(int i = 0; i < count; i++) {
             std::string_view s(hangul_syllables[i][column]);
@@ -15133,18 +15133,18 @@ namespace details {
         }
         if(len == -1)
             len = 0;
-        return len;
+        return uint32_t(len);
     }
 
     constexpr const char32_t SBase = 0xAC00;
     constexpr const char32_t LBase = 0x1100;
     constexpr const char32_t VBase = 0x1161;
     constexpr const char32_t TBase = 0x11A7;
-    constexpr const int LCount = 19;
-    constexpr const int VCount = 21;
-    constexpr const int TCount = 28;
-    constexpr const int NCount = (VCount * TCount);
-    constexpr const int SCount = (LCount * NCount);
+    constexpr const uint32_t LCount = 19;
+    constexpr const uint32_t VCount = 21;
+    constexpr const uint32_t TCount = 28;
+    constexpr const uint32_t NCount = (VCount * TCount);
+    constexpr const uint32_t SCount = (LCount * NCount);
 }    // namespace details
 
 
@@ -15158,7 +15158,8 @@ constexpr char32_t cp_from_name(std::string_view name) {
         name.remove_prefix(find_syllable(name, V, VCount, 1));
         name.remove_prefix(find_syllable(name, T, TCount, 2));
         if(L != -1 && V != -1 && T != -1 && name.size() == 0) {
-            return SBase + (L * VCount + V) * TCount + T;
+            return SBase + (std::uint32_t(L) * VCount + std::uint32_t(V)) * TCount +
+                   std::uint32_t(T);
         }
         // Otherwise, it's an illegal syllable name.
         return 0xFFFFFF;

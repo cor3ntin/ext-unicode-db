@@ -2,6 +2,7 @@
 
 #include <string_view>
 
+#ifndef CTRE_UNICODE_SYNOPSYS_WAS_INCLUDED
 namespace uni {
 enum class category;
 enum class property;
@@ -91,6 +92,7 @@ namespace detail {
     constexpr bool is_unknown(binary_prop s);
 }    // namespace detail
 }    // namespace uni
+#endif
 
 #include <cstdint>
 #include <algorithm>
@@ -234,13 +236,13 @@ struct bool_trie {
             if constexpr(r1_s == 0) {
                 return false;
             } else {
-                return trie_range_leaf(c, r1[c >> 6]);
+                return trie_range_leaf(c, r1[std::size_t(c >> 6)]);
             }
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0) {
                 return false;
             } else {
-                std::size_t i = ((c >> 6) - 0x20);
+                std::size_t i = (std::size_t(c >> 6) - 0x20);
                 auto child = 0;
                 if(i >= r2_t_f && i < r2_t_f + r2_s)
                     child = r2[i - r2_t_f];
@@ -256,11 +258,12 @@ struct bool_trie {
                     child = r4[i4 - r4_t_f];
             }
 
-            std::size_t i5 = static_cast<std::size_t>((child << 6) + ((c >> 6) & 0x3f));
+            std::size_t i5 = static_cast<std::size_t>(std::size_t(child << 6) +
+                                                      (std::size_t(c >> 6) & std::size_t(0x3f)));
             auto leaf = 0;
-            if constexpr(r5_s > 0) {
-                if(i5 >= r5_t_f && i5 < r5_t_f + r5_s)
-                    leaf = r5[i5 - r5_t_f];
+            if constexpr(r5_s != 0) {
+                if(i5 >= std::size_t(r5_t_f) && i5 < std::size_t(r5_t_f) + r5_s)
+                    leaf = r5[i5 - std::size_t(r5_t_f)];
             }
             return trie_range_leaf(c, r6[leaf]);
         }
@@ -311,7 +314,7 @@ range_array(U...) -> range_array<sizeof...(U)>;
 
 constexpr char propcharnorm(char a) {
     if(a >= 'A' && a <= 'Z')
-        return a + 32;
+        return static_cast<char>(a + char(32));
     if(a == ' ' || a == '-')
         return '_';
     return a;

@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 
+#ifndef CTRE_UNICODE_SYNOPSYS_WAS_INCLUDED
 namespace uni
 {
     enum class category;
@@ -92,3 +93,4 @@ namespace uni
         constexpr bool is_unknown(binary_prop s);
     }
 }
+#endif

@@ -36,7 +36,7 @@ struct name_view {
             get_next_segment();
         }
         constexpr char32_t operator*() const {
-            return m_str[m_str_pos];
+            return char32_t(m_str[m_str_pos]);
         }
 
         constexpr iterator& operator++(int) {
@@ -72,7 +72,7 @@ struct name_view {
     private:
         constexpr void get_next_segment() {
             if(m_chunk_pos >= 3 || m_block == -1) {
-                const auto range = __get_table_index(++m_block);
+                const auto range = __get_table_index(std::size_t(++m_block));
                 if(range.first == nullptr) {
                     m_block = -2;
                     return;
