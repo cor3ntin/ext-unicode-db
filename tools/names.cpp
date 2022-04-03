@@ -15,6 +15,7 @@
 #include <range/v3/view/span.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/chunk.hpp>
+#include <range/v3/view/counted.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/sort.hpp>
@@ -123,7 +124,7 @@ auto substrings(R&& r) {
     std::for_each(std::execution::par_unseq, ranges::begin(r), ranges::end(r),
                       [&](const character_name& c) {
         for(const auto& b : c.bits()) {
-            for(auto i : ranges::view::iota(1, b.second.size() + 1)) {
+            for(auto i : ranges::views::iota(std::size_t(1), b.second.size() + 1)) {
                 auto sub = b.second.substr(0, i);
                 if(sub.size() == 0)
                     break;
@@ -221,7 +222,7 @@ void print_indexes(std::FILE* f,
     }
     fmt::print(f, "0xFFFF'FFFF'FFFF'FFFF}};");
 
-    for(const auto& [index, data] : ranges::view::enumerate(sorted_jump_table)) {
+    for(const auto& [index, data] : ranges::views::enumerate(sorted_jump_table)) {
         fmt::print(f, "constexpr uint64_t __name_indexes_{}[] = {{", index);
         bool first = true;
         char32_t prev = 0;
@@ -241,7 +242,7 @@ void print_indexes(std::FILE* f,
     fmt::print(f, "constexpr std::pair<const uint64_t* const, const uint64_t* const> "
                   "__get_table_index(std::size_t index) {{");
     fmt::print(f, "switch(index) {{");
-    for(const auto& [index, data] : ranges::view::enumerate(sorted_jump_table)) {
+    for(const auto& [index, data] : ranges::views::enumerate(sorted_jump_table)) {
         fmt::print(f, "case {}:", index);
         fmt::print(f,
                    "return {{  __name_indexes_{0},  __name_indexes_{0} +  "
@@ -254,7 +255,7 @@ void print_indexes(std::FILE* f,
 int main(int argc, char** argv) {
 
     const auto data = load_data(argv[1]);
-    auto names = data | ranges::view::transform([](const auto& p) {
+    auto names = data | ranges::views::transform([](const auto& p) {
                      return character_name{p.first, p.second, {}, 0};
                  }) |
                  ranges::to<std::vector>;
@@ -270,7 +271,7 @@ int main(int argc, char** argv) {
             [](const auto & a) {
                 return !a.complete();
             });
-        auto incomplete = ranges::view::counted(names.begin(), std::size_t(ranges::distance(names.begin(), end)));
+        auto incomplete = ranges::views::counted(names.begin(), std::size_t(ranges::distance(names.begin(), end)));
 
         fmt::print("Count : {}\n", ranges::distance(incomplete));
 
@@ -302,10 +303,10 @@ int main(int argc, char** argv) {
                 std::for_each(std::execution::par_unseq,
                 ranges::begin(bits),
                 ranges::end(bits), [&used_substrings, &c](const auto & b) {
-                        for(auto i : ranges::view::iota(0, b.second.size() + 1)) {
+                        for(auto i : ranges::views::iota(std::size_t(0), b.second.size() + 1)) {
                             if(i > 0 && i < 5)
                                 continue;
-                            for(auto j : ranges::view::iota(i, b.second.size() + 1)) {
+                            for(auto j : ranges::views::iota(std::size_t(i), b.second.size() + 1)) {
                                 auto it = used_substrings.find(b.second.substr(i, j));
                                 if(it != used_substrings.end()) {
                                     it->second++;
@@ -318,14 +319,14 @@ int main(int argc, char** argv) {
         fmt::print("Substrings : {}\n", subs.size());
 
         std::vector<std::pair<std::string_view, double>> weighted_substrings =
-            used_substrings | ranges::view::remove_if([](const auto& p) {
+            used_substrings | ranges::views::remove_if([](const auto& p) {
                 return p.second == 0;
             }) |
-            ranges::view::transform([](const auto& p) {
+            ranges::views::transform([](const auto& p) {
                 const double d =
                     p.first.size() < 5 ? 1.0 : double(p.second) * p.first.size();
                 return std::pair<std::string_view, double>{p.first, d};
-            });
+            }) | ranges::to<std::vector>;
         fmt::print("Used Substrings : {}\n", weighted_substrings.size());
         const auto count = std::size_t(1 + 0.01 * double(weighted_substrings.size()));
         fmt::print("{}", count);
@@ -336,9 +337,9 @@ int main(int argc, char** argv) {
                 return a.second > b.second;
             }
         );
-        std::vector<std::string_view> filtered =
-            weighted_substrings | ranges::view::take(count) |
-            ranges::view::transform([](const auto& p) { return p.first; });
+        auto filtered =
+            weighted_substrings | ranges::views::take(count) |
+            ranges::views::transform([](const auto& p) { return p.first; }) | ranges::to<std::vector<std::string_view>>;
 
         std::partial_sort(std::execution::par_unseq,
             std::begin(filtered),
@@ -349,7 +350,7 @@ int main(int argc, char** argv) {
         );
 
         std::mutex mutex;
-        for(const auto& s : filtered | ranges::view::take(10)) {
+        for(const auto& s : filtered | ranges::views::take(10)) {
             std::for_each(std::execution::par_unseq,
                          ranges::begin(incomplete),
                          ranges::end(incomplete),
@@ -383,7 +384,7 @@ int main(int argc, char** argv) {
         if(b.data.size() <= 0xFE)
             blocks_by_size.push_back(b);
         else {
-            for(const auto& c : b.data | ranges::view::chunk(0xFE)) {
+            for(const auto& c : b.data | ranges::views::chunk(0xFE)) {
                 std::vector k = ranges::to<std::vector>(c);
                 blocks_by_size.push_back(block{b.elem_size,
 

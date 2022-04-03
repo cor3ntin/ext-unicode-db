@@ -1,6 +1,4 @@
-#ifndef H_COR3NTIN_UNICODE_SYNOPSYS
-#define H_COR3NTIN_UNICODE_SYNOPSYS
-
+#pragma once
 #include <string_view>
 
 namespace uni
@@ -94,5 +92,3 @@ namespace uni
         constexpr bool is_unknown(binary_prop s);
     }
 }
-
-#endif

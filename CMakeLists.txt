@@ -39,15 +39,15 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(third_party/fmt)
 add_executable(namesgen
     tools/names.cpp
     tests/pugixml.cpp
 )
 
 find_package(TBB REQUIRED)
-target_link_libraries(namesgen PRIVATE fmt::fmt TBB::tbb)
-target_include_directories(namesgen PUBLIC third_party/range-v3/include third_party/fmt/include)
+find_package(range-v3 REQUIRED)
+find_package(fmt REQUIRED)
+target_link_libraries(namesgen PRIVATE fmt::fmt TBB::tbb range-v3)
 
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
 
@@ -56,31 +56,33 @@ add_executable(namesreversegen
     tests/pugixml.cpp
 )
 
-target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native" "-g3")
-target_include_directories(namesreversegen PUBLIC third_party/range-v3/include third_party/fmt/include)
+target_link_libraries(namesreversegen PRIVATE fmt::fmt TBB::tbb range-v3)
+target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native")
 
 add_custom_command(
     COMMENT "Generating Properties Header"
     OUTPUT ${HEADERS_DIR}/properties.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/gen.py ${PROJECT_BINARY_DIR}/props.h ${PROJECT_BINARY_DIR}/extra.h ${PROJECT_BINARY_DIR}/ucd/
-    COMMAND clang-format ${PROJECT_BINARY_DIR}/props.h -i
-    COMMAND clang-format ${PROJECT_BINARY_DIR}/extra.h -i
-    COMMAND cat ${PROJECT_SOURCE_DIR}/single_header.h
-                ${PROJECT_SOURCE_DIR}/synopsys.h
-                ${PROJECT_SOURCE_DIR}/base.h
-                ${PROJECT_BINARY_DIR}/props.h
-                ${PROJECT_SOURCE_DIR}/unicode.h
-                ${PROJECT_BINARY_DIR}/extra.h
-                ${PROJECT_SOURCE_DIR}/regex.h
-                > ${HEADERS_DIR}/properties.hpp
+    COMMAND ${Python3_EXECUTABLE}
+      ${PROJECT_SOURCE_DIR}/tools/gen.py
+      ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
+      ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
+      ${PROJECT_BINARY_DIR}/ucd/
+    COMMAND ${Python3_EXECUTABLE} -m quom
+                ${PROJECT_SOURCE_DIR}/src/all.hpp
+                -I ${PROJECT_BINARY_DIR}
+                -I ${PROJECT_SOURCE_DIR}/src/
+                ${HEADERS_DIR}/properties.hpp
+
+    COMMAND clang-format ${HEADERS_DIR}/properties.hpp -i
+
     DEPENDS
-        ${PROJECT_SOURCE_DIR}/synopsys.h
-        ${PROJECT_SOURCE_DIR}/base.h
-        ${PROJECT_SOURCE_DIR}/unicode.h
-        ${PROJECT_SOURCE_DIR}/regex.h
-        ${PROJECT_SOURCE_DIR}/single_header.h
+        ${PROJECT_SOURCE_DIR}/src/all.hpp
+        ${PROJECT_SOURCE_DIR}/src/cedilla/synopsys.h
+        ${PROJECT_SOURCE_DIR}/src/cedilla/base.h
+        ${PROJECT_SOURCE_DIR}/src/cedilla/unicode.h
+        ${PROJECT_SOURCE_DIR}/src/cedilla/regex.h
         ${PROJECT_SOURCE_DIR}/tools/gen.py
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
@@ -94,11 +96,11 @@ add_custom_command(
     COMMAND mkdir -p ${HEADERS_DIR}
     COMMAND namesreversegen
       ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml > ${HEADERS_DIR}/name_to_cp.hpp
-    COMMAND cat ${PROJECT_SOURCE_DIR}/name_to_cp.hpp >> ${HEADERS_DIR}/name_to_cp.hpp
+    COMMAND cat ${PROJECT_SOURCE_DIR}/src/name_to_cp.hpp >> ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND clang-format ${HEADERS_DIR}/name_to_cp.hpp -i
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
-        ${PROJECT_SOURCE_DIR}/name_to_cp.hpp
+        ${PROJECT_SOURCE_DIR}/src/name_to_cp.hpp
 )
 
 add_custom_command(
@@ -108,27 +110,26 @@ add_custom_command(
     COMMAND mkdir -p ${HEADERS_DIR}
     COMMAND namesgen
       ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
-    COMMAND cat ${PROJECT_SOURCE_DIR}/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
+    COMMAND cat ${PROJECT_SOURCE_DIR}/src/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND clang-format ${HEADERS_DIR}/cp_to_name.hpp -i
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
-        ${PROJECT_SOURCE_DIR}/names.hpp
+        ${PROJECT_SOURCE_DIR}/src/names.hpp
         namesgen
 )
 
 add_library(std_ext_uni STATIC
-  #${HEADERS_DIR}/cp_to_name.hpp
-  #${HEADERS_DIR}/name_to_cp.hpp
+  ${HEADERS_DIR}/cp_to_name.hpp
+  ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}/properties.hpp
-  empty.cpp
-  unicode.cpp
+  src/unicode.cpp
 )
 
 add_custom_target("single-header")
 add_custom_command(TARGET "single-header"
     COMMAND cp ${HEADERS_DIR}* ${PROJECT_SOURCE_DIR}/generated_includes/cedilla/
     DEPENDS
-    # include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp
+    include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp
     include/cedilla/properties.hpp
 )
 

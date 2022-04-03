@@ -1,9 +1,7 @@
 
+#pragma once
 #include <iterator>
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "props.h"
-#endif
+#include "cedilla/generated_props.hpp"
 
 namespace uni {
 

@@ -1,6 +1,5 @@
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#endif
+#pragma once
+#include "cedilla/generated_props_extra.hpp"
 
 // More regex support for ctre
 

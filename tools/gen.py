@@ -862,10 +862,8 @@ if __name__ == "__main__":
 
     with open(sys.argv[1], "w") as f:
         f.write("""
-#ifndef UNI_SINGLE_HEADER
 #pragma once
-#include "base.h"
-#endif
+#include "cedilla/base.h"
 
 namespace uni {
 """)
@@ -908,10 +906,8 @@ namespace uni {
 
     with open(sys.argv[2], "w") as f:
         f.write("""
-#ifndef UNI_SINGLE_HEADER
 #pragma once
-#include "unicode.h"
-#endif
+#include "cedilla/unicode.h"
 namespace uni::detail {
 """)
         write_regex_support(f, characters, supported_properties, categories_name, scripts_names)

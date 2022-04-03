@@ -1,11 +1,7 @@
+#pragma once
 #include <cstdint>
 #include <algorithm>
 #include <string_view>
-
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "synopsys.h"
-#endif
 
 namespace uni::detail {
 
