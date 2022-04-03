@@ -1,111 +1,100 @@
 #pragma once
-#define UNI_SINGLE_HEADER
-#ifndef H_COR3NTIN_UNICODE_SYNOPSYS
-#define H_COR3NTIN_UNICODE_SYNOPSYS
 
 #include <string_view>
 
-namespace uni
-{
-    enum class category;
-    enum class property;
-    enum class version : unsigned char;
-    enum class script ;
-    enum class block;
+namespace uni {
+enum class category;
+enum class property;
+enum class version : unsigned char;
+enum class script;
+enum class block;
 
-    struct script_extensions_view {
-        constexpr script_extensions_view(char32_t);
+struct script_extensions_view {
+    constexpr script_extensions_view(char32_t);
 
-        struct sentinel {};
-        struct iterator {
+    struct sentinel {};
+    struct iterator {
 
-            constexpr iterator(char32_t c);
-            constexpr script operator*() const;
+        constexpr iterator(char32_t c);
+        constexpr script operator*() const;
 
-            constexpr iterator& operator++(int);
+        constexpr iterator& operator++(int);
 
-            constexpr iterator operator++();
+        constexpr iterator operator++();
 
-            constexpr bool operator==(sentinel) const;
-            constexpr bool operator!=(sentinel) const;
+        constexpr bool operator==(sentinel) const;
+        constexpr bool operator!=(sentinel) const;
 
-        private:
-            char32_t m_c;
-            script m_script;
-            int idx = 1;
-        };
-
-        constexpr iterator begin() const;
-        constexpr sentinel end() const;
-
-        private:
-            char32_t c;
+    private:
+        char32_t m_c;
+        script m_script;
+        int idx = 1;
     };
 
-    struct numeric_value {
+    constexpr iterator begin() const;
+    constexpr sentinel end() const;
 
-        constexpr double value() const;
-        constexpr long long numerator() const;
-        constexpr int denominator() const;
-        constexpr bool is_valid() const;
+private:
+    char32_t c;
+};
 
-    protected:
-        constexpr numeric_value() = default;
-        constexpr numeric_value(long long n, int16_t d);
+struct numeric_value {
 
-        long long _n = 0;
-        int16_t _d = 0;
-        friend constexpr numeric_value cp_numeric_value(char32_t cp);
-    };
+    constexpr double value() const;
+    constexpr long long numerator() const;
+    constexpr int denominator() const;
+    constexpr bool is_valid() const;
 
-    constexpr category cp_category(char32_t cp);
-    constexpr script cp_script(char32_t cp);
-    constexpr script_extensions_view cp_script_extensions(char32_t cp);
-    constexpr version cp_age(char32_t cp);
-    constexpr block cp_block(char32_t cp);
-    constexpr bool cp_is_valid(char32_t cp);
-    constexpr bool cp_is_assigned(char32_t cp);
-    constexpr bool cp_is_ascii(char32_t cp);
-    constexpr numeric_value cp_numeric_value(char32_t cp);
+protected:
+    constexpr numeric_value() = default;
+    constexpr numeric_value(long long n, int16_t d);
 
-    template<script>
-    constexpr bool cp_script_is(char32_t);
-    template<property>
-    constexpr bool cp_property_is(char32_t);
-    template<category>
-    constexpr bool cp_category_is(char32_t);
+    long long _n = 0;
+    int16_t _d = 0;
+    friend constexpr numeric_value cp_numeric_value(char32_t cp);
+};
 
-    namespace detail
-    {
-        enum class binary_prop;
-        constexpr int propnamecomp(std::string_view sa, std::string_view sb);
-        constexpr binary_prop binary_prop_from_string(std::string_view s);
+constexpr category cp_category(char32_t cp);
+constexpr script cp_script(char32_t cp);
+constexpr script_extensions_view cp_script_extensions(char32_t cp);
+constexpr version cp_age(char32_t cp);
+constexpr block cp_block(char32_t cp);
+constexpr bool cp_is_valid(char32_t cp);
+constexpr bool cp_is_assigned(char32_t cp);
+constexpr bool cp_is_ascii(char32_t cp);
+constexpr numeric_value cp_numeric_value(char32_t cp);
 
-        template<binary_prop p>
-        constexpr bool get_binary_prop(char32_t) = delete;
+template<script>
+constexpr bool cp_script_is(char32_t);
+template<property>
+constexpr bool cp_property_is(char32_t);
+template<category>
+constexpr bool cp_category_is(char32_t);
 
-        constexpr script   script_from_string(std::string_view s);
-        constexpr block    block_from_string(std::string_view s);
-        constexpr version  age_from_string(std::string_view a);
-        constexpr category category_from_string(std::string_view a);
+namespace detail {
+    enum class binary_prop;
+    constexpr int propnamecomp(std::string_view sa, std::string_view sb);
+    constexpr binary_prop binary_prop_from_string(std::string_view s);
 
-        constexpr bool is_unassigned(category cat);
-        constexpr bool is_unknown(script s);
-        constexpr bool is_unknown(block b);
-        constexpr bool is_unassigned(version v);
-        constexpr bool is_unknown(binary_prop s);
-    }
-}
+    template<binary_prop p>
+    constexpr bool get_binary_prop(char32_t) = delete;
 
-#endif
+    constexpr script script_from_string(std::string_view s);
+    constexpr block block_from_string(std::string_view s);
+    constexpr version age_from_string(std::string_view a);
+    constexpr category category_from_string(std::string_view a);
+
+    constexpr bool is_unassigned(category cat);
+    constexpr bool is_unknown(script s);
+    constexpr bool is_unknown(block b);
+    constexpr bool is_unassigned(version v);
+    constexpr bool is_unknown(binary_prop s);
+}    // namespace detail
+}    // namespace uni
+
 #include <cstdint>
 #include <algorithm>
 #include <string_view>
-
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "synopsys.h"
-#endif
 
 namespace uni::detail {
 
@@ -176,10 +165,11 @@ struct compact_range {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
-            char32_t c = (v >> 8);
-            return local_cp < c;
-        });
+        auto it =
+            detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
+                char32_t c = (v >> 8);
+                return local_cp < c;
+            });
         if(it == end)
             return default_value;
         it--;
@@ -189,39 +179,36 @@ struct compact_range {
 template<class T, class... U>
 compact_range(T, U...) -> compact_range<T, sizeof...(U) + 1>;
 
-
 template<typename T, auto N>
 struct compact_list {
     std::uint32_t _data[N];
     constexpr T value(char32_t cp, T default_value) const {
         const auto end = std::end(_data);
-        auto it = detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t local_cp) {
-            char32_t c = (v >> 8);
-            return c < local_cp;
-        });
+        auto it =
+            detail::lower_bound(std::begin(_data), end, cp, [](uint32_t v, char32_t local_cp) {
+                char32_t c = (v >> 8);
+                return c < local_cp;
+            });
         if(it == end || ((*it) >> 8) != cp)
             return default_value;
         return *(it)&0xFF;
     }
 };
 template<class T, class... U>
-compact_list(T, U...)-> compact_list<T, sizeof...(U) + 1>;
+compact_list(T, U...) -> compact_list<T, sizeof...(U) + 1>;
 
-
-template <typename T, std::size_t N>
+template<typename T, std::size_t N>
 struct array {
     using type = T[N];
 };
 
-template <typename T>
+template<typename T>
 struct array<T, 0> {
     using type = T*;
 };
 
-template <typename T, std::size_t N>
+template<typename T, std::size_t N>
 using array_t = typename array<T, N>::type;
-
-
 
 template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
          std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
@@ -238,23 +225,21 @@ struct bool_trie {
 
     // trie for 0x10000..0x10FFFF (UTF-8 4-byte sequences, aka non-BMP code points)
     array_t<std::uint8_t, r4_s> r4;
-    array_t<std::uint8_t, r5_s> r5;   // two level to exploit sparseness of non-BMP
-    array_t<std::uint64_t, r6_s> r6;  // again, leaves are shared
+    array_t<std::uint8_t, r5_s> r5;     // two level to exploit sparseness of non-BMP
+    array_t<std::uint64_t, r6_s> r6;    // again, leaves are shared
 
     constexpr bool lookup(char32_t u) const {
         std::uint32_t c = u;
         if(c < 0x800) {
-            if constexpr(r1_s == 0){
+            if constexpr(r1_s == 0) {
                 return false;
-            }
-            else {
+            } else {
                 return trie_range_leaf(c, r1[c >> 6]);
             }
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0) {
                 return false;
-            }
-            else {
+            } else {
                 std::size_t i = ((c >> 6) - 0x20);
                 auto child = 0;
                 if(i >= r2_t_f && i < r2_t_f + r2_s)
@@ -304,16 +289,16 @@ struct flat_array {
     }
 };
 
-
 template<auto N>
 struct range_array {
     std::uint32_t _data[N];
     constexpr bool lookup(char32_t cp) const {
         const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
-            char32_t c = (v >> 8);
-            return local_cp < c;
-        });
+        auto it =
+            detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
+                char32_t c = (v >> 8);
+                return local_cp < c;
+            });
         if(it == end)
             return false;
         it--;
@@ -322,8 +307,7 @@ struct range_array {
 };
 
 template<class... U>
-range_array(U...)->range_array<sizeof...(U)>;
-
+range_array(U...) -> range_array<sizeof...(U)>;
 
 constexpr char propcharnorm(char a) {
     if(a >= 'A' && a <= 'Z')
@@ -363,18 +347,19 @@ constexpr int propnamecomp(std::string_view sa, std::string_view sb) {
     return 0;
 }
 
-template <typename A, typename B>
-struct pair
-{
+template<typename A, typename B>
+struct pair {
     A first;
     B second;
 };
 
-template <typename A, typename B>
+template<typename A, typename B>
 pair(A, B) -> pair<A, B>;
 
-struct string_with_idx { const char* name; uint32_t value; };
-
+struct string_with_idx {
+    const char* name;
+    uint32_t value;
+};
 
 }    // namespace uni::detail
 
@@ -398,13 +383,7 @@ constexpr bool numeric_value::is_valid() const {
 
 constexpr numeric_value::numeric_value(long long n, int16_t d) : _n(n), _d(d) {}
 
-
 }    // namespace uni
-
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "base.h"
-#endif
 
 namespace uni {
 enum class version : uint8_t {
@@ -7258,11 +7237,8 @@ constexpr bool cp_property_is<property::xids>(char32_t c) {
     return detail::tables::prop_xids_data.lookup(c);
 }
 }    // namespace uni
+
 #include <iterator>
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "props.h"
-#endif
 
 namespace uni {
 
@@ -7308,13 +7284,11 @@ constexpr script detail::script_from_string(std::string_view s) {
     return script::unknown;
 }
 
-constexpr bool detail::is_unassigned(category cat)
-{
+constexpr bool detail::is_unassigned(category cat) {
     return cat == category::unassigned;
 }
 
-constexpr bool detail::is_unknown(script s)
-{
+constexpr bool detail::is_unknown(script s) {
     return s == script::unknown;
 }
 
@@ -7322,8 +7296,7 @@ constexpr bool detail::is_unknown(block b) {
     return b == block::no_block;
 }
 
-constexpr bool detail::is_unassigned(version v)
-{
+constexpr bool detail::is_unassigned(version v) {
     return v == version::unassigned;
 }
 
@@ -7331,24 +7304,25 @@ constexpr script cp_script(char32_t cp) {
     return detail::tables::cp_script<0>(cp);
 }
 
-constexpr script_extensions_view::script_extensions_view(char32_t c_) : c(c_){}
+constexpr script_extensions_view::script_extensions_view(char32_t c_) : c(c_) {}
 
-constexpr script_extensions_view::iterator::iterator(char32_t c_) : m_c(c_), m_script(detail::tables::get_cp_script(m_c, 1)) {
+constexpr script_extensions_view::iterator::iterator(char32_t c_) :
+    m_c(c_), m_script(detail::tables::get_cp_script(m_c, 1)) {
     if(m_script == script::unknown)
         m_script = detail::tables::cp_script<0>(m_c);
-    }
+}
 
 constexpr script script_extensions_view::iterator::operator*() const {
     return m_script;
 }
 
-constexpr auto script_extensions_view::iterator::operator++(int) ->iterator & {
+constexpr auto script_extensions_view::iterator::operator++(int) -> iterator& {
     idx++;
     m_script = detail::tables::get_cp_script(m_c, idx);
     return *this;
 }
 
-constexpr auto script_extensions_view::iterator::operator++()  -> iterator {
+constexpr auto script_extensions_view::iterator::operator++() -> iterator {
     auto c = *this;
     idx++;
     m_script = detail::tables::get_cp_script(m_c, idx);
@@ -7381,17 +7355,17 @@ constexpr script_extensions_view cp_script_extensions(char32_t cp) {
     return script_extensions_view(cp);
 }
 
-
 constexpr version cp_age(char32_t cp) {
     return static_cast<version>(detail::tables::age_data.value(cp, uint8_t(version::unassigned)));
 }
 
 constexpr block cp_block(char32_t cp) {
     const auto end = std::end(detail::tables::block_data._data);
-    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp, [](char32_t cp_, uint32_t v) {
-        char32_t c = (v >> 8);
-        return cp_ < c;
-    });
+    auto it = detail::upper_bound(std::begin(detail::tables::block_data._data), end, cp,
+                                  [](char32_t cp_, uint32_t v) {
+                                      char32_t c = (v >> 8);
+                                      return cp_ < c;
+                                  });
     if(it == end)
         return block::no_block;
     it--;
@@ -7412,13 +7386,15 @@ constexpr bool cp_property_is<property::noncharacter_code_point>(char32_t cp) {
 // http://unicode.org/reports/tr44/#Lowercase
 template<>
 constexpr bool cp_property_is<property::lowercase>(char32_t cp) {
-    return detail::tables::cat_ll.lookup(char32_t(cp)) || detail::tables::prop_olower_data.lookup(char32_t(cp));
+    return detail::tables::cat_ll.lookup(char32_t(cp)) ||
+           detail::tables::prop_olower_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Uppercase
 template<>
 constexpr bool cp_property_is<property::uppercase>(char32_t cp) {
-    return detail::tables::cat_lu.lookup(char32_t(cp)) || detail::tables::prop_oupper_data.lookup(char32_t(cp));
+    return detail::tables::cat_lu.lookup(char32_t(cp)) ||
+           detail::tables::prop_oupper_data.lookup(char32_t(cp));
 }
 
 // http://unicode.org/reports/tr44/#Cased
@@ -7431,7 +7407,8 @@ constexpr bool cp_property_is<property::cased>(char32_t cp) {
 // http://unicode.org/reports/tr44/#Math
 template<>
 constexpr bool cp_property_is<property::math>(char32_t cp) {
-    return detail::tables::cat_sm.lookup(char32_t(cp)) || detail::tables::prop_omath_data.lookup(cp);
+    return detail::tables::cat_sm.lookup(char32_t(cp)) ||
+           detail::tables::prop_omath_data.lookup(cp);
 }
 
 // http://unicode.org/reports/tr44/#Case_Ignorable
@@ -7440,11 +7417,11 @@ constexpr bool cp_property_is<property::case_ignorable>(char32_t) {
     return false;
 }
 
-
 // http://unicode.org/reports/tr44/#Grapheme_Extend
 template<>
 constexpr bool cp_property_is<property::grapheme_extend>(char32_t cp) {
-    return detail::tables::cat_me.lookup(char32_t(cp)) || detail::tables::cat_mn.lookup(char32_t(cp)) ||
+    return detail::tables::cat_me.lookup(char32_t(cp)) ||
+           detail::tables::cat_mn.lookup(char32_t(cp)) ||
            detail::tables::prop_ogr_ext_data.lookup(cp);
 }
 
@@ -7462,8 +7439,8 @@ constexpr bool cp_is_ascii(char32_t cp) {
 template<>
 constexpr bool cp_property_is<property::default_ignorable_code_point>(char32_t cp) {
     const auto c = char32_t(cp);
-    const bool maybe = detail::tables::prop_odi_data.lookup(cp) || detail::tables::cat_cf.lookup(cp) ||
-                       detail::tables::prop_vs_data.lookup(cp);
+    const bool maybe = detail::tables::prop_odi_data.lookup(cp) ||
+                       detail::tables::cat_cf.lookup(cp) || detail::tables::prop_vs_data.lookup(cp);
     if(!maybe)
         return false;
     // ignore (Interlinear annotation format characters
@@ -7483,42 +7460,47 @@ constexpr bool cp_property_is<property::default_ignorable_code_point>(char32_t c
 // http://www.unicode.org/reports/tr31/#D1
 template<>
 constexpr bool cp_property_is<property::id_start>(char32_t cp) {
-    const bool maybe =
-        cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) || detail::tables::prop_oids_data.lookup(cp);
+    const bool maybe = cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
+                       detail::tables::prop_oids_data.lookup(cp);
     if(!maybe)
         return false;
-    return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
+    return !detail::tables::prop_pat_syn_data.lookup(cp) &&
+           !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
 template<>
 constexpr bool cp_property_is<property::id_continue>(char32_t cp) {
     const bool maybe = cp_category_is<category::letter>(cp) || detail::tables::cat_nl.lookup(cp) ||
-                       detail::tables::prop_oids_data.lookup(cp) || detail::tables::cat_mn.lookup(cp) || detail::tables::cat_mc.lookup(cp) ||
-                       detail::tables::cat_nd.lookup(cp) || detail::tables::cat_pc.lookup(cp) || detail::tables::prop_oidc_data.lookup(cp);
+                       detail::tables::prop_oids_data.lookup(cp) ||
+                       detail::tables::cat_mn.lookup(cp) || detail::tables::cat_mc.lookup(cp) ||
+                       detail::tables::cat_nd.lookup(cp) || detail::tables::cat_pc.lookup(cp) ||
+                       detail::tables::prop_oidc_data.lookup(cp);
     if(!maybe)
         return false;
-    return !detail::tables::prop_pat_syn_data.lookup(cp) && !detail::tables::prop_pat_ws_data.lookup(cp);
+    return !detail::tables::prop_pat_syn_data.lookup(cp) &&
+           !detail::tables::prop_pat_ws_data.lookup(cp);
 }
 
 namespace detail {
 
-template<typename Array, typename Res = long long>
-constexpr bool get_numeric_value(char32_t cp, const Array& array, Res& res) {
-    auto it = detail::lower_bound(std::begin(array), std::end(array), cp,
-                               [](const auto& d, char32_t cp_) { return d.first < cp_; });
-    if(it == std::end(array) || it->first != cp)
-        return false;
-    res = it->second;
-    return true;
-}
+    template<typename Array, typename Res = long long>
+    constexpr bool get_numeric_value(char32_t cp, const Array& array, Res& res) {
+        auto it = detail::lower_bound(std::begin(array), std::end(array), cp,
+                                      [](const auto& d, char32_t cp_) { return d.first < cp_; });
+        if(it == std::end(array) || it->first != cp)
+            return false;
+        res = it->second;
+        return true;
+    }
 
-}
+}    // namespace detail
 
 constexpr numeric_value cp_numeric_value(char32_t cp) {
     long long res = 0;
     if(!(detail::get_numeric_value(cp, detail::tables::numeric_data64, res) ||
              detail::get_numeric_value(cp, detail::tables::numeric_data32, res) ||
-             detail::get_numeric_value(cp, detail::tables::numeric_data16, res) || [&res, cp]() -> bool {
+             detail::get_numeric_value(cp, detail::tables::numeric_data16, res) ||
+             [&res, cp]() -> bool {
            res = detail::tables::numeric_data8.value(cp, 255);
            return res != 255;
        }())) {
@@ -7529,26 +7511,19 @@ constexpr numeric_value cp_numeric_value(char32_t cp) {
     return numeric_value(res, d);
 }
 
-
 }    // namespace uni
 
-namespace std
-{
-    template<>
-    struct iterator_traits<uni::script_extensions_view::iterator>
-    {
-        using difference_type = std::ptrdiff_t;
-        using value_type = uni::script;
-        using pointer =  uni::script *;
-        using reference	=  uni::script;
-        using iterator_category = std::forward_iterator_tag;
-    };
-}
+namespace std {
+template<>
+struct iterator_traits<uni::script_extensions_view::iterator> {
+    using difference_type = std::ptrdiff_t;
+    using value_type = uni::script;
+    using pointer = uni::script*;
+    using reference = uni::script;
+    using iterator_category = std::forward_iterator_tag;
+};
+}    // namespace std
 
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#    include "unicode.h"
-#endif
 namespace uni::detail {
 enum class binary_prop {
     ahex,
@@ -9515,14 +9490,10 @@ namespace tables {
         string_with_idx{"zzzz", 248}};
 }
 }    // namespace uni::detail
-#ifndef UNI_SINGLE_HEADER
-#    pragma once
-#endif
 
 // More regex support for ctre
 
 namespace uni::detail {
-
 
 constexpr binary_prop binary_prop_from_string(std::string_view s) {
     for(const auto& c : tables::binary_prop_names) {
@@ -9548,8 +9519,7 @@ constexpr bool get_binary_prop<binary_prop::any>(char32_t c) {
     return cp_is_valid(c);
 }
 
-constexpr bool is_unknown(binary_prop s)
-{
+constexpr bool is_unknown(binary_prop s) {
     return s == binary_prop::unknown;
 }
 

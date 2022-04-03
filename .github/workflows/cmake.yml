@@ -1,0 +1,67 @@
+name: Tests
+
+env:
+  VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite'
+
+on: [push]
+
+jobs:
+  build:
+    name: "${{ matrix.configurations.name }} | ${{ matrix.cmake-build-type }}"
+    runs-on: ${{ matrix.configurations.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        configurations:
+          - name: Ubuntu 20.04
+            os: ubuntu-20.04
+            cmake_env:
+              CC: gcc-11
+              CXX: g++-11
+        cmake-build-type: [Release]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create vcpkg build folder
+      run: |
+        mkdir -p ${{runner.workspace}}/build/vcpkg_installed
+        mkdir -p ${{runner.workspace}}/build/_deps
+    - name: Cache vcpkg
+      uses: actions/cache@v2
+      env:
+        cache-name: vcpkg-modules
+      with:
+        path: |
+          ${{runner.workspace}}/build/vcpkg_installed
+          ${{runner.workspace}}/build/_deps
+        key: ${{ matrix.configurations.os }}-${{ matrix.cmake-build-type }}-${{ hashFiles('vcpkg.json') }}-${{ hashFiles('cmake/vcpkg.cmake') }}
+
+    - name: Fix Path on Ubuntu
+      if: matrix.configurations.os == 'ubuntu-20.04'
+      run: echo "/home/runner/.local/bin" >> $GITHUB_PATH
+
+    - name: Install Linux dependencies
+      if: matrix.configurations.os == 'ubuntu-20.04'
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update && sudo apt-get install -y python3-numpy libtbb-dev pypy3 python3-pip g++-11 make ninja-build cmake
+        pypy3 -mpip install --user quom
+        pip3 install --user quom
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.cmake-build-type }}
+      env: ${{ matrix.configurations.cmake_env }}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config ${{ matrix.cmake-build-type }}
+      env: ${{ matrix.configurations.cmake_env }}
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C ${{ matrix.cmake-build-type }}
