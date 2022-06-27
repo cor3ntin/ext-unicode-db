@@ -13,3 +13,7 @@ create_test(tst_prop_script prop_script.cpp)
 
 create_test(tst_name tst_names.cpp)
 target_link_libraries(tst_name fmt::fmt)
+
+add_executable(dump
+    dump.cpp)
+target_link_libraries(dump std_ext_uni)

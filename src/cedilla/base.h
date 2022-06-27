@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <string_view>
+#include "cedilla/synopsis.hpp"
 
 namespace uni::detail {
 

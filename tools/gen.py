@@ -784,7 +784,7 @@ def emit_casing_data(f, prop_name, characters):
     end = 1
     m = max([len(c.casing[p]) for c in characters])
     count = len(characters)
-    f.write("constexpr char32_t casing_data_{}[][2] = {{".format(prop_name))
+    f.write("constexpr char32_t casing_{}_data[][2] = {{".format(prop_name))
     for i in range(0, m):
         for c in characters:
             if not prop_name in c.casing or i >= len(c.casing[prop_name]):
@@ -797,9 +797,9 @@ def emit_casing_data(f, prop_name, characters):
             end = end+1
         starts.append(end)
     f.write("{0, 0}};\n")
-    f.write("constexpr std::size_t casing_data_{}_starts[] ={{ {} }};".format(prop_name,
+    f.write("constexpr std::size_t  casing_{}_starts[] ={{ {} }};".format(prop_name,
             ",".join([to_hex(s) for s in starts])))
-    f.write("constexpr std::size_t casing_data_{}_max_size[] = {};".format(prop_name, m))
+    f.write("constexpr std::size_t  casing_{}_length = {};".format(prop_name, m))
     print("Casing data for {}: max: {}, count: {}, bytes: {}".format(prop_name, m, count, end))
 
 if __name__ == "__main__":
@@ -814,8 +814,8 @@ if __name__ == "__main__":
     with open(sys.argv[1], "w") as f:
         f.write("""
 #pragma once
+#include "cedilla/synopsis.hpp"
 #include "cedilla/base.h"
-
 namespace uni {
 """)
 
@@ -858,7 +858,8 @@ namespace uni {
     with open(sys.argv[2], "w") as f:
         f.write("""
 #pragma once
-#include "cedilla/unicode.h"
+#include "cedilla/synopsis.hpp"
+#include "cedilla/base.h"
 namespace uni::detail {
 """)
         write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
@@ -867,13 +868,14 @@ namespace uni::detail {
     with open(sys.argv[3], "w") as f:
         f.write("""
 #pragma once
-#include "cedilla/unicode.h"
+#include "cedilla/base.h"
 namespace uni::detail {
 """)
         for prop in ["cwl", "cwt", "cwu", "cwcf"]:
-            emit_binary_data(f, "casing_{}".format(prop), characters,
+            emit_binary_data(f, "{}_data".format(prop), characters,
             lambda c : prop in c.casing_props)
 
-        f.write("}\n\n")
         for p in [ "uc", "lc", "tc", "cf"]:
             emit_casing_data(f, p, [c for c in characters if p in c.casing])
+
+        f.write("}\n\n")

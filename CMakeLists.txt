@@ -11,7 +11,7 @@ message("-- Found Python ${Python3_EXECUTABLE}")
 
 include(cmake/unicode_data.cmake)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(namesgen tools/names.cpp)
 
@@ -45,38 +45,67 @@ target_link_libraries(namesreversegen PRIVATE
 target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native")
 
 add_custom_command(
-    COMMENT "Generating Properties Header"
-    OUTPUT ${HEADERS_DIR}/properties.hpp
+    COMMENT "Generating data files for properties"
+    OUTPUT ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
+    BYPRODUCTS
+      ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
+      ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/cedilla
-    COMMAND ${Python3_EXECUTABLE}
+    COMMAND
+      ${Python3_EXECUTABLE}
       ${PROJECT_SOURCE_DIR}/tools/gen.py
       ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
       ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
       ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
       ${PROJECT_BINARY_DIR}/ucd/
+    COMMAND
+      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp -i
+    COMMAND
+      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp -i
+    COMMAND
+      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp -i
+    DEPENDS
+      ${PROJECT_SOURCE_DIR}/tools/gen.py
+      ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
+      ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
+      ${PROJECT_BINARY_DIR}/ucd/14.0/emoji-data.txt
+)
+
+add_custom_command(
+    COMMENT "Generating amalgated headers"
+    OUTPUT ${HEADERS_DIR}/properties.hpp
+    BYPRODUCTS
+           ${HEADERS_DIR}/casing.hpp
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+
     COMMAND ${Python3_EXECUTABLE} -m quom
-                ${PROJECT_SOURCE_DIR}/src/all.hpp
+                ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
                 -I ${PROJECT_BINARY_DIR}
                 -I ${PROJECT_SOURCE_DIR}/src/
                 ${HEADERS_DIR}/properties.hpp
 
+    COMMAND ${Python3_EXECUTABLE} -m quom
+                ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
+                -I ${PROJECT_BINARY_DIR}
+                -I ${PROJECT_SOURCE_DIR}/src/
+                ${HEADERS_DIR}/casing.hpp
+
     COMMAND clang-format ${HEADERS_DIR}/properties.hpp -i
-    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp -i
-    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp -i
-    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp -i
+    COMMAND clang-format ${HEADERS_DIR}/casing.hpp -i
 
     DEPENDS
-        ${PROJECT_SOURCE_DIR}/src/all.hpp
-        ${PROJECT_SOURCE_DIR}/src/cedilla/synopsys.h
+        ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
+        ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
+        ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
+        ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
+        ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
+        ${PROJECT_SOURCE_DIR}/src/cedilla/synopsis.hpp
         ${PROJECT_SOURCE_DIR}/src/cedilla/base.h
-        ${PROJECT_SOURCE_DIR}/src/cedilla/unicode.h
+        ${PROJECT_SOURCE_DIR}/src/cedilla/properties_impl.hpp
+        ${PROJECT_SOURCE_DIR}/src/cedilla/casing_impl.hpp
         ${PROJECT_SOURCE_DIR}/src/cedilla/regex.h
-        ${PROJECT_SOURCE_DIR}/tools/gen.py
-        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
-        ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
-        ${PROJECT_BINARY_DIR}/ucd/14.0/emoji-data.txt
     )
 
 add_custom_command(
@@ -112,8 +141,11 @@ add_library(std_ext_uni STATIC
   ${HEADERS_DIR}/cp_to_name.hpp
   ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}/properties.hpp
+  ${HEADERS_DIR}/casing.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/casing_impl.hpp
   src/unicode.cpp
 )
+target_include_directories(std_ext_uni PUBLIC ${PROJECT_BINARY_DIR} src)
 
 add_custom_target("single-header")
 add_custom_command(TARGET "single-header"
@@ -121,9 +153,10 @@ add_custom_command(TARGET "single-header"
     DEPENDS
     include/cedilla/name_to_cp.hpp include/cedilla/cp_to_name.hpp
     include/cedilla/properties.hpp
+    include/cedilla/casing.hpp
 )
 
-target_compile_options(std_ext_uni INTERFACE -std=c++17)
+target_compile_options(std_ext_uni INTERFACE -std=c++20)
 
 if(MSVC)
   target_compile_options(std_ext_uni INTERFACE /W4 /WX)
