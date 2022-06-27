@@ -8,7 +8,7 @@ import collections
 import copy
 from io import StringIO
 
-DIR_WITH_UCD = os.path.realpath(sys.argv[3])
+DIR_WITH_UCD = os.path.realpath(sys.argv[4])
 LAST_VERSION = "14.0"
 PROPS_VALUE_FILE = os.path.join(DIR_WITH_UCD, "PropertyValueAliases.txt")
 BINARY_PROPS_FILE = os.path.join(DIR_WITH_UCD, "binary_props.txt")
@@ -41,6 +41,8 @@ class ucd_cp(object):
 
 
         self.props = {}
+        self.casing_props = {}
+        self.casing = {}
         self.scx = [s.lower() for s in char.get("scx").split(" ")]
         self.sc  = char.get("sc").lower()
         self.scx.sort()
@@ -59,12 +61,6 @@ class ucd_cp(object):
             "CE",
             "CI",
             "Comp_Ex",
-#            "CWCF",
-#            "CWCM",
-#            "CWKCF",
-#            "CWL",
-#            "CWT",
-#            "CWU",
             "Dash",
             "Dep",
             "DI",
@@ -72,7 +68,6 @@ class ucd_cp(object):
             "Ext",
             "Gr_Base",
             "Gr_Ext",
-#            "Gr_Link",
             "Hex",
 #            "Hyphen",
             "IDC",
@@ -117,6 +112,17 @@ class ucd_cp(object):
 
         for p in EMOJI_PROPERTIES :
             self.props[p] = False
+
+        # Casing properties
+        for p in [ "CWL", "CWT", "CWU", "CWCF"]:
+             if  char.get(p) == 'Y':
+                self.casing_props[p.lower()] =  True
+
+        # Case mapping
+        for p in [ "uc", "lc", "tc", "cf"]:
+             if char.get(p) != '#':
+                self.casing[p] = [cp_code(x) for x in char.get(p).split(" ")]
+
 
 
 def write_string_array(f, array_name, strings_with_idx):
@@ -764,12 +770,44 @@ def emit_binary_data(f, name, characters, pred):
     d = set([c.cp for c in filter(pred, characters)])
     emit_trie_or_table(f, name, d)
 
+# To store the casing data (for fullmapping casing),
+# create a single array of char32 -> char32
+# where the array starts with all the first codepoint of each mapping
+# then the seconds, etc
+# A second list "casing_data_starts" indicate where each "level"
+# begins in the primary array
+# To speed up lookup the higest bit of each but the last codepoint of mapped-to
+# sequence is set
+# we also record the size of the longest mapping
+def emit_casing_data(f, prop_name, characters):
+    starts = [0]
+    end = 1
+    m = max([len(c.casing[p]) for c in characters])
+    count = len(characters)
+    f.write("constexpr char32_t casing_data_{}[][2] = {{".format(prop_name))
+    for i in range(0, m):
+        for c in characters:
+            if not prop_name in c.casing or i >= len(c.casing[prop_name]):
+                continue
+            hasNext = i+1 < len(c.casing[prop_name])
+            value = c.casing[prop_name][i]
+            if hasNext:
+                value |= (1 << 31)
+            f.write("{{ {}, {} }},".format(to_hex(c.cp), to_hex(value)))
+            end = end+1
+        starts.append(end)
+    f.write("{0, 0}};\n")
+    f.write("constexpr std::size_t casing_data_{}_starts[] ={{ {} }};".format(prop_name,
+            ",".join([to_hex(s) for s in starts])))
+    f.write("constexpr std::size_t casing_data_{}_max_size[] = {};".format(prop_name, m))
+    print("Casing data for {}: max: {}, count: {}, bytes: {}".format(prop_name, m, count, end))
+
 if __name__ == "__main__":
 
     scripts_names = get_scripts_names()
     block_names = get_blocks_names()
     all_characters, blocks = get_unicode_data()
-    characters = list(filter(lambda c : c != None, all_characters))
+    characters = sorted(list(filter(lambda c : c != None, all_characters)), key=lambda c: c.cp)
 
     categories_name = get_cats_names()
 
@@ -825,3 +863,17 @@ namespace uni::detail {
 """)
         write_regex_support(f, characters, supported_properties, categories_name, scripts_names)
         f.write("}\n\n")
+
+    with open(sys.argv[3], "w") as f:
+        f.write("""
+#pragma once
+#include "cedilla/unicode.h"
+namespace uni::detail {
+""")
+        for prop in ["cwl", "cwt", "cwu", "cwcf"]:
+            emit_binary_data(f, "casing_{}".format(prop), characters,
+            lambda c : prop in c.casing_props)
+
+        f.write("}\n\n")
+        for p in [ "uc", "lc", "tc", "cf"]:
+            emit_casing_data(f, p, [c for c in characters if p in c.casing])

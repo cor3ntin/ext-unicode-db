@@ -54,6 +54,7 @@ add_custom_command(
       ${PROJECT_SOURCE_DIR}/tools/gen.py
       ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
       ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
+      ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
       ${PROJECT_BINARY_DIR}/ucd/
     COMMAND ${Python3_EXECUTABLE} -m quom
                 ${PROJECT_SOURCE_DIR}/src/all.hpp
@@ -62,6 +63,9 @@ add_custom_command(
                 ${HEADERS_DIR}/properties.hpp
 
     COMMAND clang-format ${HEADERS_DIR}/properties.hpp -i
+    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp -i
+    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp -i
+    COMMAND clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp -i
 
     DEPENDS
         ${PROJECT_SOURCE_DIR}/src/all.hpp
