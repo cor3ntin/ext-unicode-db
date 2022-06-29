@@ -48,7 +48,6 @@ std::unordered_map<char32_t, cp_test_data> load_test_data() {
             {
                 first = char32_t(std::stoi(cp.attribute("first-cp").value(), 0, 16));
                 last  = char32_t(std::stoi(cp.attribute("last-cp").value(), 0, 16));
-
             }
             auto name = fixup_name(cp.attribute("na").value(), cp.attribute("cp").value());
             auto age = uni::detail::age_from_string(cp.attribute("age").value());

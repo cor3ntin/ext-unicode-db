@@ -1,5 +1,6 @@
 ﻿find_package(Threads)
 find_package(Catch2)
+find_package(fmt CONFIG REQUIRED)
 
 macro(create_test name file)
     add_executable(${name} ${file} common.h common.cpp )

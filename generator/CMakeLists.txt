@@ -1,0 +1,43 @@
+find_package(Threads REQUIRED)
+find_package(TBB CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(pugixml CONFIG REQUIRED)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_library(unicode-generator-common
+OBJECT
+    load.hpp
+    load.cpp
+    codepoint_data.hpp
+    utils.hpp
+)
+target_link_libraries(unicode-generator-common PUBLIC
+  Threads::Threads
+  pugixml
+  fmt::fmt
+)
+
+
+
+add_executable(unicode-properties-data-generator properties-generator.cpp)
+target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common)
+
+add_executable(unicode-cp-to-name-data-generator cp-to-name-generator.cpp)
+target_link_libraries(unicode-cp-to-name-data-generator
+    PRIVATE
+      unicode-generator-common
+      TBB::tbb
+      range-v3-concepts)
+
+target_compile_options(unicode-cp-to-name-data-generator PRIVATE "-fopenmp-simd" "-march=native")
+
+add_executable(unicode-name-to-cp-data-generator name-to-cp-generator.cpp)
+target_link_libraries(unicode-name-to-cp-data-generator
+      PRIVATE
+        unicode-generator-common
+        TBB::tbb
+        range-v3-concepts)
+
+target_compile_options(unicode-name-to-cp-data-generator PRIVATE "-fopenmp-simd" "-march=native")

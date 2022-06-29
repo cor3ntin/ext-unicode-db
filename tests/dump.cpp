@@ -20,14 +20,4 @@ std::ostream& operator<<(std::ostream& os, const R& r) {
 
 int main() {
     using namespace std::literals;
-    static_assert (std::ranges::bidirectional_range<decltype(U"АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"sv | uni::views::lowercase)>);
-
-
-    std::cout << (U"ÉÈÊË"sv | uni::views::lowercase) << "\n";
-    std::cout << (U"ÉÈÊËéèêë"sv | uni::views::uppercase) << "\n";
-    std::cout << (U"αβγδϵζηθικλμνξοπρστυϕχψω"sv | uni::views::uppercase) << "\n";
-    std::cout << std::ranges::reverse_view(U"АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"sv | uni::views::lowercase) << "\n";
-
-    assert(std::ranges::equal(U"ÉÈÊË"sv | uni::views::lowercase, U"éèêë"sv));
-    assert(std::ranges::equal(U"éèêë"sv | uni::views::uppercase, U"ÉÈÊË"sv));
 }

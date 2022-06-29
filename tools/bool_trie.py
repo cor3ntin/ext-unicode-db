@@ -12,6 +12,20 @@ def compute_trie(rawdata, chunksize):
     return (root, child_data)
 
 
+class Point:
+    level1data   = None
+    level2index  = None
+    level2data   = None
+    level2first  = None
+    level2size   = None
+    level2index  = None
+    level2data   = None
+    level2first  = None
+    level2size   = None
+
+
+    r2data = None
+
 def construct_trie_data(data, bits_per_cp):
     CHUNK = 64
     rawdata = [0] * 0x110000

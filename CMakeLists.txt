@@ -13,36 +13,10 @@ include(cmake/unicode_data.cmake)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(namesgen tools/names.cpp)
+add_subdirectory(generator)
 
-find_package(Threads REQUIRED)
-find_package(TBB CONFIG REQUIRED)
-find_package(range-v3 CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(pugixml CONFIG REQUIRED)
-
-target_link_libraries(namesgen PRIVATE
-  Threads::Threads
-  pugixml
-  fmt::fmt
-  TBB::tbb
-  range-v3-concepts
-)
 
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
-
-add_executable(namesreversegen
-    tools/namesreverse.cpp
-)
-
-target_link_libraries(namesreversegen PRIVATE
-  pugixml
-  fmt::fmt
-  TBB::tbb
-  range-v3-concepts
-  Threads::Threads
-)
-target_compile_options(namesreversegen PRIVATE "-fopenmp-simd" "-march=native")
 
 add_custom_command(
     COMMENT "Generating data files for properties"
@@ -113,13 +87,14 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/name_to_cp.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND namesreversegen
+    COMMAND unicode-name-to-cp-data-generator
       ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml > ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/src/name_to_cp.hpp >> ${HEADERS_DIR}/name_to_cp.hpp
     COMMAND clang-format ${HEADERS_DIR}/name_to_cp.hpp -i
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_SOURCE_DIR}/src/name_to_cp.hpp
+        unicode-name-to-cp-data-generator
 )
 
 add_custom_command(
@@ -127,14 +102,14 @@ add_custom_command(
     OUTPUT ${HEADERS_DIR}/cp_to_name.hpp
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND mkdir -p ${HEADERS_DIR}
-    COMMAND namesgen
+    COMMAND unicode-cp-to-name-data-generator
       ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND cat ${PROJECT_SOURCE_DIR}/src/names.hpp >> ${HEADERS_DIR}/cp_to_name.hpp
     COMMAND clang-format ${HEADERS_DIR}/cp_to_name.hpp -i
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
         ${PROJECT_SOURCE_DIR}/src/names.hpp
-        namesgen
+        unicode-cp-to-name-data-generator
 )
 
 add_library(std_ext_uni STATIC

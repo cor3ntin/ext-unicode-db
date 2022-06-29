@@ -135,12 +135,12 @@ struct basic_trie {
     // trie for code points 0x800..0xFFFF (UTF-8 3-byte sequences, aka rest of BMP)
 
     uint8_t r2[r2_s];
-    array_t<ValueType, r3_s> r3;    // leaves can be shared, so size isn't fixed
+    ValueType r3[r3_s];  // leaves can be shared, so size isn't fixed
 
     // trie for 0x10000..0x10FFFF (UTF-8 4-byte sequences, aka non-BMP code points)
-    array_t<std::uint8_t, r4_s> r4;
-    array_t<std::uint8_t, r5_s> r5;   // two level to exploit sparseness of non-BMP
-    array_t<ValueType, r6_s> r6;      // again, leaves are shared
+    uint8_t r4[r4_s];
+    uint8_t r5[r5_s];
+    ValueType r6[r6_s];
 
     constexpr int lookup(char32_t u) const {
         std::uint32_t c = u;
