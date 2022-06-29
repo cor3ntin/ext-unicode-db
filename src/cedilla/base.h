@@ -120,36 +120,40 @@ using array_t = typename array<T, N>::type;
 
 
 
-template<std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
+template<std::size_t ValueSize, std::size_t r1_s, std::size_t r2_s, int16_t r2_t_f, int16_t r2_t_b, std::size_t r3_s,
          std::size_t r4_s, int16_t r4_t_f, int16_t r4_t_b, std::size_t r5_s, int16_t r5_t_f,
          int16_t r5_t_b, std::size_t r6_s>
-struct bool_trie {
+struct basic_trie {
+
+    static_assert(ValueSize == 1 || ValueSize == 2);
+    using ValueType = std::conditional_t<ValueSize == 2,
+                      unsigned __int128, std::uint64_t>;
 
     // not tries, just bitmaps for all code points 0..0x7FF (UTF-8 1- and 2-byte sequences)
-    std::uint64_t r1[32];
+    ValueType r1[32];
 
     // trie for code points 0x800..0xFFFF (UTF-8 3-byte sequences, aka rest of BMP)
 
     uint8_t r2[r2_s];
-    array_t<std::uint64_t, r3_s> r3;    // leaves can be shared, so size isn't fixed
+    array_t<ValueType, r3_s> r3;    // leaves can be shared, so size isn't fixed
 
     // trie for 0x10000..0x10FFFF (UTF-8 4-byte sequences, aka non-BMP code points)
     array_t<std::uint8_t, r4_s> r4;
     array_t<std::uint8_t, r5_s> r5;   // two level to exploit sparseness of non-BMP
-    array_t<std::uint64_t, r6_s> r6;  // again, leaves are shared
+    array_t<ValueType, r6_s> r6;      // again, leaves are shared
 
-    constexpr bool lookup(char32_t u) const {
+    constexpr int lookup(char32_t u) const {
         std::uint32_t c = u;
         if(c < 0x800) {
             if constexpr(r1_s == 0){
-                return false;
+                return 0;
             }
             else {
                 return trie_range_leaf(c, r1[std::size_t(c >> 6)]);
             }
         } else if(c < 0x10000) {
             if constexpr(r3_s == 0) {
-                return false;
+                return 0;
             }
             else {
                 std::size_t i = (std::size_t(c >> 6) - 0x20);
@@ -160,7 +164,7 @@ struct bool_trie {
             }
         } else {
             if constexpr(r6_s == 0)
-                return false;
+                return 0;
             std::size_t i4 = (c >> 12) - 0x10;
             auto child = 0;
             if constexpr(r4_s > 0) {
@@ -178,8 +182,14 @@ struct bool_trie {
         }
     }
 
-    constexpr bool trie_range_leaf(std::uint32_t c, std::uint64_t chunk) const {
-        return (chunk >> (c & 0b111111)) & 0b1;
+    constexpr int trie_range_leaf(std::uint32_t c, std::uint64_t chunk) const {
+        if constexpr(ValueSize ==1) {
+            return (chunk >> (c & 0b111111)) & 0b1;
+        }
+        else {
+            return  (((chunk  >> (c & 0b111111)) & 0b1) << 1 )
+                  | (((chunk+1) >> (c & 0b111111)) & 0b1);
+        }
     }
 };
 

@@ -7,6 +7,7 @@ import re
 import collections
 import copy
 from io import StringIO
+from bool_trie import *
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[4])
 LAST_VERSION = "14.0"
@@ -317,101 +318,6 @@ def write_blocks_data(indexed_names, blocks, file):
     f.write("};\n")
 
 
-def compute_trie(rawdata, chunksize):
-    root = []
-    childmap = {}
-    child_data = []
-    for i in range(len(rawdata) // chunksize):
-        data = rawdata[i * chunksize: (i + 1) * chunksize]
-        child = '|'.join(map(str, data))
-        if child not in childmap:
-            childmap[child] = len(childmap)
-            child_data.extend(data)
-        root.append(childmap[child])
-    return (root, child_data)
-
-
-def construct_bool_trie_data(data):
-    CHUNK = 64
-    rawdata = [False] * 0x110000
-    for cp in data:
-        rawdata[cp] = True
-
-
-    def trim(arr):
-        import numpy
-        a = numpy.trim_zeros(arr, 'f')
-        f = len(arr) - len(a)
-        c = numpy.trim_zeros(a, 'b')
-        b = len(a) - len(c)
-        return (c, f, b)
-
-
-    # convert to bitmap chunks of 64 bits each
-    chunks = []
-    for i in range(0x110000 // CHUNK):
-        chunk = 0
-        for j in range(64):
-            if rawdata[i * 64 + j]:
-                chunk |= 1 << j
-        chunks.append(chunk)
-
-
-    r1 = chunks[0:0x800 // CHUNK]
-    if len([x for x in r1 if x == 0]) == len(r1):
-        r1 = []
-
-
-    # 0x800..0x10000 trie
-    (r2, r3) = compute_trie(chunks[0x800 // CHUNK : 0x10000 // CHUNK], 64 // CHUNK)
-    if len([x for x in r3 if x == 0]) == len(r3):
-        r2 = []
-        r3 = []
-
-    #remove leading and trailing
-    r2 = trim(r2)
-
-    # 0x10000..0x110000 trie
-    (mid, r6) = compute_trie(chunks[0x10000 // CHUNK : 0x110000 // CHUNK], 64 // CHUNK)
-    if len([x for x in r6 if x == 0]) == len(r6):
-        r6 = []
-        r4 = []
-        r5 = []
-    else:
-        (r4, r5)  = compute_trie(mid, 64)
-
-    r4 = trim(r4)
-    r5 = trim(r5)
-
-    size = len(r1) * 8 + len(r2) + len(r3) * 8 + len(r4) + len(r5) + len(r6) * 8
-    return (size, (r1, r2, r3, r4, r5, r6))
-
-def emit_bool_trie(f, name, trie_data):
-
-    r1data = ','.join('0x%016x' % chunk for chunk in trie_data[0])
-    r2data = ','.join(str(node) for node in trie_data[1][0])
-    r3data = ','.join('0x%016x' % chunk for chunk in  trie_data[2])
-    r4data = ','.join(str(node) for node in trie_data[3][0])
-    r5data = ','.join(str(node) for node in trie_data[4][0])
-    r6data = ','.join('0x%016x' % chunk for chunk in trie_data[5])
-    f.write("static constexpr bool_trie<{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}> {} {{".format(
-        len(trie_data[0]),      #r1
-        len(trie_data[1][0]),   #r2
-        trie_data[1][1],
-        trie_data[1][2],
-        len(trie_data[2]),      #r3
-        len(trie_data[3][0]),   #r4
-        trie_data[3][1],
-        trie_data[3][2],
-        len(trie_data[4][0]),   #r5
-        trie_data[4][1],
-        trie_data[4][2],
-        len(trie_data[5]),      #r6
-        name))
-    f.write("{{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}, {{ {} }}".format(r1data, r2data, r3data, r4data, r5data, r6data))
-    f.write("};")
-
-
 def emit_bool_table(f, name, data):
     f.write("static constexpr flat_array<{}> {} {{{{".format(len(data), name))
     for idx, cp in enumerate(data):
@@ -455,7 +361,7 @@ def emit_trie_or_table(f, name, data):
 
     if len(data):
         rsize, rdata = construct_range_data(data)
-        tsize, tdata = construct_bool_trie_data(data)
+        tsize, tdata = construct_trie_data(data, 1)
 
     if rsize < size:
         t = 'r'
@@ -469,7 +375,7 @@ def emit_trie_or_table(f, name, data):
     elif t == 'r':
         emit_bool_ranges(f, name, rdata)
     elif t == 't':
-        emit_bool_trie(f, name, tdata)
+        emit_trie(f, name, tdata, 1)
 
     print("{} : {} element(s) - type: {} - size: {}  (array: {}, range: {}, trie : {}".format(name, len(data), t, size, asize, rsize, tsize))
     return size
