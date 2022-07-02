@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <ranges>
 #include "bitset_generator.hpp"
+#include "skiplist_generator.hpp"
 #include "utils.hpp"
 
 using namespace cedilla::tools;
@@ -33,15 +34,22 @@ void print_binary_properties(FILE* output, const std::vector<codepoint> & codepo
     fmt::print(output, R"(
 #pragma once
 #include "cedilla/details/bitset.hpp"
+#include "cedilla/details/skiplist.hpp"
 
 namespace cedilla::details::generated {{
 )");
 
-    for(auto prop : {    "upper"}) {
-        bitset_data bitset = create_bitset(codepoints, [prop](const codepoint & c) {
-            return c.has_binary_property(prop);
-        });
-        print_bitset_data(output, fmt::format("property_{}", to_lower(prop)), bitset);
+    for(auto prop : {"alpha"}) {
+        auto set = codepoints | std::views::filter ([prop](const codepoint & c) {
+                   return c.has_binary_property(prop);
+                   }) | std::views::transform(&codepoint::value);
+        skiplist_data skiplist = create_skiplist(set);
+        print_skiplist_data(output, fmt::format("property_{}", to_lower(prop)), skiplist);
+
+        //bitset_data bitset = create_bitset(codepoints, ;
+        //print_bitset_data(output, fmt::format("property_{}", to_lower(prop)), bitset);
+
+
     }
 
     fmt::print(output, "}}\n");

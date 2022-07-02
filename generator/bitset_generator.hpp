@@ -8,11 +8,13 @@
 #include <algorithm>
 #include <limits>
 #include <set>
-#include "codepoint_data.hpp"
 #include "fmt/ranges.h"
 #include <range/v3/view/chunk.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/range/conversion.hpp>
+
+#include "codepoint_data.hpp"
+#include "utils.hpp"
 
 namespace cedilla::tools {
 
@@ -103,8 +105,7 @@ block_data ideal_block(const std::ranges::input_range auto & r) {
     return d;
 }
 
-template <std::ranges::input_range R>
-requires std::same_as<std::ranges::range_value_t<std::remove_cvref_t<R>>, codepoint>
+template <range_of<codepoint> R>
 bitset_data create_bitset(R&& input, auto && predicate) {
     constexpr std::size_t max = 0x10FFFF;
     std::vector<std::uint64_t> bits(max/BITSET_BUCKET_SIZE, 0);

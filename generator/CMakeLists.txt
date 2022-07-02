@@ -12,6 +12,7 @@ OBJECT
     load.cpp
     codepoint_data.hpp
     bitset_generator.hpp
+    skiplist_generator.hpp
     utils.hpp
 )
 target_link_libraries(unicode-generator-common PUBLIC
@@ -21,7 +22,7 @@ target_link_libraries(unicode-generator-common PUBLIC
   TBB::tbb
   range-v3-concepts
 )
-
+target_include_directories(unicode-generator-common PUBLIC .)
 
 
 add_executable(unicode-properties-data-generator properties-generator.cpp)

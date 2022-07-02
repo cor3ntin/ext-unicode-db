@@ -40,4 +40,8 @@ inline std::string to_hex(char32_t v) {
     return fmt::format("{:04X}", v);
 }
 
+template <typename R, typename Type>
+concept range_of = std::ranges::input_range<R> &&
+                   std::same_as<std::ranges::range_value_t<std::remove_cvref_t<R>>, Type>;
+
 }

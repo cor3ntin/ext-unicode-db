@@ -172,10 +172,9 @@ std::vector<codepoint> load_codepoints(std::string db) {
             last  = to_char32(node.attribute("last-cp").value());
             auto tpl = load_one(node);
             for(auto code = first; code <= last; code++) {
-                auto copy = tpl;
-                copy.value = code;
-                copy.name  = fixup_name(node.attribute("na").value(), code);
-                codepoints.push_back(copy);
+                tpl.value = code;
+                tpl.name  = fixup_name(node.attribute("na").value(), code);
+                codepoints.push_back(tpl);
             }
         }
     }
