@@ -11,18 +11,21 @@ OBJECT
     load.hpp
     load.cpp
     codepoint_data.hpp
+    bitset_generator.hpp
     utils.hpp
 )
 target_link_libraries(unicode-generator-common PUBLIC
   Threads::Threads
   pugixml
   fmt::fmt
+  TBB::tbb
+  range-v3-concepts
 )
 
 
 
 add_executable(unicode-properties-data-generator properties-generator.cpp)
-target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common)
+target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common range-v3-concepts)
 
 add_executable(unicode-cp-to-name-data-generator cp-to-name-generator.cpp)
 target_link_libraries(unicode-cp-to-name-data-generator

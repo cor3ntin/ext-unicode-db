@@ -18,16 +18,16 @@ inline bool is_in(std::string_view value, std::initializer_list<const char*> lst
     return std::ranges::find(lst, value) != std::ranges::end(lst);
 }
 
+inline bool ci_equal(std::string_view a, std::string_view b) {
+    auto lower = std::ranges::views::transform([](char c) ->char { return std::tolower(c); });
+    return std::ranges::equal(a | lower, b | lower);
+}
+
 inline std::vector<std::string> split(const std::string & str) {
     std::istringstream iss(str);
     std::vector<std::string> results((std::istream_iterator<std::string>(iss)),
                                      std::istream_iterator<std::string>());
     return results;
-}
-
-inline bool ci_equal(std::string_view a, std::string_view b) {
-    auto lower = std::ranges::views::transform([](char c) ->char { return std::tolower(c); });
-    return std::ranges::equal(a | lower, b | lower);
 }
 
 inline char32_t to_char32(std::string_view v) {

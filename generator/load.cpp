@@ -16,7 +16,7 @@ static std::string fixup_name(std::string n, char32_t cp) {
     return n;
 }
 
-static const char* binary_props[] = {
+const char* binary_props[] = {
     "AHex",
     "Alpha",
     "Bidi_C",
@@ -157,6 +157,7 @@ std::vector<codepoint> load_codepoints(std::string db) {
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(db.c_str());
     std::vector<codepoint> codepoints;
+    codepoints.reserve(0x110000);
 
     pugi::xml_node rep = doc.child("ucd").child("repertoire");
     for(pugi::xml_node node : rep.children("char")) {
