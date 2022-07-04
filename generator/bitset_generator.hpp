@@ -31,9 +31,14 @@ struct bitset_data {
     std::vector<std::uint64_t> unique_chunks;
     std::vector<uint8_t>       all_indexes;
     block_data blocks;
+
+
+    std::size_t size() const {
+        return unique_chunks.size() * 8 + blocks.size;
+    }
 };
 
-void print_bitset_data(FILE* output, std::string_view var_name, const bitset_data & data) {
+inline void print_bitset_data(FILE* output, std::string_view var_name, const bitset_data & data) {
 
     auto all_zero = std::ranges::find_if(data.blocks.unique, [](const auto & rng) {
         return std::ranges::all_of(rng, [](std::uint8_t n) {return n == 0 ;});
@@ -70,7 +75,7 @@ void print_bitset_data(FILE* output, std::string_view var_name, const bitset_dat
                fmt::join(indexes, ", "));
 }
 
-block_data compute_block_data(const std::ranges::input_range auto & r, std::size_t len) {
+inline block_data compute_block_data(const std::ranges::input_range auto & r, std::size_t len) {
     block_data data;
     data.block_len = len;
     auto it = r.begin();
@@ -93,7 +98,7 @@ block_data compute_block_data(const std::ranges::input_range auto & r, std::size
     return data;
 }
 
-block_data ideal_block(const std::ranges::input_range auto & r) {
+inline block_data ideal_block(const std::ranges::input_range auto & r) {
     auto v = std::views::iota(1uz, std::size_t(std::min(r.size(), 64uz)))
              | std::views::transform([&r](auto len) {
                  return compute_block_data(r, len);
@@ -105,22 +110,19 @@ block_data ideal_block(const std::ranges::input_range auto & r) {
     return d;
 }
 
-template <range_of<codepoint> R>
-bitset_data create_bitset(R&& input, auto && predicate) {
+template <range_of<char32_t> R>
+std::optional<bitset_data> create_bitset(const R & input) {
     constexpr std::size_t max = 0x10FFFF;
-    std::vector<std::uint64_t> bits(max/BITSET_BUCKET_SIZE, 0);
-    std::for_each(std::execution::par_unseq,
-                  input.begin(), input.end(), [&predicate, &bits](const codepoint & c) {
-        bool b = predicate(c);
-        if(b) {
-            std::size_t bucket = c.value /  BITSET_BUCKET_SIZE;
-            uint64_t bit = c.value %  BITSET_BUCKET_SIZE;
-            bits[bucket] |= (uint64_t(1) << bit);
-        }
+    std::vector<std::uint64_t> bits(max/BITSET_BUCKET_SIZE + 10, 0);
+    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&bits](const char32_t & c) {
+        std::size_t bucket = c /  BITSET_BUCKET_SIZE;
+        uint64_t bit = c %  BITSET_BUCKET_SIZE;
+        bits[bucket] |= (uint64_t(1) << bit);
     });
-    std::set unique_words(bits.begin(), bits.end());
+    std::set<uint64_t> unique_words {bits.begin(), bits.end()};
     unique_words.insert(0);
-    assert(unique_words.size() < std::numeric_limits<uint8_t>::max());
+    if(unique_words.size() >= std::numeric_limits<uint8_t>::max())
+        return {};
     bitset_data data;
     data.unique_chunks = {unique_words.begin(), unique_words.end()};
     data.all_indexes = bits | std::views::transform ( [&](uint64_t word) {

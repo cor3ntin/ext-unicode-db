@@ -29,11 +29,13 @@ add_custom_command(
         mkdir -p ${HEADERS_DIR}/details
     COMMAND unicode-properties-data-generator
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
         ${HEADERS_DIR}/details/generated_props.hpp
     COMMAND
         clang-format ${HEADERS_DIR}/details/generated_props.hpp -i
     DEPENDS
         ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
         unicode-properties-data-generator
 )
 

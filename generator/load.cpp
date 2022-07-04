@@ -6,6 +6,9 @@
 #include <ranges>
 #include <string>
 
+#include <fstream>
+#include <regex>
+
 namespace cedilla::tools {
 
 static std::string fixup_name(std::string n, char32_t cp) {
@@ -81,22 +84,6 @@ const char* binary_props[] = {
     "CWCF"
 };
 
-
-/*
- * struct codepoint {
-    char32_t    value = 0;
-    std::string name;
-    std::set<std::string> binary_properties;
-    std::string age = 0;
-    bool reserved = false;
-    std::string general_category;
-    std::string script;
-    std::string script_extensions;
-    std::string numeric_value;
-    std::vector<char32_t> uppercase, lowercase, titlecase, casefold;
-    std::vector<std::string> aliases;
-};
-*/
 
 static void parse_full_case_mapping(const pugi::xml_node & n, const char* property, std::vector<char32_t> & out) {
     using namespace std::literals;
@@ -190,5 +177,23 @@ int binary_property_index(std::string_view needle) {
         return -1;
     return std::distance(std::ranges::begin(binary_props), it);
 }
+
+
+categories load_categories(const std::string & prop_alias_file) {
+    categories cats;
+    std::unordered_multimap<std::string, std::string> categories;
+    std::ifstream infile(prop_alias_file);
+    std::string line;
+    std::regex r(R"_(gc\s*;\s+(\w+)\s+;\s+(\w+))_", std::regex::ECMAScript|std::regex::icase);
+    while(std::getline(infile, line)) {
+         std::smatch captures;
+        if(std::regex_search(line, captures,  r)) {
+            cats.names.insert({to_lower(captures[1]), to_lower(captures[2])});
+        }
+    }
+    return cats;
+}
+
+
 
 }

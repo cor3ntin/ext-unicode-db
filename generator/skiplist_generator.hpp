@@ -6,7 +6,7 @@
 
 namespace cedilla::tools {
 
-std::vector<std::tuple<char32_t, char32_t>> create_ranges(range_of<char32_t> auto && codepoints) {
+inline std::vector<std::tuple<char32_t, char32_t>> create_ranges(range_of<char32_t> auto && codepoints) {
     std::optional<char32_t> start;
     std::optional<char32_t> end;
     std::vector<std::tuple<char32_t, char32_t>> ranges;
@@ -31,9 +31,13 @@ std::vector<std::tuple<char32_t, char32_t>> create_ranges(range_of<char32_t> aut
 struct skiplist_data {
     std::vector<std::uint8_t> coded_offsets;
     std::vector<std::uint32_t> short_offset_runs;
+
+    std::size_t size() const {
+        return coded_offsets.size() + short_offset_runs.size() * 4;
+    }
 };
 
-auto flatten = std::views::transform([](auto && tuple)  {
+constexpr inline auto flatten = std::views::transform([](auto && tuple)  {
                     constexpr auto S = std::tuple_size_v<std::remove_cvref_t<decltype(tuple)>>;
                     return [&]<std::size_t...I>(std::index_sequence<I...>) {
                         return std::array{std::get<I>(tuple)...};
@@ -41,7 +45,7 @@ auto flatten = std::views::transform([](auto && tuple)  {
 }) | std::ranges::views::join;
 
 
-skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
+inline skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
     auto ranges = create_ranges(codepoints);
     std::vector<char32_t> offsets;
     {
@@ -72,14 +76,16 @@ skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
     return d;
 }
 
-void print_skiplist_data(FILE* output, std::string_view var_name, const skiplist_data & data) {
+inline void print_skiplist_data(FILE* output, std::string_view var_name, const skiplist_data & data) {
     constexpr const char* tpl = R"(
-       inline constexpr skiplist {} {{
+       inline constexpr skiplist<{}, {}> {} {{
            .offsets = {{ {} }},
            .short_offset_runs = {{ {} }}
        }};
     )";
     fmt::print(output, tpl,
+               data.coded_offsets.size(),
+               data.short_offset_runs.size(),
                var_name,
                fmt::join(data.coded_offsets, ", "),
                fmt::join(data.short_offset_runs, ", ")

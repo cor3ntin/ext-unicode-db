@@ -5,6 +5,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+#set(CMAKE_CXX_FLAGS "-fsanitize=address")
 
 add_library(unicode-generator-common
 OBJECT
@@ -14,6 +15,7 @@ OBJECT
     bitset_generator.hpp
     skiplist_generator.hpp
     utils.hpp
+    generators.hpp
 )
 target_link_libraries(unicode-generator-common PUBLIC
   Threads::Threads
@@ -25,15 +27,19 @@ target_link_libraries(unicode-generator-common PUBLIC
 target_include_directories(unicode-generator-common PUBLIC .)
 
 
-add_executable(unicode-properties-data-generator properties-generator.cpp)
-target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common range-v3-concepts)
+add_executable(unicode-properties-data-generator
+    properties-generator.cpp
+    categories.cpp
+)
+
+target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common)
 
 add_executable(unicode-cp-to-name-data-generator cp-to-name-generator.cpp)
 target_link_libraries(unicode-cp-to-name-data-generator
     PRIVATE
       unicode-generator-common
       TBB::tbb
-      range-v3-concepts)
+)
 
 target_compile_options(unicode-cp-to-name-data-generator PRIVATE "-fopenmp-simd" "-march=native")
 
@@ -42,6 +48,6 @@ target_link_libraries(unicode-name-to-cp-data-generator
       PRIVATE
         unicode-generator-common
         TBB::tbb
-        range-v3-concepts)
+)
 
 target_compile_options(unicode-name-to-cp-data-generator PRIVATE "-fopenmp-simd" "-march=native")
