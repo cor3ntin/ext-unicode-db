@@ -106,7 +106,10 @@ static codepoint load_one(const pugi::xml_node & n) {
         return c;
     c.script = to_lower(n.attribute("sc").value());
     c.script_extensions = split(n.attribute("scx").value());
+    if(c.script_extensions != std::vector{c.script})
+        c.script_extensions.insert(c.script_extensions.begin(), c.script);
     std::ranges::transform(c.script_extensions, c.script_extensions.begin(), &to_lower);
+
 
 
     // numeric value, if any
@@ -166,6 +169,7 @@ std::vector<codepoint> load_codepoints(std::string db) {
         }
     }
 
+    std::ranges::sort(codepoints, {}, &codepoint::value);
     return codepoints;
 }
 
@@ -179,19 +183,24 @@ int binary_property_index(std::string_view needle) {
 }
 
 
-categories load_categories(const std::string & prop_alias_file) {
-    categories cats;
+labels load_labels(const std::string & prop_alias_file) {
+    labels data;
     std::unordered_multimap<std::string, std::string> categories;
     std::ifstream infile(prop_alias_file);
     std::string line;
-    std::regex r(R"_(gc\s*;\s+(\w+)\s+;\s+(\w+))_", std::regex::ECMAScript|std::regex::icase);
+    std::regex cr(R"_(^gc\s*;\s+(\w+)\s+;\s+(\w+))_", std::regex::ECMAScript|std::regex::icase);
+    std::regex sr(R"_(^sc\s*;\s+(\w+)\s+;\s+(\w+))_", std::regex::ECMAScript|std::regex::icase);
+
     while(std::getline(infile, line)) {
-         std::smatch captures;
-        if(std::regex_search(line, captures,  r)) {
-            cats.names.insert({to_lower(captures[1]), to_lower(captures[2])});
+        std::smatch captures;
+        if(std::regex_search(line, captures,  cr)) {
+            data.categories.insert({to_lower(captures[1]), to_lower(captures[2])});
+        }
+        else if(std::regex_search(line, captures,  sr)) {
+            data.scripts.insert({to_lower(captures[1]), to_lower(captures[2])});
         }
     }
-    return cats;
+    return data;
 }
 
 

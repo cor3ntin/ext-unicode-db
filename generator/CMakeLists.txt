@@ -30,6 +30,7 @@ target_include_directories(unicode-generator-common PUBLIC .)
 add_executable(unicode-properties-data-generator
     properties-generator.cpp
     categories.cpp
+    scripts.cpp
 )
 
 target_link_libraries(unicode-properties-data-generator PRIVATE unicode-generator-common)

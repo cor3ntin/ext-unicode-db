@@ -13,7 +13,7 @@ void print_category_data(FILE* out, const std::vector<char32_t> & codepoints, st
     print_binary_data_best(out, codepoints, fmt::format("gc_{}", name));
 }
 
-void print_categories_data(FILE* out, const std::vector<codepoint> & all, const categories & cats) {
+void print_categories_data(FILE* out, const std::vector<codepoint> & all, const labels & l) {
     // Write an enum for the category names
     constexpr auto tpl = R"(
 namespace cedilla::details::generated {{
@@ -21,7 +21,7 @@ namespace cedilla::details::generated {{
           {}
     }};
 )";
-    auto formatted_cats = cats.names | std::views::transform([](const auto & pair) {
+    auto formatted_cats = l.categories | std::views::transform([](const auto & pair) {
         return fmt::format("{0},\n{1} = {0}", pair.first, pair.second);
     });
     fmt::print(out, tpl, fmt::join(formatted_cats, ",\n"));

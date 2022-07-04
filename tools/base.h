@@ -68,23 +68,7 @@ constexpr bool binary_search(ForwardIt first, ForwardIt last, const T& value) {
     first = detail::lower_bound(first, last, value);
     return (!(first == last) && !(value < *first));
 }
-template<typename T, auto N>
-struct compact_range {
-    std::uint32_t _data[N];
-    constexpr T value(char32_t cp, T default_value) const {
-        const auto end = std::end(_data);
-        auto it = detail::upper_bound(std::begin(_data), end, cp, [](char32_t local_cp, uint32_t v) {
-            char32_t c = (v >> 8);
-            return local_cp < c;
-        });
-        if(it == end)
-            return default_value;
-        it--;
-        return *(it)&0xFF;
-    }
-};
-template<class T, class... U>
-compact_range(T, U...) -> compact_range<T, sizeof...(U) + 1>;
+
 
 
 template<typename T, auto N>

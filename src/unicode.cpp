@@ -1,4 +1,4 @@
-#include <cedilla/details/generated_props.hpp>
+#include <cedilla/properties.hpp>
 
 /*#include "cedilla/properties.hpp"
 #include "cedilla/casing.hpp"

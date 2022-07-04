@@ -10,9 +10,11 @@ using namespace cedilla::tools;
 
 namespace cedilla::tools {
 
-void print_categories_data(FILE* out, const std::vector<codepoint> & all, const categories & cats);
+void print_categories_data(FILE* out, const std::vector<codepoint> & all, const labels & l);
+void print_scripts_data(FILE* out, const std::vector<codepoint> & all, const labels & l);
 
 }
+
 void die(std::string_view msg) {
     fmt::print(fg(fmt::color::red),
                "{}\n", msg);
@@ -74,7 +76,7 @@ const char* useful_properties[] = {
 };
 
 
-void print_binary_properties(FILE* output, const std::vector<codepoint> & codepoints) {
+void  print_binary_properties(FILE* output, const std::vector<codepoint> & codepoints) {
     fmt::print(output, R"(
 namespace cedilla::details::generated {{
 )");
@@ -105,6 +107,8 @@ void print_header(FILE* out) {
     fmt::print(out, R"(
 #pragma once
 #include "cedilla/details/sets.hpp"
+#include "cedilla/details/scripts.hpp"
+
 )");
 }
 
@@ -120,7 +124,7 @@ int main(int argc, const char** argv) {
     fmt::print("loaded {}\n", ucd_path);
 
     auto property_file = fopen(property_aliases_path, "r");
-    categories cats = load_categories(property_aliases_path);
+    labels lbs = load_labels(property_aliases_path);
     fmt::print("loaded categories from {}\n", property_aliases_path);
 
     fflush(stdout);
@@ -129,7 +133,8 @@ int main(int argc, const char** argv) {
         die("can't open output file");
     }
     print_header(output);
-    print_categories_data(output, codepoints, cats);
+    print_categories_data(output, codepoints, lbs);
+    print_scripts_data(output, codepoints, lbs);
     print_binary_properties(output, codepoints);
 
     fclose(output);

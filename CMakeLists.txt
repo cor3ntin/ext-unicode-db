@@ -143,6 +143,8 @@ add_library(cedilla STATIC
 #  ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}details/generated_props.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/sets.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/details/scripts.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
   ${PROJECT_SOURCE_DIR}/src/unicode.cpp
 )
 

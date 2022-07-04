@@ -4,11 +4,12 @@
 
 namespace cedilla::tools {
 
-struct categories {
-    std::unordered_multimap<std::string, std::string> names;
+struct labels {
+    std::unordered_multimap<std::string, std::string> categories;
+    std::unordered_multimap<std::string, std::string> scripts;
 };
 
 std::vector<codepoint> load_codepoints(std::string db);
-categories load_categories(const std::string & prop_alias_file);
+labels load_labels(const std::string & prop_alias_file);
 
 }

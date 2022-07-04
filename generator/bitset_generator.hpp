@@ -99,7 +99,7 @@ inline block_data compute_block_data(const std::ranges::input_range auto & r, st
 }
 
 inline block_data ideal_block(const std::ranges::input_range auto & r) {
-    auto v = std::views::iota(1uz, std::size_t(std::min(r.size(), 64uz)))
+    auto v = std::views::iota(std::size_t(1), std::size_t(std::min(r.size(), std::size_t(64))))
              | std::views::transform([&r](auto len) {
                  return compute_block_data(r, len);
     });
