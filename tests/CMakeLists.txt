@@ -16,6 +16,10 @@ endmacro()
 
 #arget_link_libraries(tst_name fmt::fmt)
 
+add_executable(test-properties
+    properties.cpp)
+target_link_libraries(test-properties cedilla unicode-generator-common Catch2::Catch2)
+
 add_executable(dump
     dump.cpp)
 target_link_libraries(dump cedilla fmt::fmt unicode-generator-common)

@@ -6,28 +6,6 @@
 
 namespace cedilla::tools {
 
-inline std::vector<std::tuple<char32_t, char32_t>> create_ranges(range_of<char32_t> auto && codepoints) {
-    std::optional<char32_t> start;
-    std::optional<char32_t> end;
-    std::vector<std::tuple<char32_t, char32_t>> ranges;
-    for(char32_t c : codepoints) {
-        if(!start) {
-            end = start = c;
-            continue;
-        }
-        if(c != *end + 1) {
-            ranges.emplace_back(*start, *end + 1);
-            end = start = c;
-            continue;
-        }
-        end = *end + 1;
-    }
-    if(start) {
-        ranges.emplace_back(*start, *end + 1);
-    }
-    return ranges;
-}
-
 struct skiplist_data {
     std::vector<std::uint8_t> coded_offsets;
     std::vector<std::uint32_t> short_offset_runs;
@@ -46,7 +24,7 @@ constexpr inline auto flatten = std::views::transform([](auto && tuple)  {
 
 
 inline skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
-    auto ranges = create_ranges(codepoints);
+    auto ranges = create_ranges<char32_t>(codepoints);
     std::vector<char32_t> offsets;
     {
         char32_t offset = 0;
@@ -56,6 +34,7 @@ inline skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
             offset = point;
         }
     }
+
     offsets.push_back(std::numeric_limits<uint8_t>::max() + 1);
     std::uint32_t prefix_sum = 0;
 

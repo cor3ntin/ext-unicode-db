@@ -30,7 +30,7 @@ void dump(const std::vector<codepoint> & codepoints) {
     for(const codepoint & c : codepoints | std::views::filter([] (const codepoint & c) {
        return !c.reserved;
     })) {
-        fmt::print("{}:{}\n", c.value, c.name);
+        fmt::print("{}:{}\n", (uint32_t)c.value, c.name);
     }
 }
 
@@ -50,7 +50,7 @@ const char* useful_properties[] = {
     "math",
     "wspace",
     "ri",
-    "nhar", //Noncharacter_Code_Point
+    "nchar", //Noncharacter_Code_Point
     "vs",
 
     // emojis ?
@@ -87,13 +87,24 @@ namespace cedilla::details::generated {{
     }
 
     fmt::print(output, "}}\n");
+    fmt::print(output, "namespace cedilla {{");
+
+    for(auto prop : useful_properties) {
+        fmt::print(output, R"_(
+inline constexpr bool is_{0}(char32_t c) noexcept {{
+       return details::generated::property_{0}.lookup(c);
+}}
+)_", prop);
+    }
+
+    fmt::print(output, "}}\n");
+
 }
 
 void print_header(FILE* out) {
     fmt::print(out, R"(
 #pragma once
-#include "cedilla/details/bitset.hpp"
-#include "cedilla/details/skiplist.hpp"
+#include "cedilla/details/sets.hpp"
 )");
 }
 

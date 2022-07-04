@@ -142,9 +142,8 @@ add_library(cedilla STATIC
 #  ${HEADERS_DIR}/cp_to_name.hpp
 #  ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}details/generated_props.hpp
-  ${PROJECT_SOURCE_DIR}/src/cedilla/details/bitset.hpp
-  ${PROJECT_SOURCE_DIR}/src/cedilla/details/skiplist.hpp
-  src/unicode.cpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/details/sets.hpp
+  ${PROJECT_SOURCE_DIR}/src/unicode.cpp
 )
 
 target_include_directories(cedilla PUBLIC ${PROJECT_BINARY_DIR}/include src)

@@ -37,11 +37,36 @@ inline char32_t to_char32(std::string_view v) {
 }
 
 inline std::string to_hex(char32_t v) {
-    return fmt::format("{:04X}", v);
+    return fmt::format("{:04X}", (uint32_t)v);
 }
 
 template <typename R, typename Type>
 concept range_of = std::ranges::input_range<R> &&
                    std::same_as<std::ranges::range_value_t<std::remove_cvref_t<R>>, Type>;
+
+
+template <typename T>
+inline std::vector<std::tuple<T, T>> create_ranges(range_of<T> auto && values) {
+    std::optional<T> start;
+    std::optional<T> end;
+    std::vector<std::tuple<T, T>> ranges;
+    for(T c : values) {
+        if(!start) {
+            end = start = c;
+            continue;
+        }
+        if(c != *end + 1) {
+            ranges.emplace_back(*start, *end + 1);
+            end = start = c;
+            continue;
+        }
+        end = *end + 1;
+    }
+    if(start) {
+        ranges.emplace_back(*start, *end + 1);
+    }
+    return ranges;
+}
+
 
 }
