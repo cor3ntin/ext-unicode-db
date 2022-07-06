@@ -15,12 +15,6 @@ void print_scripts_data(FILE* out, const std::vector<codepoint> & all, const lab
 
 }
 
-void die(std::string_view msg) {
-    fmt::print(fg(fmt::color::red),
-               "{}\n", msg);
-    exit(1);
-}
-
 void usage() {
     fmt::print(fg(fmt::color::red),
                "Usage : unicode-properties-data-generator ucd.nounihan.flat.xml PropertyValueAliases.txt output.hpp\n");

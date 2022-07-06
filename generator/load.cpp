@@ -81,11 +81,14 @@ const char* binary_props[] = {
     "CWL",
     "CWT",
     "CWU",
-    "CWCF"
+    "CWCF",
+
+    "Comp_Ex", // full composition exclusion for normalization,
+    "NFD_QC"
 };
 
 
-static void parse_full_case_mapping(const pugi::xml_node & n, const char* property, std::vector<char32_t> & out) {
+static void parse_codepoints_list(const pugi::xml_node & n, const char* property, std::vector<char32_t> & out) {
     using namespace std::literals;
     if(n.attribute(property).value() == "#"sv)
         return;
@@ -135,10 +138,17 @@ static codepoint load_one(const pugi::xml_node & n) {
             c.binary_properties.insert(i);
     }
 
-    parse_full_case_mapping(n, "uc", c.uppercase);
-    parse_full_case_mapping(n, "lc", c.lowercase);
-    parse_full_case_mapping(n, "tc", c.titlecase);
-    parse_full_case_mapping(n, "cf", c.casefold);
+    // decomposition mapping
+    if(n.attribute("dm").value() != "#"sv) {
+        parse_codepoints_list(n, "dm", c.decomposition);
+        c.canonical_decomposition = n.attribute("dt").value() == "can"sv;
+    }
+    c.ccc = n.attribute("ccc").as_int();
+
+    parse_codepoints_list(n, "uc", c.uppercase);
+    parse_codepoints_list(n, "lc", c.lowercase);
+    parse_codepoints_list(n, "tc", c.titlecase);
+    parse_codepoints_list(n, "cf", c.casefold);
 
     return c;
 }

@@ -5,6 +5,7 @@
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>
+#include <fmt/color.h>
 
 namespace cedilla::tools {
 
@@ -66,6 +67,12 @@ inline std::vector<std::tuple<T, T>> create_ranges(range_of<T> auto && values) {
         ranges.emplace_back(*start, *end + 1);
     }
     return ranges;
+}
+
+inline void die(std::string_view msg) {
+    fmt::print(fg(fmt::color::red),
+               "{}\n", msg);
+    exit(1);
 }
 
 

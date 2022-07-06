@@ -1,4 +1,5 @@
 #include <cedilla/properties.hpp>
+#include <cedilla/normalization.hpp>
 
 /*#include "cedilla/properties.hpp"
 #include "cedilla/casing.hpp"

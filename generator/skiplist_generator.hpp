@@ -37,8 +37,8 @@ inline skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
 
     offsets.push_back(std::numeric_limits<uint8_t>::max() + 1);
     std::uint32_t prefix_sum = 0;
-
     skiplist_data d;
+    d.short_offset_runs.push_back(0);
     std::uint32_t start = 0;
     for(auto offset : offsets ) {
         prefix_sum  += offset;
@@ -52,6 +52,12 @@ inline skiplist_data create_skiplist(range_of<char32_t> auto && codepoints) {
             start = d.coded_offsets.size();
         }
     }
+    do {
+        d.short_offset_runs.push_back(d.short_offset_runs.back());
+    } while(((d.short_offset_runs.size() -1) % 8) != 0);
+    while(d.coded_offsets.size() % 8)
+        d.coded_offsets.push_back(0);
+
     return d;
 }
 

@@ -39,6 +39,25 @@ add_custom_command(
         unicode-properties-data-generator
 )
 
+add_custom_command(
+    COMMENT "Generating normalization header"
+    OUTPUT
+        ${HEADERS_DIR}/details/generated_normalization.hpp
+    WORKING_DIRECTORY
+        ${PROJECT_BINARY_DIR}
+    COMMAND
+        mkdir -p ${HEADERS_DIR}/details
+    COMMAND unicode-normalization-data-generator
+        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
+        ${HEADERS_DIR}/details/generated_normalization.hpp
+    COMMAND
+        clang-format ${HEADERS_DIR}/details/generated_normalization.hpp -i
+    DEPENDS
+        ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
+        ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
+        unicode-normalization-data-generator
+)
+
 
 
 #add_custom_command(
@@ -142,9 +161,11 @@ add_library(cedilla STATIC
 #  ${HEADERS_DIR}/cp_to_name.hpp
 #  ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}details/generated_props.hpp
+  ${HEADERS_DIR}/details/generated_normalization.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/sets.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/scripts.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/normalization.hpp
   ${PROJECT_SOURCE_DIR}/src/unicode.cpp
 )
 
@@ -162,7 +183,7 @@ target_link_libraries(cedilla PUBLIC fmt::fmt)
 #    include/cedilla/casing.hpp
 #)
 
-target_compile_options(cedilla INTERFACE -std=c++20)
+target_compile_options(cedilla PUBLIC -std=c++20 -march=native)
 
 if(MSVC)
   target_compile_options(cedilla INTERFACE /W4 /WX)

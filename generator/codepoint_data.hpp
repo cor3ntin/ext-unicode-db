@@ -19,7 +19,10 @@ struct codepoint {
     std::string numeric_value_str;
     std::int64_t numeric_value_numerator = 0 , numeric_value_denominator = 0;
     std::vector<char32_t> uppercase, lowercase, titlecase, casefold;
+    std::vector<char32_t> decomposition;
+    bool canonical_decomposition = true;
     std::vector<std::string> aliases;
+    int ccc = 0;
 
     bool has_binary_property(std::string_view prop) const {
         return binary_properties.contains(binary_property_index(prop));

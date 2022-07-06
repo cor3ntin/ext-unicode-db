@@ -1,6 +1,8 @@
 ﻿find_package(Threads)
 find_package(Catch2)
 find_package(fmt CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
+find_package(ICU REQUIRED COMPONENTS cu data uc dt in io)
 
 macro(create_test name file)
     add_executable(${name} ${file} ) #common.h common.cpp
@@ -23,3 +25,10 @@ target_link_libraries(test-properties cedilla unicode-generator-common Catch2::C
 add_executable(dump
     dump.cpp)
 target_link_libraries(dump cedilla fmt::fmt unicode-generator-common)
+
+
+add_executable(skip_bench skip_bench.cpp)
+target_link_libraries(skip_bench cedilla fmt::fmt
+    ${ICU_LIBRARIES}
+    unicode-generator-common benchmark::benchmark benchmark::benchmark_main)
+target_compile_options(skip_bench PUBLIC -std=c++20 -march=native -O3)

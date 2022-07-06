@@ -7,6 +7,8 @@
         "range-v3",
         "fmt",
         "catch2",
-        "pugixml"
+        "pugixml",
+        "benchmark",
+        "icu"
     ]
 }
