@@ -14,6 +14,7 @@ OBJECT
     codepoint_data.hpp
     bitset_generator.hpp
     skiplist_generator.hpp
+    perfect_hash.hpp
     utils.hpp
     generators.hpp
 )

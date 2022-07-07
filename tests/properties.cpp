@@ -2,6 +2,7 @@
 #include <set>
 #include <ranges>
 #include <cedilla/properties.hpp>
+#include <cedilla/normalization.hpp>
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -80,7 +81,7 @@ TEST_CASE("Exhaustive properties checking", "[props]")
     auto it = codepoints->begin();
     const auto end = codepoints->end();
 
-    for(char32_t c = 0x25d5; c < 0x10FFFF; c++) {
+    for(char32_t c = 0; c < 0x10FFFF; c++) {
         INFO("cp: U+" << std::hex << (uint32_t)c << " " << prop.name);
         if(auto p = std::ranges::lower_bound(it, end, c, {}, &cedilla::tools::codepoint::value); p != end && p->value == c) {
             CHECK(p->has_binary_property(prop.name) == prop.function(c));
@@ -120,8 +121,25 @@ TEST_CASE("cp_script") {
     }
 }
 
+TEST_CASE("ccc", "[normalization]") {
+    auto it = codepoints->begin();
+    const auto end = codepoints->end();
 
-TEST_CASE("benchmarks") {
+    for(char32_t c = 0; c < 0x11FFFF; c++) {
+        INFO("cp: U+" << std::hex << (uint32_t)c << " ");
+        if(auto p = std::ranges::lower_bound(it, end, c, {},
+                                             &cedilla::tools::codepoint::value); p != end && p->value == c) {
+            CHECK(p->ccc == cedilla::details::generated::ccc_data.lookup(c));
+            it = p+1;
+        } else {
+            CHECK(cedilla::details::generated::ccc_data.lookup(c) == 0);
+        }
+    }
+}
+
+
+
+/*TEST_CASE("benchmarks") {
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<char32_t> distr(0, 0x10ffff); // define the range
@@ -176,5 +194,5 @@ TEST_CASE("benchmarks") {
         return count;
     };
 }
-
+*/
 

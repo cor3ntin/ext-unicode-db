@@ -1,4 +1,4 @@
-#include "fmt/core.h"
+﻿#include "fmt/core.h"
 #include "fmt/ranges.h"
 #include "load.hpp"
 #include "codepoint_data.hpp"
@@ -67,18 +67,19 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
                                    auto s = std::get<1>(c);
                                    if(std::get<2>(c))
                                        s /= 3;
-                                   return (uint32_t(std::get<0>(c)) << 17) | uint32_t(s);
+                                   return (uint32_t(std::get<0>(c)) << 16) | uint32_t(s);
                                }) | ranges::to<std::vector>;
 
     constexpr auto tpl = R"(
-namespace cedilla::generated {{
     std::uint16_t canonical_decomposition_mapping_small[{}] = {{ {:#04X} }};
     std::uint32_t canonical_decomposition_mapping_large[{}] = {{ {:#06x} }};
-}})";
-    // std::uint32_t canonical_composition_mapping[{}] = {{ {:#04x} }};
+    std::uint32_t canonical_composition_mapping[{}] = {{ {:#04x} }};
+)";
+    //
     fmt::print(output, tpl,
                small.size(), fmt::join(small, ", "),
-               large.size(), fmt::join(large, ", "));
+               large.size(), fmt::join(large, ", "),
+               prepared_compositions.size(), fmt::join(prepared_compositions, ", "));
 
 
     ///fmt::print("\n----- {}: {} \n", compositions.size(), std::bit_width(max_e));
@@ -86,45 +87,40 @@ namespace cedilla::generated {{
 }
 
 void  dump_quick_checks(FILE* output, const std::vector<codepoint> & codepoints) {
-    fmt::print(output, R"(
-namespace cedilla::details::generated {{
-)");
-
     for(auto prop : {"nfd_qc"}) {
         auto set = codepoints | std::views::filter ([prop](const codepoint & c) {
-                       return c.has_binary_property(prop);
+                       return !c.NFD_QC;
                    }) | std::views::transform(&codepoint::value) | ranges::to<std::vector>();
+
+        //create_perfect_hash(set);
 
         print_binary_data_best(output, set, fmt::format("property_{}", to_lower(prop)));
     }
-
-    fmt::print(output, "}}\n");
-
 }
 
 
 void dump_combining_classes(FILE* output, const std::vector<codepoint> & codepoints)
 {
-    std::vector<std::pair<uint32_t, int>> combining_ranges;
-    std::map<std::uint8_t, uint32_t> classes;
-    for(const codepoint & c : codepoints) {
-        if(!combining_ranges.empty() && c.ccc == combining_ranges.back().second)
-            continue;
-        combining_ranges.push_back({c.value, c.ccc});
-    }
-    combining_ranges.push_back({combining_ranges.back().first, 0});
-
-    std::vector<uint32_t> ranges = combining_ranges | std::ranges::views::transform([](const auto & c) {
-                                                      return (c.first << 21) | c.second;
-                                                  }) | ranges::to<std::vector>;
 
 
-    constexpr auto tpl = R"(
-namespace cedilla::generated {{
-    std::uint32_t combining_classes[{}] = {{ {:#04x} }};
+    auto interesting = codepoints
+                       | std::views::filter([](const codepoint & c) { return c.ccc != 0 ;});
 
-}})";
-    fmt::print(output, tpl, ranges.size(), fmt::join(ranges, ", "));
+    std::vector<char32_t> keys = interesting
+        | std::views::transform(&codepoint::value)
+        | ranges::to<std::vector>;
+
+    hash_data data = create_perfect_hash(keys);
+
+    std::map<char32_t, uint8_t> ccc;
+    std::ranges::transform(
+        interesting,
+        std::inserter(ccc, ccc.begin()), [](const codepoint & c) { return std::pair{c.value, c.ccc};});
+
+    std::vector<uint32_t> values = data.keys | std::views::transform([&](char32_t c) {
+                                       return (uint32_t(c) << 11) | ccc[c];
+    }) | ranges::to<std::vector>;
+    print_hash_data(output, "lower11bits_codepoint_hash_map", "ccc_data", data.salts, values);
 
 }
 
@@ -221,10 +217,16 @@ int main(int argc, const char** argv) {
         die("can't open output file");
     }
     print_header(output);
-    dump_normalization_statistics(codepoints);
+
+    fmt::print(output, "namespace cedilla::details::generated {{\n");
+
+    //dump_normalization_statistics(codepoints);
     dump_quick_checks(output, codepoints);
     dump_combining_classes(output, codepoints);
     dump_canonical_mappings(output, codepoints);
+
+    fmt::print(output, "}}\n");
+
     fclose(output);
     return 0;
 }

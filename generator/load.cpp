@@ -83,8 +83,7 @@ const char* binary_props[] = {
     "CWU",
     "CWCF",
 
-    "Comp_Ex", // full composition exclusion for normalization,
-    "NFD_QC"
+    "Comp_Ex" // full composition exclusion for normalization,
 };
 
 
@@ -144,6 +143,9 @@ static codepoint load_one(const pugi::xml_node & n) {
         c.canonical_decomposition = n.attribute("dt").value() == "can"sv;
     }
     c.ccc = n.attribute("ccc").as_int();
+    if(n.attribute("NFD_QC").value() == "N"sv)
+        c.NFD_QC = false;
+
 
     parse_codepoints_list(n, "uc", c.uppercase);
     parse_codepoints_list(n, "lc", c.lowercase);

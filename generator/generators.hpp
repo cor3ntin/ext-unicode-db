@@ -1,5 +1,6 @@
 #include "bitset_generator.hpp"
 #include "skiplist_generator.hpp"
+#include "perfect_hash.hpp"
 
 namespace cedilla::tools {
 

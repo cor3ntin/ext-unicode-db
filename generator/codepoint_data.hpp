@@ -23,6 +23,7 @@ struct codepoint {
     bool canonical_decomposition = true;
     std::vector<std::string> aliases;
     int ccc = 0;
+    bool NFD_QC = true;
 
     bool has_binary_property(std::string_view prop) const {
         return binary_properties.contains(binary_property_index(prop));
