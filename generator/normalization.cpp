@@ -87,15 +87,10 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
 }
 
 void  dump_quick_checks(FILE* output, const std::vector<codepoint> & codepoints) {
-    for(auto prop : {"nfd_qc"}) {
-        auto set = codepoints | std::views::filter ([prop](const codepoint & c) {
-                       return !c.NFD_QC;
-                   }) | std::views::transform(&codepoint::value) | ranges::to<std::vector>();
-
-        //create_perfect_hash(set);
-
-        print_binary_data_best(output, set, fmt::format("property_{}", to_lower(prop)));
-    }
+    auto set = codepoints | std::views::filter ([](const codepoint & c) {
+                   return !c.NFD_QC;
+               }) | std::views::transform(&codepoint::value) | ranges::to<std::vector>();
+    print_binary_data_best(output, set, "nfd_qc_no");
 }
 
 
@@ -220,7 +215,7 @@ int main(int argc, const char** argv) {
 
     fmt::print(output, "namespace cedilla::details::generated {{\n");
 
-    //dump_normalization_statistics(codepoints);
+    dump_normalization_statistics(codepoints);
     dump_quick_checks(output, codepoints);
     dump_combining_classes(output, codepoints);
     dump_canonical_mappings(output, codepoints);
