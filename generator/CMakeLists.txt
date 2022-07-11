@@ -41,8 +41,6 @@ add_executable(unicode-normalization-data-generator
 )
 target_link_libraries(unicode-normalization-data-generator PRIVATE unicode-generator-common)
 
-
-
 add_executable(unicode-cp-to-name-data-generator cp-to-name-generator.cpp)
 target_link_libraries(unicode-cp-to-name-data-generator
     PRIVATE

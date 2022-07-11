@@ -7,6 +7,20 @@
 
 namespace cedilla::details {
 
+template <std::ranges::random_access_range R, class T, class Comp = std::ranges::less>
+auto branchless_lower_bound(const R & r,
+                            const T & value,
+                            const Comp & comparator = {} ) {
+    auto it = std::ranges::begin(r);
+    std::size_t N = std::ranges::size(r);
+    while(N > 1) {
+        const std::size_t half = N / 2;
+        it = (comparator(it[half], value)) ? it + half : it;
+        N -= half;
+    }
+    return comparator(*it, value) ? it+1 : it;
+}
+
 struct empty {
     static constexpr bool lookup(char32_t) noexcept {
         return false;
@@ -81,17 +95,17 @@ template <std::size_t N, typename ValueType,
 struct perfect_hash_map {
     std::uint16_t salts[N];
     ValueType     values[N];
-    constexpr inline std::uint32_t hash(std::uint32_t c, std::uint32_t salt, std::uint64_t n) const {
+    constexpr inline std::uint32_t hash(std::uint32_t c, std::uint32_t salt) const {
         std::uint32_t y = (c + salt) * 2654435769;
         y ^= c * 0x31415926;
-        return (std::uint64_t(y) * std::uint64_t(n)) >> 32;
+        return (std::uint64_t(y) * std::uint64_t(N)) >> 32;
     }
     const std::invoke_result_t<ValueFunction, ValueType>
     lookup(char32_t c) const noexcept {
         const KeyFunction kf;
         const ValueFunction vf;
-        auto salt = salts[hash(c, 0, N)];
-        const auto & v = values[hash(c, salt, N)];
+        auto salt = salts[hash(c, 0)];
+        const auto & v = values[hash(c, salt)];
         if(c == kf(v)) {
             return vf(v);
         };

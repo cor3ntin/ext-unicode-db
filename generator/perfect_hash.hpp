@@ -79,7 +79,7 @@ void print_hash_data(FILE* output,
                      const std::vector<std::uint16_t> & salts,
                      const std::vector<T> & values) {
 constexpr const char* tpl = R"(
-      {}<{}>  {} {{
+      constexpr inline {}<{}>  {} {{
          . salts  = {{ {} }},
          . values = {{ {} }}
       }};

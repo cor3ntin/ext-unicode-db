@@ -19,8 +19,9 @@ namespace cedilla::tools {
 
 void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepoints)
 {
+    std::vector<std::uint16_t> small_keys;
     std::vector<std::uint16_t> small;
-    std::vector<std::uint32_t> large;
+    std::vector<std::uint64_t> large;
     std::vector<std::tuple<char32_t, std::size_t, bool>> compositions;
 
     auto is_primary_composite = [&](const char32_t c) {
@@ -43,7 +44,7 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
         }
 
         if(fits_in6_bytes) {
-            small.push_back(c.value);
+            small_keys.push_back(c.value);
             small.push_back(c.decomposition[0]);
             small.push_back(c.decomposition.size() > 1 ? c.decomposition[1] : 0);
         }
@@ -71,12 +72,18 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
                                }) | ranges::to<std::vector>;
 
     constexpr auto tpl = R"(
-    std::uint16_t canonical_decomposition_mapping_small[{}] = {{ {:#04X} }};
-    std::uint32_t canonical_decomposition_mapping_large[{}] = {{ {:#06x} }};
-    std::uint32_t canonical_composition_mapping[{}] = {{ {:#04x} }};
+    // 16 bits codepoints for which there exists a canonical mapping such that each
+    // replacement codepoints is 16 bits or less in the same index in canonical_decomposition_mapping_small_values.
+    // keys and values are kept separate to improve cache locality for binary search.
+    constexpr inline std::uint16_t canonical_decomposition_mapping_small_keys[{}] = {{ {:#04X} }};
+    constexpr inline std::uint16_t canonical_decomposition_mapping_small_values[{}] = {{ {:#04X} }};
+
+    constexpr inline std::uint64_t canonical_decomposition_mapping_large[{}] = {{ {:#06x} }};
+    constexpr inline std::uint32_t canonical_composition_mapping[{}] = {{ {:#04x} }};
 )";
     //
     fmt::print(output, tpl,
+               small_keys.size(), fmt::join(small_keys, ", "),
                small.size(), fmt::join(small, ", "),
                large.size(), fmt::join(large, ", "),
                prepared_compositions.size(), fmt::join(prepared_compositions, ", "));
@@ -177,6 +184,25 @@ classes: {},  {}
     classes.size(), classes);
 }
 
+
+void dump_recursive(const std::vector<codepoint> & codepoints) {
+    std::map<char32_t, std::vector<char32_t>> with_mapping;
+    std::set<uint32_t> recursive;
+    for(auto cp : codepoints) {
+        if(!cp.decomposition.empty() && cp.canonical_decomposition) {
+            with_mapping[cp.value]  = cp.decomposition;
+        }
+    }
+    for (const auto & [c, mapping] : with_mapping) {
+        for(auto m : mapping) {
+            if(with_mapping.contains(m))
+                recursive.insert(c);
+
+        }
+    }
+    fmt::print("recursive: {}\n", recursive.size());
+}
+
 void print_header(FILE* out) {
     fmt::print(out, R"(
 #pragma once
@@ -216,6 +242,7 @@ int main(int argc, const char** argv) {
     fmt::print(output, "namespace cedilla::details::generated {{\n");
 
     dump_normalization_statistics(codepoints);
+    dump_recursive(codepoints);
     dump_quick_checks(output, codepoints);
     dump_combining_classes(output, codepoints);
     dump_canonical_mappings(output, codepoints);

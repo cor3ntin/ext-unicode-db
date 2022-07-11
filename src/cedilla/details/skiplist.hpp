@@ -49,7 +49,7 @@ constexpr bool skiplist_search(char32_t c, std::span<const uint32_t> short_offse
     return offset_idx % 2 == 1;
 }
 
-bool skiplist_search_simd(char32_t c, std::span<const uint32_t> short_offset_runs,
+inline bool skiplist_search_simd(char32_t c, std::span<const uint32_t> short_offset_runs,
                           std::span<const uint8_t> offsets) noexcept {
 
 
@@ -90,7 +90,7 @@ found:
 }
 
 
-bool skiplist_search_simd_256_2(char32_t c, std::span<const uint32_t> short_offset_runs,
+inline bool skiplist_search_simd_256_2(char32_t c, std::span<const uint32_t> short_offset_runs,
                                 std::span<const uint8_t> offsets) noexcept {
 
 
@@ -156,7 +156,7 @@ found:
 }
 
 
-bool skiplist_search_simd_128(char32_t c, std::span<const uint32_t> short_offset_runs,
+inline bool skiplist_search_simd_128(char32_t c, std::span<const uint32_t> short_offset_runs,
                               std::span<const uint8_t> offsets) noexcept {
 
 
@@ -197,7 +197,7 @@ found:
     return offset_idx % 2 == 1;
 }
 
-bool skiplist_search_simd_128_2(char32_t c, std::span<const uint32_t> short_offset_runs,
+inline bool skiplist_search_simd_128_2(char32_t c, std::span<const uint32_t> short_offset_runs,
                                 std::span<const uint8_t> offsets) noexcept {
 
 

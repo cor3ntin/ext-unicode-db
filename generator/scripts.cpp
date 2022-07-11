@@ -56,7 +56,7 @@ void print_scripts_enum(FILE* out, const indexed_scripts & scripts) {
 void print_script_extension_data(FILE* out, std::size_t index,
                                  const std::vector<std::pair<char32_t, uint16_t>>& codepoints) {
     fmt::print(out,
-        "template<> script_data<{}> script_properties<size_t({})>{{{{ {} }}}};\n", codepoints.size(), index,
+        "template<> inline constexpr script_data<{}> script_properties<size_t({})>{{{{ {} }}}};\n", codepoints.size(), index,
         fmt::join(codepoints | std::views::transform([](const std::pair<char32_t, uint16_t>& rng) {
                              return fmt::format("({:#08x} << 11) | {}", std::uint32_t(rng.first), rng.second);
 
