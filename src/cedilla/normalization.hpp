@@ -7,7 +7,10 @@
 namespace cedilla {
 
 enum class normalization_form {
-    nfd
+    nfd,
+    nfc,
+    nfdk,
+    nfck,
 };
 
 inline std::array<char32_t, 2> get_canonical_decomposition(char32_t c) {
@@ -15,7 +18,7 @@ inline std::array<char32_t, 2> get_canonical_decomposition(char32_t c) {
         const auto & a = details::generated::canonical_decomposition_mapping_small_keys;
         auto it = details::branchless_lower_bound(a, c);
         if(it != std::ranges::end(a) && *it == c) {
-            const auto n = 2 * std::ranges::distance(std::ranges::begin(a), std::ranges::end(a));
+            const auto n = 2 * std::ranges::distance(std::ranges::begin(a), it);
             const auto & v =   details::generated::canonical_decomposition_mapping_small_values;
             return {v[n], v[n+1]};
         }
@@ -29,7 +32,7 @@ inline std::array<char32_t, 2> get_canonical_decomposition(char32_t c) {
     };
     auto it = details::branchless_lower_bound(a, c, comp);
     if(it != std::ranges::end(a) && (*it >> 42) == c) {
-        return { char32_t(*it >> 21) & 0x1FFFFF, char32_t(*it & 0x1FFFFF)};
+        return {char32_t(*it >> 21) & 0x1FFFFF, char32_t(*it) & 0x1FFFFF};
     }
     return {};
 }
@@ -46,8 +49,8 @@ public:
     struct iterator {
     private:
         using base_it = std::ranges::iterator_t<V>;
+        const normalization_view* parent;
         base_it base_;
-        normalization_view* parent;
         struct codepoint {
             char32_t c   : 21;
             uint8_t  ccc : 8 ;
@@ -58,57 +61,67 @@ public:
         void decompose_pair(const std::array<char32_t, 2> & canonical, uint8_t& last_ccc, bool& sorted) {
             assert(canonical[0] != 0 && "No canonical composition for a cp with nfd_qc == NO");
             for(std::size_t N = 0; N < 2; N++) {
-                uint8_t ccc = 0;
+                uint8_t ccc = details::generated::ccc_data.lookup(canonical[N]);;
                 if(!canonical[N])
                     break;
-                if(sorted) {
-                    ccc = details::generated::ccc_data.lookup(canonical[N]);
-                    if(ccc != 0 && ccc < last_ccc)
-                        sorted = false;
-                    last_ccc = ccc;
-                }
                 if(details::generated::nfd_qc_no.lookup(canonical[N])) {
                     decompose_recursively(canonical[N], last_ccc, sorted);
                 }
-                buffer.emplace_back(canonical[N], ccc);
+                else {
+                    buffer.emplace_back(canonical[N], ccc);
+                }
             }
         }
 
         void decompose_recursively(char32_t c, uint8_t& last_ccc, bool& sorted) {
-            assert(!details::generated::nfd_qc_no.lookup(c)
+            assert(details::generated::nfd_qc_no.lookup(c)
                    && "called decompose_recursively on a cp with nfd_qc == NO");
             std::array<char32_t, 2> canonical = get_canonical_decomposition(c);
             decompose_pair(canonical, last_ccc, sorted);
         }
+        static constexpr bool is_canonical() {
+            return Form == normalization_form::nfd || Form == normalization_form::nfc;
+        }
 
-        void decompose_next() {
-            idx = 0;
+        constexpr void canonical_sort() {
+            std::ranges::sort(buffer, [](const codepoint & a, const codepoint & b) {
+                if(a.ccc == 0 || b.c == 0)
+                    return false;
+                return a.ccc < b.ccc;
+            });
+        }
+
+        constexpr void decompose_next() {
             uint8_t last_ccc = 0;
             bool sorted = true;
             while(base_ != parent->base.end()) {
-                codepoint c = {*base_, (uint8_t)details::generated::ccc_data.lookup(c.c)};
-                bool is_nfd = !details::generated::nfd_qc_no.lookup(c.c);
-                if(is_nfd && c.ccc  == 0) {
+                auto n = *(base_);
+                codepoint c = {n, (uint8_t)details::generated::ccc_data.lookup(n)};
+                bool is_nfd = !details::generated::nfd_qc_no.lookup(n);
+                if(is_nfd && c.ccc == 0 && !buffer.empty()) {
                     break;
                 }
+                base_ ++;
                 if(c.ccc != 0 && c.ccc < last_ccc) {
                     sorted = false;
                 }
-                if(!is_nfd) {
-                    std::array<char32_t, 2> canonical = get_canonical_decomposition(c.c);
-                    decompose_pair(canonical, last_ccc, sorted);
+                if(is_nfd) {
+                    buffer.emplace_back(c);
+                    continue;
                 }
+                std::array<char32_t, 2> canonical = get_canonical_decomposition(c.c);
+                decompose_pair(canonical, last_ccc, sorted);
             }
+            canonical_sort();
         }
 
         void advance() {
+            idx++;
             if(idx < buffer.size()) {
-                idx++;
                 return;
             }
             buffer.clear();
             idx = 0;
-            base_++;
             decompose_next();
         }
         void back();
@@ -126,7 +139,9 @@ public:
         }());
 
         constexpr iterator() requires std::default_initializable<base_it> = default;
-        constexpr iterator(base_it base): base_(base) {};
+        constexpr iterator(const normalization_view* p, base_it base): parent(p), base_(base) {
+            decompose_next();
+        };
 
         constexpr const base_it& base() const & noexcept {
             return base_;
@@ -177,7 +192,7 @@ public:
     };
 
     constexpr iterator begin() const {
-        return std::ranges::begin(base);
+        return {this, std::ranges::begin(base)};
     }
 
     constexpr std::default_sentinel_t end() const {

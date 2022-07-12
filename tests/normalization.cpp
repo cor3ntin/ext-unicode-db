@@ -71,6 +71,7 @@ struct StringMaker<char32_t> {
         return fmt::format("U+{:04X}", (uint32_t)c);
     }
 };
+
 }
 
 

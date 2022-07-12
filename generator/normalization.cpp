@@ -51,7 +51,7 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
         else {
             auto v = uint64_t(c.value) << 42;
             v |= uint64_t(c.decomposition[0]) << 21;
-            v |= c.decomposition.size() > 1 ? uint64_t(c.decomposition[0]) : 0;
+            v |= c.decomposition.size() > 1 ? uint64_t(c.decomposition[1]) : 0;
             large.push_back(v);
         }
     }
@@ -124,6 +124,27 @@ void dump_combining_classes(FILE* output, const std::vector<codepoint> & codepoi
     }) | ranges::to<std::vector>;
     print_hash_data(output, "lower11bits_codepoint_hash_map", "ccc_data", data.salts, values);
 
+}
+
+size_t find_recursion_size(const std::vector<codepoint> & codepoints, char32_t needle) {
+    auto it = std::ranges::lower_bound(codepoints, needle, {}, &codepoint::value);
+    if(it == codepoints.end() || it->value != needle || !it->canonical_decomposition)
+        return 0;
+    size_t size = 0;
+    for(const auto & c : it->decomposition) {
+        size += find_recursion_size(codepoints, c);
+    }
+    if(size == 0)
+        return 1;
+    return size;
+}
+
+size_t find_recursion_size(const std::vector<codepoint> & codepoints) {
+    size_t size = 0;
+    for(const auto & c : codepoints) {
+        size = std::max(find_recursion_size(codepoints, c.value), size);
+    }
+    return size;
 }
 
 
@@ -216,8 +237,6 @@ void usage() {
                "Usage : unicode-normalization-data-generator ucd.nounihan.flat.xml output.hpp\n");
     exit(1);
 }
-
-
 
 }
 
