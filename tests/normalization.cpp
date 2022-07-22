@@ -92,3 +92,20 @@ TEST_CASE("NFD") {
     }
 }
 
+TEST_CASE("NFC") {
+    auto nfc = [](const std::u32string_view & v) {
+        return cedilla::normalization_view<cedilla::normalization_form::nfc, std::u32string_view>(v)
+               | ranges::to<std::u32string>();
+    };
+
+    for(const auto & test : nt) {
+        INFO(test.description);
+        CHECK(test.c(2) == nfc(test.c(1)));
+        CHECK(test.c(2) == nfc(test.c(2)));
+        CHECK(test.c(2) == nfc(test.c(3)));
+
+        CHECK(test.c(4) == nfc(test.c(4)));
+        CHECK(test.c(4) == nfc(test.c(5)));
+    }
+}
+

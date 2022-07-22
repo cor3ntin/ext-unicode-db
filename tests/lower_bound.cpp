@@ -7,9 +7,12 @@
 
 TEST_CASE("Test lower bound", "[sets]")
 {
-    const auto & a = cedilla::details::generated::canonical_decomposition_mapping_small_keys;
+    const auto & a = cedilla::details::generated::canonical_decomposition_mapping_small;
+    auto L = [](const cedilla::details::generated::small_decomposition & a, const auto& b) {return a.key < b;};
+
     for(int i = 0; i < 0xffff; i++) {
 
-        REQUIRE(cedilla::details::branchless_lower_bound(a, i) == std::ranges::lower_bound(a, i));
+        REQUIRE(cedilla::details::branchless_lower_bound(a, i, L) == std::ranges::lower_bound(a, i, {},
+                                                                                              &cedilla::details::generated::small_decomposition::key));
     }
 }

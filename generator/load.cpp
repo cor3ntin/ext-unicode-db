@@ -145,7 +145,26 @@ static codepoint load_one(const pugi::xml_node & n) {
     c.ccc = n.attribute("ccc").as_int();
     if(n.attribute("NFD_QC").value() == "N"sv)
         c.NFD_QC = false;
+    // False for  N(o) and M(aybe)
+    if(n.attribute("NFC_QC").value() != "Y"sv)
+        c.NFC_QC = false;
 
+    auto S = n.attribute("hst").value();
+    if(S != "NA"sv) {
+        if(S == "L"sv)
+            c.hangul_syllable_kind = uint8_t(hangul_syllable_kind::leading);
+        if(S == "V"sv)
+            c.hangul_syllable_kind = uint8_t(hangul_syllable_kind::vowel);
+        if(S == "T"sv)
+            c.hangul_syllable_kind = uint8_t(hangul_syllable_kind::trailing);
+        if(S == "LV"sv)
+            c.hangul_syllable_kind = uint8_t(hangul_syllable_kind::leading)
+                                   | uint8_t(hangul_syllable_kind::vowel);
+        if(S == "LVT"sv)
+            c.hangul_syllable_kind =   uint8_t(hangul_syllable_kind::leading)
+                                     | uint8_t(hangul_syllable_kind::vowel)
+                                     | uint8_t(hangul_syllable_kind::trailing);
+    }
 
     parse_codepoints_list(n, "uc", c.uppercase);
     parse_codepoints_list(n, "lc", c.lowercase);

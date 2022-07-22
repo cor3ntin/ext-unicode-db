@@ -7,6 +7,13 @@ namespace cedilla::tools {
 
 int binary_property_index(std::string_view);
 
+enum class hangul_syllable_kind {
+    invalid,
+    leading   = 0x01,
+    vowel     = 0x02,
+    trailing  = 0x04
+};
+
 struct codepoint {
     char32_t    value = 0;
     std::string name;
@@ -24,6 +31,13 @@ struct codepoint {
     std::vector<std::string> aliases;
     int ccc = 0;
     bool NFD_QC = true;
+    // Assume Maybe == No
+    bool NFC_QC = true;
+    uint8_t hangul_syllable_kind = uint8_t(hangul_syllable_kind::invalid);
+
+    bool is_hangul() const {
+        return hangul_syllable_kind != uint8_t(hangul_syllable_kind::invalid);
+    }
 
     bool has_binary_property(std::string_view prop) const {
         return binary_properties.contains(binary_property_index(prop));

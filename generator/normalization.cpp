@@ -19,10 +19,23 @@ namespace cedilla::tools {
 
 void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepoints)
 {
-    std::vector<std::uint16_t> small_keys;
-    std::vector<std::uint16_t> small;
+    struct small_decomposition {
+        uint16_t key;
+        uint16_t r1;
+        uint16_t r2 = 0;
+    };
+
+    struct composition {
+        uint32_t leading;
+        std::size_t index;
+        bool in4bytes = false;
+    };
+
+    std::vector<small_decomposition> small;
     std::vector<std::uint64_t> large;
-    std::vector<std::tuple<char32_t, std::size_t, bool>> compositions;
+
+
+    std::vector<composition> compositions;
 
     auto is_primary_composite = [&](const char32_t c) {
         auto it = std::ranges::find(codepoints, c, &codepoint::value);
@@ -31,22 +44,23 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
     };
 
     for(const auto & c : codepoints) {
+        if(c.is_hangul())
+            continue;
         if(c.decomposition.empty() || !c.canonical_decomposition)
             continue;
         if(c.decomposition.size()>2)
             die(fmt::format("{:0x} ({}) decomposes canonically to more than 2 codepoints", (uint32_t)c.value, c.name));
 
-        bool fits_in6_bytes =
+        bool fits_in4_bytes =
             c.value <= 0xffff && std::ranges::all_of(c.decomposition, [](char32_t c) { return c <= 0xffff;});
 
         if(c.decomposition.size() >  1 && is_primary_composite(c.value)) {
-            compositions.emplace_back(c.decomposition[1], fits_in6_bytes?small.size() : large.size(), fits_in6_bytes);
+            compositions.emplace_back(c.decomposition[0], fits_in4_bytes?
+                                                          small.size() : large.size(), fits_in4_bytes);
         }
 
-        if(fits_in6_bytes) {
-            small_keys.push_back(c.value);
-            small.push_back(c.decomposition[0]);
-            small.push_back(c.decomposition.size() > 1 ? c.decomposition[1] : 0);
+        if(fits_in4_bytes) {
+            small.emplace_back(c.value, c.decomposition[0], c.decomposition.size() > 1 ? c.decomposition[1] : 0);
         }
         else {
             auto v = uint64_t(c.value) << 42;
@@ -56,37 +70,50 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
         }
     }
 
-    auto K = [](auto && e) {return std::get<0>(std::forward<decltype(e)>(e));};
-    std::ranges::sort(compositions, {}, K );
-
-    uint32_t max_e = K(std::ranges::max(compositions, {} , K));
+    uint32_t max_e = std::ranges::max(compositions, {} , &composition::leading).leading;
     if(std::bit_width(max_e) > 17)
         die("unexpectedly high number of bits in composition mapping");
 
 
-    std::vector<uint32_t> prepared_compositions = compositions | std::ranges::views::transform([](const auto & c) {
-                                   auto s = std::get<1>(c);
-                                   if(std::get<2>(c))
-                                       s /= 3;
-                                   return (uint32_t(std::get<0>(c)) << 16) | uint32_t(s);
+    std::ranges::sort(compositions, {}, [](const composition & c) {
+          return c.leading << 15;
+    });
+
+    std::vector<std::string> prepared_compositions = compositions | std::ranges::views::transform([](const composition & c) {
+                                   auto s = c.index;
+                                   uint32_t packed = (uint32_t(c.leading) << 15) | uint32_t(s);
+                                   return fmt::format("{:#04x} /*{:#04x} | {} */",packed , uint32_t(c.leading), uint32_t(s));
+
+
+
                                }) | ranges::to<std::vector>;
 
     constexpr auto tpl = R"(
-    // 16 bits codepoints for which there exists a canonical mapping such that each
-    // replacement codepoints is 16 bits or less in the same index in canonical_decomposition_mapping_small_values.
-    // keys and values are kept separate to improve cache locality for binary search.
-    constexpr inline std::uint16_t canonical_decomposition_mapping_small_keys[{}] = {{ {:#04X} }};
-    constexpr inline std::uint16_t canonical_decomposition_mapping_small_values[{}] = {{ {:#04X} }};
+    struct small_decomposition {{
+        uint16_t key;
+        uint16_t r1;
+        uint16_t r2 = 0;
+    }};
 
+    // clang-format off
+    constexpr inline small_decomposition canonical_decomposition_mapping_small[{}] = {{ {} }};
+    // clang-format on
     constexpr inline std::uint64_t canonical_decomposition_mapping_large[{}] = {{ {:#06x} }};
-    constexpr inline std::uint32_t canonical_composition_mapping[{}] = {{ {:#04x} }};
+    constexpr inline std::uint32_t canonical_composition_mapping[{}] = {{
+        {}
+    }};
 )";
+
+    auto transform_small_decomposition = [](const small_decomposition & decomp) {
+        return fmt::format("{{ {:#04x}, {:#04x}, {:#04x}, }}", decomp.key, decomp.r1, decomp.r2);
+    };
+
     //
     fmt::print(output, tpl,
-               small_keys.size(), fmt::join(small_keys, ", "),
-               small.size(), fmt::join(small, ", "),
+               //small_keys.size(), fmt::join(small_keys, ", "),
+               small.size(), fmt::join(small | std::views::transform(transform_small_decomposition), ", \n"),
                large.size(), fmt::join(large, ", "),
-               prepared_compositions.size(), fmt::join(prepared_compositions, ", "));
+               prepared_compositions.size(), fmt::join(prepared_compositions, ",\n"));
 
 
     ///fmt::print("\n----- {}: {} \n", compositions.size(), std::bit_width(max_e));
@@ -94,17 +121,20 @@ void dump_canonical_mappings(FILE* output, const std::vector<codepoint> & codepo
 }
 
 void  dump_quick_checks(FILE* output, const std::vector<codepoint> & codepoints) {
-    auto set = codepoints | std::views::filter ([](const codepoint & c) {
+    auto nfd_qc_no = codepoints | std::views::filter ([](const codepoint & c) {
                    return !c.NFD_QC;
                }) | std::views::transform(&codepoint::value) | ranges::to<std::vector>();
-    print_binary_data_best(output, set, "nfd_qc_no");
+    auto nfc_qc_no = codepoints | std::views::filter ([](const codepoint & c) {
+                         return !c.NFC_QC;
+                     }) | std::views::transform(&codepoint::value) | ranges::to<std::vector>();
+
+
+    print_binary_data_best(output, nfd_qc_no, "nfd_qc_no");
+    print_binary_data_best(output, nfc_qc_no, "nfc_qc_no");
 }
 
 
-void dump_combining_classes(FILE* output, const std::vector<codepoint> & codepoints)
-{
-
-
+void dump_combining_classes(FILE* output, const std::vector<codepoint> & codepoints) {
     auto interesting = codepoints
                        | std::views::filter([](const codepoint & c) { return c.ccc != 0 ;});
 
@@ -123,8 +153,50 @@ void dump_combining_classes(FILE* output, const std::vector<codepoint> & codepoi
                                        return (uint32_t(c) << 11) | ccc[c];
     }) | ranges::to<std::vector>;
     print_hash_data(output, "lower11bits_codepoint_hash_map", "ccc_data", data.salts, values);
-
 }
+
+
+void dump_hangul_syllables(FILE* output, const std::vector<codepoint> & codepoints) {
+
+    struct syllable {
+        uint32_t cp   : 21;
+        uint32_t kind : 11;
+    };
+
+    std::vector<syllable> syllables;
+    uint8_t type = uint8_t(hangul_syllable_kind::invalid);
+    auto hangul_cps = codepoints
+                       | std::views::filter([](const codepoint & c) { return c.is_hangul() ;})
+                  | ranges::to<std::vector>;
+
+    for(const codepoint & cp : hangul_cps) {
+        if(cp.hangul_syllable_kind == type)
+            continue;
+        syllables.emplace_back(cp.value, cp.hangul_syllable_kind);
+        type = cp.hangul_syllable_kind;
+    }
+    syllables.emplace_back(hangul_cps.back().value+1, uint8_t(hangul_syllable_kind::invalid));
+
+
+    constexpr auto tpl = R"(
+    struct hangul_syllable {{
+        uint32_t cp: 21;
+        uint32_t kind: 11;
+    }};
+    constexpr inline hangul_syllable hangul_syllables[{}] = {{
+        {}
+    }};
+)";
+
+    auto transform_hangul_syllables = [](const syllable & s) {
+        return fmt::format("{{ {:#04x}, {} }}", s.cp, s.kind);
+    };
+
+    fmt::print(output, tpl,
+               syllables.size(), fmt::join(syllables | std::views::transform(transform_hangul_syllables), ", \n"));
+}
+
+
 
 size_t find_recursion_size(const std::vector<codepoint> & codepoints, char32_t needle) {
     auto it = std::ranges::lower_bound(codepoints, needle, {}, &codepoint::value);
@@ -261,10 +333,14 @@ int main(int argc, const char** argv) {
     fmt::print(output, "namespace cedilla::details::generated {{\n");
 
     dump_normalization_statistics(codepoints);
+
+    fmt::print("MAX RECURSION : {} !!!!!\n", find_recursion_size(codepoints));
+
     dump_recursive(codepoints);
     dump_quick_checks(output, codepoints);
     dump_combining_classes(output, codepoints);
     dump_canonical_mappings(output, codepoints);
+    dump_hangul_syllables(output, codepoints);
 
     fmt::print(output, "}}\n");
 
