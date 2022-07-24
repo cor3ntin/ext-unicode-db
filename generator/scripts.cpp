@@ -86,7 +86,6 @@ script get_script_ext(char32_t c, std::size_t index) noexcept {{
 void print_scripts_data(FILE* out, const std::vector<codepoint>& all, const labels& l) {
     indexed_scripts scripts = sorted_scripts(l);
 
-    fmt::print(out, "namespace cedilla::details::generated {{\n");
     print_scripts_enum(out, scripts);
 
     std::size_t script_index = 0;
@@ -120,7 +119,6 @@ void print_scripts_data(FILE* out, const std::vector<codepoint>& all, const labe
         script_index++;
     }
     print_script_switch(out, 1);
-    fmt::print(out, "}}\n");
 }
 
 

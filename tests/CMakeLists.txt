@@ -18,32 +18,26 @@ endmacro()
 
 #arget_link_libraries(tst_name fmt::fmt)
 
-add_executable(test-properties
+add_executable(test-unicode
+    globals.hpp
+    main.cpp
     properties.cpp
     lower_bound.cpp
+    normalization.cpp
+    grapheme.cpp
 )
-target_link_libraries(test-properties cedilla unicode-generator-common Catch2::Catch2)
-add_test(NAME test-properties
-    COMMAND test-properties
+target_link_libraries(test-unicode cedilla unicode-generator-common Catch2::Catch2)
+add_test(NAME test-unicode
+    COMMAND test-unicode
     --ucd-path=${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
     --aliases-path=${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
+    --normalization-tests=${PROJECT_BINARY_DIR}/ucd/NormalizationTest.txt
+    --graphemes-tests=${PROJECT_BINARY_DIR}/ucd/GraphemeBreakTest.txt
 )
 
 add_executable(dump
     dump.cpp)
 target_link_libraries(dump cedilla fmt::fmt unicode-generator-common)
-
-add_executable(test-normalization
-    normalization.cpp
-)
-
-target_link_libraries(test-normalization cedilla unicode-generator-common Catch2::Catch2WithMain)
-target_include_directories(test-normalization PRIVATE ${PROJECT_BINARY_DIR}/tests/)
-add_test(NAME test-normalization
-    COMMAND test-normalization
-    --path=${PROJECT_BINARY_DIR}/ucd/NormalizationTest.txt
-)
-
 
 
 add_executable(skip_bench skip_bench.cpp)

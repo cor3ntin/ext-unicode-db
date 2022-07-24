@@ -4,26 +4,16 @@
 #include "utils.hpp"
 #include <range/v3/range/conversion.hpp>
 #include <cedilla/normalization.hpp>
+#include "globals.hpp"
 
 using namespace cedilla::tools;
 
-struct test {
-    std::array<std::u32string, 5> data;
-    std::string description;
-    const auto & c(int i) const {
-        return data[i-1];
-    }
-
-};
-
-std::vector<test> nt;
-
-std::vector<test> parse(std::string file) {
+std::vector<normalization_test> parse_normalization_tests(std::string file) {
     std::regex re("([0-9A-F ]+);([0-9A-F ]+);([0-9A-F ]+);([0-9A-F ]+);([0-9A-F ]+);.*\\) (.+)",
                   std::regex::ECMAScript|std::regex::icase);
     std::ifstream infile(file);
     std::string line;
-    std::vector<test> tests;
+    std::vector<normalization_test> tests;
     tests.reserve(20000);
     while(std::getline(infile, line)) {
         std::smatch captures;
@@ -31,7 +21,7 @@ std::vector<test> parse(std::string file) {
             continue;
         if(!std::regex_search(line, captures,  re))
             continue;
-        test t;
+        normalization_test t;
         for (int i = 0; i <5; i++) {
             auto strs =  split(captures[i+1]);
             t.data[i] = strs | std::views::transform([](const std::string &s) {
@@ -45,37 +35,7 @@ std::vector<test> parse(std::string file) {
 }
 
 
-int main(int argc, char** argv) {
-    Catch::Session session;
-    std::string normalization_tests_paths;
-    using namespace Catch::Clara;
-    auto cli
-        = session.cli()
-          | Opt(normalization_tests_paths, "NormalizationTest.txt path" )
-                ["--path"];
-    session.cli( cli );
-    if(auto ret = session.applyCommandLine( argc, argv );  ret != 0) {
-        return ret;
-    }
-    nt = parse(normalization_tests_paths);
-    if(nt.size() < 15000)
-        die("Couldn't load the test file");
-
-    return session.run( argc, argv );
-}
-
-namespace Catch {
-template<>
-struct StringMaker<char32_t> {
-    static std::string convert( char32_t c ) {
-        return fmt::format("U+{:04X}", (uint32_t)c);
-    }
-};
-
-}
-
-
-TEST_CASE("NFD") {
+TEST_CASE("NFD", "[normalization]") {
     auto nfd = [](const std::u32string_view & v) {
         return cedilla::normalization_view<cedilla::normalization_form::nfd, std::u32string_view>(v)
                | ranges::to<std::u32string>();
@@ -92,7 +52,7 @@ TEST_CASE("NFD") {
     }
 }
 
-TEST_CASE("NFC") {
+TEST_CASE("NFC", "[normalization]") {
     auto nfc = [](const std::u32string_view & v) {
         return cedilla::normalization_view<cedilla::normalization_form::nfc, std::u32string_view>(v)
                | ranges::to<std::u32string>();
@@ -109,3 +69,18 @@ TEST_CASE("NFC") {
     }
 }
 
+TEST_CASE("ccc", "[normalization]") {
+    auto it = codepoints->begin();
+    const auto end = codepoints->end();
+
+    for(char32_t c = 0; c < 0x11FFFF; c++) {
+        INFO("cp: U+" << std::hex << (uint32_t)c << " ");
+        if(auto p = std::ranges::lower_bound(it, end, c, {},
+                                             &cedilla::tools::codepoint::value); p != end && p->value == c) {
+            CHECK(p->ccc == cedilla::details::generated::ccc_data.lookup(c));
+            it = p+1;
+        } else {
+            CHECK(cedilla::details::generated::ccc_data.lookup(c) == 0);
+        }
+    }
+}

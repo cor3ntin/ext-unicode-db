@@ -76,8 +76,7 @@ const char* binary_props[] = {
     "EMod",
     "EBase",
     "EComp",
-    "ExtPict"
-
+    "ExtPict",
     "CWL",
     "CWT",
     "CWU",
@@ -93,6 +92,35 @@ static void parse_codepoints_list(const pugi::xml_node & n, const char* property
         return;
     auto lst = split(n.attribute(property).value());
     std::ranges::transform(lst, std::back_inserter(out), &to_char32);
+}
+
+static grapheme_cluster_break get_grapheme_cluster_break(std::string_view GraphemeClusterBreak) {
+    if(GraphemeClusterBreak == std::string_view("XX"))
+        return grapheme_cluster_break::any;
+
+    struct elem {
+        std::string_view k;
+        grapheme_cluster_break v;
+    };
+    constexpr elem map[] = {
+        {"CN", grapheme_cluster_break::control},
+        {"CR", grapheme_cluster_break::cr},
+        {"EX", grapheme_cluster_break::extend},
+        {"L",  grapheme_cluster_break::hangul_l},
+        {"LF", grapheme_cluster_break::lf},
+        {"LV", grapheme_cluster_break::hangul_lv},
+        {"LVT", grapheme_cluster_break::hangul_lvt},
+        {"PP", grapheme_cluster_break::prepend},
+        {"RI", grapheme_cluster_break::regional_indicator},
+        {"SM", grapheme_cluster_break::spacing_mark},
+        {"T", grapheme_cluster_break::hangul_t},
+        {"V", grapheme_cluster_break::hangul_v},
+        {"ZWJ", grapheme_cluster_break::zwj}
+    };
+    auto it = std::ranges::find(map, GraphemeClusterBreak, &elem::k);
+    if(it == std::ranges::end(map))
+        die(fmt::format("unknown Grapheme Cluster Break value {} ", GraphemeClusterBreak));
+    return it->v;
 }
 
 static codepoint load_one(const pugi::xml_node & n) {
@@ -170,7 +198,16 @@ static codepoint load_one(const pugi::xml_node & n) {
     parse_codepoints_list(n, "lc", c.lowercase);
     parse_codepoints_list(n, "tc", c.titlecase);
     parse_codepoints_list(n, "cf", c.casefold);
-
+    // Grapheme cluster break;
+    auto GraphemeClusterBreak = n.attribute("GCB").value();
+    c.gcb = get_grapheme_cluster_break(GraphemeClusterBreak);
+    if(c.has_binary_property("ExtPict")) {
+        if(c.gcb != grapheme_cluster_break::any) {
+            die(fmt::format("{:#04x} is ExtPict and has a Grapheme_Cluster_Break Property", uint32_t(c.value)));
+        }
+        c.gcb = grapheme_cluster_break::extended_pictographic;
+    }
+    //fmt::print("{} ({:#04x}): {:#02x}\n", c.name, uint32_t(c.value), uint8_t(c.gcb));
     return c;
 }
 

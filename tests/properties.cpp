@@ -12,31 +12,8 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <random>
+#include "globals.hpp"
 
-
-std::optional<std::vector<cedilla::tools::codepoint>> codepoints;
-std::optional<cedilla::tools::labels> labels;
-
-
-int main(int argc, char** argv) {
-    Catch::Session session;
-    std::string ucd_path;
-    std::string aliases_path;
-    using namespace Catch::Clara;
-    auto cli
-        = session.cli()
-          | Opt(ucd_path, "ucd path" )
-                ["--ucd-path"]
-          | Opt(aliases_path, "PropertyValueAliases.txt path" )
-                ["--aliases-path"];
-    session.cli( cli );
-    if(auto ret = session.applyCommandLine( argc, argv );  ret != 0) {
-        return ret;
-    }
-    codepoints = cedilla::tools::load_codepoints(ucd_path);
-    labels = cedilla::tools::load_labels(aliases_path);
-    return session.run( argc, argv );
-}
 
 struct property_map {
     std::string_view name;
@@ -92,7 +69,7 @@ TEST_CASE("Exhaustive properties checking", "[props]")
     }
 }
 
-TEST_CASE("cp_script") {
+TEST_CASE("cp_script", "[props]") {
     std::set<std::string> scripts_set;
     scripts_set.insert("zzzz");
     for(const auto & [k, _] : labels->scripts) {
@@ -120,23 +97,6 @@ TEST_CASE("cp_script") {
         }
     }
 }
-
-TEST_CASE("ccc", "[normalization]") {
-    auto it = codepoints->begin();
-    const auto end = codepoints->end();
-
-    for(char32_t c = 0; c < 0x11FFFF; c++) {
-        INFO("cp: U+" << std::hex << (uint32_t)c << " ");
-        if(auto p = std::ranges::lower_bound(it, end, c, {},
-                                             &cedilla::tools::codepoint::value); p != end && p->value == c) {
-            CHECK(p->ccc == cedilla::details::generated::ccc_data.lookup(c));
-            it = p+1;
-        } else {
-            CHECK(cedilla::details::generated::ccc_data.lookup(c) == 0);
-        }
-    }
-}
-
 
 
 /*TEST_CASE("benchmarks") {

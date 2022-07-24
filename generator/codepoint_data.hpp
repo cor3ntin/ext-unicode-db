@@ -14,6 +14,27 @@ enum class hangul_syllable_kind {
     trailing  = 0x04
 };
 
+
+enum class grapheme_cluster_break : uint8_t{
+    any,
+
+    hangul_l   = uint8_t(hangul_syllable_kind::leading),
+    hangul_v   = uint8_t(hangul_syllable_kind::vowel),
+    hangul_t   = uint8_t(hangul_syllable_kind::trailing),
+    hangul_lv  = hangul_l | hangul_v,
+    hangul_lvt = hangul_lv | hangul_t,
+
+    control    = 0x10,
+    prepend    = 0x20,
+    extend     = 0x30,
+    regional_indicator = 0x40,
+    extended_pictographic = 0x50,
+    spacing_mark = 0x60,
+    cr  = 0x70,
+    lf  = 0x80,
+    zwj = 0x90
+};
+
 struct codepoint {
     char32_t    value = 0;
     std::string name;
@@ -33,6 +54,8 @@ struct codepoint {
     bool NFD_QC = true;
     // Assume Maybe == No
     bool NFC_QC = true;
+    grapheme_cluster_break gcb = grapheme_cluster_break::any;
+
     uint8_t hangul_syllable_kind = uint8_t(hangul_syllable_kind::invalid);
 
     bool is_hangul() const {

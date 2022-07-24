@@ -17,6 +17,7 @@ add_subdirectory(generator)
 
 
 SET(HEADERS_DIR ${PROJECT_BINARY_DIR}/include/cedilla/)
+#set(CMAKE_CXX_FLAGS "-fsanitize=address")
 
 
 add_custom_command(
@@ -59,71 +60,6 @@ add_custom_command(
 )
 
 
-
-#add_custom_command(
-#    COMMENT "Generating data files for properties"
-#    OUTPUT ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
-#    BYPRODUCTS
-#      ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
-#      ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
-#    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-#    COMMAND mkdir -p ${HEADERS_DIR}
-#    COMMAND mkdir -p ${PROJECT_BINARY_DIR}/cedilla
-#    COMMAND
-#      ${Python3_EXECUTABLE}
-#      ${PROJECT_SOURCE_DIR}/tools/gen.py
-#      ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
-#      ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
-#      ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
-#      ${PROJECT_BINARY_DIR}/ucd/
-#    COMMAND
-#      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp -i
-#    COMMAND
-#      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp -i
-#    COMMAND
-#      clang-format ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp -i
-#    DEPENDS
-#      ${PROJECT_SOURCE_DIR}/tools/gen.py
-#      ${PROJECT_BINARY_DIR}/ucd/14.0/ucd.nounihan.flat.xml
-#      ${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
-#      ${PROJECT_BINARY_DIR}/ucd/14.0/emoji-data.txt
-#)
-
-#add_custom_command(
-#    COMMENT "Generating amalgated headers"
-#    OUTPUT ${HEADERS_DIR}/properties.hpp
-#    BYPRODUCTS
-#           ${HEADERS_DIR}/casing.hpp
-#    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-
-#    COMMAND ${Python3_EXECUTABLE} -m quom
-#                ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
-#                -I ${PROJECT_BINARY_DIR}
-#                -I ${PROJECT_SOURCE_DIR}/src/
-#                ${HEADERS_DIR}/properties.hpp
-
-#    COMMAND ${Python3_EXECUTABLE} -m quom
-#                ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
-#                -I ${PROJECT_BINARY_DIR}
-#                -I ${PROJECT_SOURCE_DIR}/src/
-#                ${HEADERS_DIR}/casing.hpp
-
-#    COMMAND clang-format ${HEADERS_DIR}/properties.hpp -i
-#    COMMAND clang-format ${HEADERS_DIR}/casing.hpp -i
-
-#    DEPENDS
-#        ${PROJECT_BINARY_DIR}/cedilla/generated_props.hpp
-#        ${PROJECT_BINARY_DIR}/cedilla/generated_props_extra.hpp
-#        ${PROJECT_BINARY_DIR}/cedilla/generated_props_casing.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/synopsis.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/base.h
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/properties_impl.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/casing_impl.hpp
-#        ${PROJECT_SOURCE_DIR}/src/cedilla/regex.h
-#    )
-
 #add_custom_command(
 #    COMMENT "Generating name_to_cp.hpp"
 #    OUTPUT ${HEADERS_DIR}/name_to_cp.hpp
@@ -162,11 +98,14 @@ add_library(cedilla STATIC
 #  ${HEADERS_DIR}/name_to_cp.hpp
   ${HEADERS_DIR}details/generated_props.hpp
   ${HEADERS_DIR}/details/generated_normalization.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/details/hangul.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/skiplist.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/sets.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/scripts.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/normalization.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/grapheme_cluster.hpp
   ${PROJECT_SOURCE_DIR}/src/unicode.cpp
 )
 
