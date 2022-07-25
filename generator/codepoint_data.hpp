@@ -35,6 +35,29 @@ enum class grapheme_cluster_break : uint8_t{
     zwj = 0x90
 };
 
+enum class word_break : uint8_t{
+    any,
+    cr,
+    double_quote,
+    extended_num_let,
+    extend,
+    format,
+    hebrew_letter,
+    katakana,
+    aletter,
+    lf,
+    midnumlet,
+    midletter,
+    midnum,
+    newline,
+    numeric,
+    regional_indicator,
+    single_quote,
+    wseg_space,
+    extended_pictographic,
+    zwj
+};
+
 struct codepoint {
     char32_t    value = 0;
     std::string name;
@@ -55,6 +78,7 @@ struct codepoint {
     // Assume Maybe == No
     bool NFC_QC = true;
     grapheme_cluster_break gcb = grapheme_cluster_break::any;
+    word_break wb = word_break::any;
 
     uint8_t hangul_syllable_kind = uint8_t(hangul_syllable_kind::invalid);
 

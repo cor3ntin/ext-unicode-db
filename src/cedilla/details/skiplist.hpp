@@ -188,6 +188,8 @@ found:
     uint64_t total = c - prev;
     uint64_t prefix_sum = 0;
     for(uint32_t i = 0; i < len - 1; i++) {
+        if(offset_idx >= offsets.size())
+            return false;
         uint32_t offset = offsets[offset_idx];
         prefix_sum += offset;
         if(prefix_sum > total)

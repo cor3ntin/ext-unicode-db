@@ -1,6 +1,8 @@
 #include <cedilla/properties.hpp>
 #include <cedilla/normalization.hpp>
 #include <cedilla/casing.hpp>
+#include <cedilla/grapheme_cluster.hpp>
+#include <cedilla/word_break.hpp>
 
 /*#include "cedilla/properties.hpp"
 #include "cedilla/casing.hpp"

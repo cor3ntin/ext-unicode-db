@@ -128,8 +128,6 @@ void  print_grapheme_cluster_data(FILE* output, const std::vector<codepoint> & c
                                  | std::views::transform(&codepoint::value)
                                  | ranges::to<std::vector>;
 
-    fmt::print("\n\n{}!!!!!!!!!!!\n", keys.size());
-
     hash_data data = create_perfect_hash(keys);
 
     std::map<char32_t, uint8_t> gcb;
@@ -143,8 +141,30 @@ void  print_grapheme_cluster_data(FILE* output, const std::vector<codepoint> & c
 
     print_hash_data(output, "lower11bits_codepoint_hash_map", "grapheme_break_data", data.salts, values);
 
+}
 
-    //fmt::print("\n Grapheme Clusters: {} \n", fmt::join(counts, "\n"));
+void  print_word_break_data(FILE* output, const std::vector<codepoint> & codepoints) {
+    auto set = codepoints | std::views::filter ([](const codepoint & c) {
+                   // storing all alphabetics makes for an unecessary big table
+                   // client should query the is_alpha property instead and deduce word_break::aletter
+                   return c.wb != word_break::any && (c.wb != word_break::aletter || !c.has_binary_property("alpha"));
+               });
+    std::vector<char32_t> keys = set
+                                 | std::views::transform(&codepoint::value)
+                                 | ranges::to<std::vector>;
+
+    hash_data data = create_perfect_hash(keys);
+
+    std::map<char32_t, uint8_t> gcb;
+    std::ranges::transform(
+        set,
+        std::inserter(gcb, gcb.begin()), [](const codepoint & c) { return std::pair{c.value, uint8_t(c.wb)};});
+
+    std::vector<uint32_t> values = data.keys | std::views::transform([&](char32_t c) {
+                                       return (uint32_t(c) << 11) | gcb[c];
+                                   }) | ranges::to<std::vector>;
+
+    print_hash_data(output, "lower11bits_codepoint_hash_map", "word_break_data", data.salts, values);
 }
 
 
@@ -187,6 +207,7 @@ int main(int argc, const char** argv) {
     print_binary_properties(output, codepoints);
     print_casing_data(output, codepoints);
     print_grapheme_cluster_data(output, codepoints);
+    print_word_break_data(output, codepoints);
     print_footer(output);
 
     print_binary_property_public_interface(output);

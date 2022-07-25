@@ -123,6 +123,40 @@ static grapheme_cluster_break get_grapheme_cluster_break(std::string_view Graphe
     return it->v;
 }
 
+static word_break get_word_break(std::string_view WB) {
+    if(WB == std::string_view("XX"))
+        return word_break::any;
+
+    struct elem {
+        std::string_view k;
+        word_break v;
+    };
+    constexpr elem map[] = {
+        {"CR", word_break::cr},
+        {"DQ", word_break::double_quote},
+        {"SQ", word_break::single_quote},
+        {"EX", word_break::extended_num_let},
+        {"Extend", word_break::extend},
+        {"FO", word_break::format},
+        {"HL", word_break::hebrew_letter},
+        {"KA", word_break::katakana},
+        {"LE", word_break::aletter},
+        {"LF", word_break::lf},
+        {"MB", word_break::midnumlet},
+        {"ML", word_break::midletter},
+        {"MN", word_break::midnum},
+        {"NL", word_break::newline},
+        {"NU", word_break::numeric},
+        {"RI", word_break::regional_indicator},
+        {"WSegSpace", word_break::wseg_space},
+        {"ZWJ", word_break::zwj},
+    };
+    auto it = std::ranges::find(map, WB, &elem::k);
+    if(it == std::ranges::end(map))
+        die(fmt::format("unknown Word_Break value {} ", WB));
+    return it->v;
+}
+
 static codepoint load_one(const pugi::xml_node & n) {
     using namespace std::literals;
 
@@ -201,13 +235,16 @@ static codepoint load_one(const pugi::xml_node & n) {
     // Grapheme cluster break;
     auto GraphemeClusterBreak = n.attribute("GCB").value();
     c.gcb = get_grapheme_cluster_break(GraphemeClusterBreak);
+    c.wb = get_word_break(n.attribute("WB").value());
     if(c.has_binary_property("ExtPict")) {
-        if(c.gcb != grapheme_cluster_break::any) {
+        if(c.gcb != grapheme_cluster_break::any)
             die(fmt::format("{:#04x} is ExtPict and has a Grapheme_Cluster_Break Property", uint32_t(c.value)));
-        }
+        if(c.wb != word_break::any && c.wb != word_break::aletter)
+            die(fmt::format("{:#04x} is ExtPict and has a Word_Break Property {}", uint32_t(c.value), uint8_t(c.wb)));
         c.gcb = grapheme_cluster_break::extended_pictographic;
+        c.wb  = word_break::extended_pictographic;
     }
-    //fmt::print("{} ({:#04x}): {:#02x}\n", c.name, uint32_t(c.value), uint8_t(c.gcb));
+    //fmt::print("{} ({:#04x}): {:#02x}\n", c.name, uint32_t(c.value), uint8_t(c.wb));
     return c;
 }
 

@@ -101,7 +101,7 @@ struct perfect_hash_map {
         return (std::uint64_t(y) * std::uint64_t(N)) >> 32;
     }
     const std::invoke_result_t<ValueFunction, ValueType>
-    lookup(char32_t c) const noexcept {
+    constexpr lookup(char32_t c) const noexcept {
         const KeyFunction kf;
         const ValueFunction vf;
         auto salt = salts[hash(c, 0)];

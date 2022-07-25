@@ -6,6 +6,7 @@
 #include <catch2/catch_all.hpp>
 #include "utils.hpp"
 #include <cedilla/grapheme_cluster.hpp>
+#include <cedilla/word_break.hpp>
 
 std::string trim(std::string s) {
     s = std::regex_replace(s, std::regex("^\\s+"), std::string(""));
@@ -13,19 +14,19 @@ std::string trim(std::string s) {
     return s;
 }
 
-std::vector<grapheme_break_test> parse_grapheme_break_tests(std::string file) {
+std::vector<boundary_test> parse_boundaries_tests(std::string file) {
     std::regex re("^(.+)\\s*#(.+)$",
                   std::regex::ECMAScript|std::regex::icase);
     std::ifstream infile(file);
     std::string line;
-    std::vector<grapheme_break_test> tests;
+    std::vector<boundary_test> tests;
     while(std::getline(infile, line)) {
         if(line.starts_with("#"))
             continue;
         std::smatch captures;
         if(!std::regex_search(line, captures,  re))
             continue;
-        grapheme_break_test test;
+        boundary_test test;
         test.description = trim(captures[2]);
         line = captures[1];
         std::u32string current;
@@ -56,7 +57,7 @@ std::vector<grapheme_break_test> parse_grapheme_break_tests(std::string file) {
 }
 
 
-TEST_CASE("Grapheme breaks", "[clusterization]") {
+TEST_CASE("grapheme_clusters", "[boundaries]") {
     auto graphemes = [](const std::u32string_view & v) {
         std::vector<std::u32string> graphemes;
         for(auto && s : cedilla::grapheme_clusters_view<std::u32string_view>(v)) {
@@ -70,5 +71,22 @@ TEST_CASE("Grapheme breaks", "[clusterization]") {
 
         INFO(test.description);
         CHECK(graphemes(test.input) == test.expected);
+    }
+}
+
+TEST_CASE("word_breaks", "[boundaries]") {
+    auto words = [](const std::u32string_view & v) {
+        std::vector<std::u32string> words;
+        for(auto && s : cedilla::words_view<std::u32string_view>(v)) {
+            words.push_back(s | ranges::to<std::u32string>());
+        }
+        return words;
+    };
+    for(const auto & test : word_break_tests) {
+        //if(test.description.find("÷ [0.2] DIGIT ONE (Numeric) × [12.0] COMMA (MidNum) × [4.0] COMBINING DIAERESIS (Extend_FE) × [11.0] DIGIT ZERO (Numeric) ") == std::string::npos)
+        //    continue;
+
+        INFO(test.description);
+        CHECK(words(test.input) == test.expected);
     }
 }

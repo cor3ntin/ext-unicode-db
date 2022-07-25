@@ -106,6 +106,7 @@ add_library(cedilla STATIC
   ${PROJECT_SOURCE_DIR}/src/cedilla/normalization.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/grapheme_cluster.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/word_break.hpp
   ${PROJECT_SOURCE_DIR}/src/unicode.cpp
 )
 

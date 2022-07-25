@@ -17,7 +17,7 @@ struct normalization_test {
     }
 };
 
-struct grapheme_break_test {
+struct boundary_test {
     std::string description;
     std::vector<std::u32string> expected;
     std::u32string input;
@@ -29,9 +29,10 @@ std::vector<normalization_test> parse_normalization_tests(std::string file);
 inline std::optional<std::vector<cedilla::tools::codepoint>> codepoints;
 inline std::optional<cedilla::tools::labels> labels;
 
-inline std::vector<grapheme_break_test> grapheme_tests;
-std::vector<grapheme_break_test> parse_grapheme_break_tests(std::string file);
+std::vector<boundary_test> parse_boundaries_tests(std::string file);
 
+inline std::vector<boundary_test> grapheme_tests;
+inline std::vector<boundary_test> word_break_tests;
 
 
 namespace Catch {

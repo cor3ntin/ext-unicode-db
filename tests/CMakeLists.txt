@@ -24,7 +24,7 @@ add_executable(test-unicode
     properties.cpp
     lower_bound.cpp
     normalization.cpp
-    grapheme.cpp
+    boundaries.cpp
 )
 target_link_libraries(test-unicode cedilla unicode-generator-common Catch2::Catch2)
 add_test(NAME test-unicode
@@ -33,6 +33,7 @@ add_test(NAME test-unicode
     --aliases-path=${PROJECT_BINARY_DIR}/ucd/PropertyValueAliases.txt
     --normalization-tests=${PROJECT_BINARY_DIR}/ucd/NormalizationTest.txt
     --graphemes-tests=${PROJECT_BINARY_DIR}/ucd/GraphemeBreakTest.txt
+    --words-tests=${PROJECT_BINARY_DIR}/ucd/WordBreakTest.txt
 )
 
 add_executable(dump

@@ -112,12 +112,44 @@ constexpr inline grapheme_breakpoint_kind pairwise_grapheme_breakpoint(char32_t 
 }
 
 
+template <std::forward_iterator It, std::sentinel_for<It> End>
+constexpr auto find_grapheme_cluster_end(It current, End end) {
+    using k = details::grapheme_breakpoint_kind;
+    std::size_t RI = 0;
+    bool in_emoji = false;
+    auto next = std::next(current);
+    for(; next != end; next++, current++) {
+        auto break_kind = details::pairwise_grapheme_breakpoint(*current, *next);
+        if(RI != 0 && break_kind == k::regional) {
+            return (RI % 2 == 0) ? next : current;
+        }
+        switch(break_kind) {
+            case k::emoji_start:
+                in_emoji = true;
+                continue;
+            case k::always_break:
+                return next;
+            case k::extend:
+                continue;
+            case k::nobreak:
+                continue;
+            case k::regional:
+                RI = RI == 0 ? 2 : RI + 1;
+                continue;
+            case k::emoji_end:
+                if(!in_emoji)
+                    return next;
+                continue;
+        }
+    }
+    return next;
+}
+
 
 template<std::ranges::forward_range V>
 requires std::ranges::view<V>
     && std::is_same_v<std::remove_cvref_t<std::ranges::range_reference_t<V>>, char32_t>
-class grapheme_clusters_view
-    : public std::ranges::view_interface<grapheme_clusters_view<V>> {
+class grapheme_clusters_view : public std::ranges::view_interface<V> {
 
     V base_;
 
@@ -127,41 +159,9 @@ public:
         const grapheme_clusters_view* parent;
         BaseIt start;
         BaseIt next;
-
-        constexpr auto find_next_cluster_end(BaseIt current) const {
-            using k = details::grapheme_breakpoint_kind;
-            std::size_t RI = 0;
-            bool in_emoji = false;
-            auto next = std::next(current);
-            for(; next != parent->base().end(); next++, current++) {
-                auto break_kind = details::pairwise_grapheme_breakpoint(*current, *next);
-                if(RI != 0 && break_kind == k::regional) {
-                    return (RI % 2 == 0) ? next : current;
-                }
-                switch(break_kind) {
-                    case k::emoji_start:
-                        in_emoji = true;
-                        continue;
-                    case k::always_break:
-                        return next;
-                    case k::extend:
-                        continue;
-                    case k::nobreak:
-                        continue;
-                    case k::regional:
-                        RI = RI == 0 ? 2 : RI + 1;
-                        continue;
-                    case k::emoji_end:
-                        if(!in_emoji)
-                            return next;
-                        continue;
-                }
-            }
-            return next;
-        }
         constexpr void advance() {
             start = next;
-            next  = find_next_cluster_end(start);
+            next  = find_grapheme_cluster_end(start, parent->base_.end());
         }
 
     public:
@@ -177,7 +177,7 @@ public:
         constexpr outer_iterator() requires std::default_initializable<BaseIt> = default;
         constexpr outer_iterator(const grapheme_clusters_view* p, BaseIt it) noexcept
             : parent(p), start(it) {
-            next = find_next_cluster_end(start);
+            next = find_grapheme_cluster_end(start, parent->base_.end());
         }
 
         constexpr const BaseIt& base() const& noexcept {
@@ -248,6 +248,7 @@ public:
         return {this, std::ranges::end(base_)};
     }
 };
+
 template<std::ranges::forward_range R>
 grapheme_clusters_view(R &&) -> grapheme_clusters_view<std::views::all_t<R>>;
 
