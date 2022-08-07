@@ -102,6 +102,7 @@ add_library(cedilla STATIC
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/skiplist.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/sets.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/details/scripts.hpp
+  ${PROJECT_SOURCE_DIR}/src/cedilla/utf.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/properties.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/normalization.hpp
   ${PROJECT_SOURCE_DIR}/src/cedilla/casing.hpp

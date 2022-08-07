@@ -25,6 +25,7 @@ add_executable(test-unicode
     lower_bound.cpp
     normalization.cpp
     boundaries.cpp
+    utf.cpp
 )
 target_link_libraries(test-unicode cedilla unicode-generator-common Catch2::Catch2)
 add_test(NAME test-unicode

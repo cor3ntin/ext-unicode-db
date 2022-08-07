@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     if(auto ret = session.applyCommandLine( argc, argv );  ret != 0) {
         return ret;
     }
-    ::codepoints = cedilla::tools::load_codepoints(ucd_path);
+   /* ::codepoints = cedilla::tools::load_codepoints(ucd_path);
     ::labels = cedilla::tools::load_labels(aliases_path);
     nt = parse_normalization_tests(normalization_tests_path);
     if(nt.size() < 15000)
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
     word_break_tests = parse_boundaries_tests(words_tests_path);
     if(word_break_tests.size() < 1000)
-        die("Couldn't load the word break test file");
+        die("Couldn't load the word break test file"); */
 
     return session.run( argc, argv );
 }

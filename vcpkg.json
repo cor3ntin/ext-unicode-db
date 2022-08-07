@@ -3,7 +3,6 @@
     "name": "pacman",
     "version": "0.1",
     "dependencies": [
-        "tbb",
         "range-v3",
         "fmt",
         "catch2",
