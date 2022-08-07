@@ -43,4 +43,18 @@ struct StringMaker<char32_t> {
     }
 };
 
+template<>
+struct StringMaker<char8_t> {
+    static std::string convert( char8_t c ) {
+        return fmt::format("U+{:02X}", (uint8_t)c);
+    }
+};
+
+template<>
+struct StringMaker<char16_t> {
+    static std::string convert( char16_t c ) {
+        return fmt::format("U+{:02X}", (uint8_t)c);
+    }
+};
+
 }

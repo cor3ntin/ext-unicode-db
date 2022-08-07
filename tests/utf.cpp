@@ -3,6 +3,8 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <range/v3/range/conversion.hpp>
+#include "globals.hpp"
+
 
 TEST_CASE("decode utf8", "[utf]")
 {
@@ -73,5 +75,24 @@ TEST_CASE("reverse decode utf32", "[utf]")
 }
 
 
+TEST_CASE("encode utf8", "[utf]")
+{
+    using namespace std::literals;
+    auto toU8 = [](std::u32string_view sv) {
+        return sv | cedilla::to_utf8 | ranges::to<std::u8string>();
+    };
+    REQUIRE(toU8(U"Test") == u8"Test"sv);
+    REQUIRE(toU8(U"ΑβΓγΔ") == u8"ΑβΓγΔ"sv);
+    REQUIRE(toU8(U"😀😀😀") == u8"😀😀😀"sv);
+}
 
-
+TEST_CASE("encode utf16", "[utf]")
+{
+    using namespace std::literals;
+    auto toU16 = [](std::u32string_view sv) {
+        return sv | cedilla::to_utf16 | ranges::to<std::u16string>();
+    };
+    REQUIRE(toU16(U"Test") == u"Test"sv);
+    REQUIRE(toU16(U"ΑβΓγΔ") == u"ΑβΓγΔ"sv);
+    REQUIRE(toU16(U"😀😀😀") == u"😀😀😀"sv);
+}
