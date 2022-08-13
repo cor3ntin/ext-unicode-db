@@ -101,19 +101,19 @@ public:
             requires std::same_as<__code_unit_type, char8_t>  {
             cp = details::replacement_codepoint;
             uint32_t state = details::forward_utf8_automaton_valid;
-            for(;base_ != std::ranges::end(parent->base()); base_++) {
+            for(;base_ != std::ranges::end(parent->base_); base_++) {
                 details::decode(state, cp, *base_);
                 if(state == details::forward_utf8_automaton_valid) {
                     return;
                 }
                 if(state == details::forward_utf8_automaton_invalid) {
                     cp = details::replacement_codepoint;
-                    while(base_ != std::ranges::end(parent->base()) && *base_ >= 0x80)
+                    while(base_ != std::ranges::end(parent->base_) && *base_ >= 0x80)
                         base_++;
                     return;
                 }
             }
-            if(base_ == std::ranges::end(parent->base()))
+            if(base_ == std::ranges::end(parent->base_))
                 cp = details::replacement_codepoint;
         }
 
@@ -123,19 +123,19 @@ public:
             cp = details::replacement_codepoint;
             uint32_t state = details::forward_utf8_automaton_valid;
             auto it = base_;
-            for(; it != std::ranges::end(parent->base()); it++, n++) {
+            for(; it != std::ranges::end(parent->base_); it++, n++) {
                 details::decode(state, cp, *it);
                 if(state == details::forward_utf8_automaton_valid) {
                     return;
                 }
                 if(state == details::forward_utf8_automaton_invalid) {
                     cp = details::replacement_codepoint;
-                    while(it != std::ranges::end(parent->base()) && *it >= 0x80)
+                    while(it != std::ranges::end(parent->base_) && *it >= 0x80)
                         it++, n++;
                     return;
                 }
             }
-            if(it == std::ranges::end(parent->base()))
+            if(it == std::ranges::end(parent->base_))
                 cp = details::replacement_codepoint;
         }
 
@@ -150,16 +150,16 @@ public:
                     return;
                 if(state == details::backward_utf8_automaton_invalid) {
                     cp = details::replacement_codepoint;
-                    while(base_ != std::ranges::begin(parent->base())) {
+                    while(base_ != std::ranges::begin(parent->base_)) {
                         if(*base_ < 0x80)
                             break;
                         base_--;
                     }
                 }
-                if(base_-- == std::ranges::begin(parent->base()))
+                if(base_-- == std::ranges::begin(parent->base_))
                     break;
             }
-            if(base_ == std::ranges::begin(parent->base()))
+            if(base_ == std::ranges::begin(parent->base_))
                 cp = details::replacement_codepoint;
         }
 
@@ -168,7 +168,7 @@ public:
             n  = 1;
             if(cp < 0xd800 || cp > 0xDFFF)
                 return;
-            if(base_+1 == std::ranges::end(parent->base())) {
+            if(base_+1 == std::ranges::end(parent->base_)) {
                 cp = details::replacement_codepoint;
                 return;
             }
@@ -185,7 +185,7 @@ public:
             n  = 1;
             if(cp < 0xd800 || cp > 0xDFFF)
                 return;
-            if(base_+1 == std::ranges::end(parent->base())) {
+            if(base_+1 == std::ranges::end(parent->base_)) {
                 cp = details::replacement_codepoint;
                 return;
             }
@@ -203,7 +203,7 @@ public:
             if(cp < 0xd800 || cp > 0xdfff) {
                 return;
             }
-            if(base_ == std::ranges::begin(parent->base())) {
+            if(base_ == std::ranges::begin(parent->base_)) {
                 cp = details::replacement_codepoint;
                 return;
             }
@@ -236,7 +236,7 @@ public:
         }
 
         void back() {
-            if(base_ != std::ranges::begin(parent->base()))
+            if(base_ != std::ranges::begin(parent->base_))
                 base_--;
             do_back();
         }
@@ -256,12 +256,12 @@ public:
 
         constexpr iterator() requires std::default_initializable<BaseIt> = default;
         constexpr iterator(const codepoint_view* p, BaseIt it) noexcept : parent(p), base_(it) {
-            if(base_ != std::ranges::end(parent->base())) {
+            if(base_ != std::ranges::end(parent->base_)) {
                 do_advance();
             }
         }
 
-        constexpr const BaseIt& base() const& noexcept {
+        constexpr const BaseIt& base() const & noexcept {
             return base_;
         }
 
@@ -278,11 +278,11 @@ public:
             return *this;
         }
 
-        constexpr void operator++(int) const requires std::ranges::input_range<V> {
+        constexpr void operator++(int) requires std::ranges::input_range<V> {
             advance();
         }
 
-        constexpr iterator operator++(int) const requires std::ranges::forward_range<V> {
+        constexpr iterator operator++(int) requires std::ranges::forward_range<V> {
             auto it = *this;
             advance();
             return it;
@@ -293,7 +293,7 @@ public:
             return *this;
         }
 
-        constexpr iterator operator--(int) const requires std::ranges::bidirectional_range<V> {
+        constexpr iterator operator--(int) requires std::ranges::bidirectional_range<V> {
             auto it = *this;
             back();
             return it;
@@ -312,7 +312,7 @@ public:
 
 
     constexpr codepoint_view() requires std::default_initializable<V> = default;
-    constexpr codepoint_view(V&& v) : base_(std::forward<V>(v)) {}
+    constexpr codepoint_view(V v) : base_(std::move(v)) {}
     constexpr V base() const& requires std::copy_constructible<V> {
         return base_;
     }
@@ -337,11 +337,13 @@ template<std::ranges::range R>
 codepoint_view(R &&) -> codepoint_view<std::views::all_t<R>>;
 
 
-template<std::ranges::input_range V, details::utf_code_unit CodeUnitType>
+template<std::ranges::input_range V, details::utf_code_unit CodeUnitType, bool implicit = false>
 requires std::ranges::view<V> && std::is_same_v<char32_t, std::remove_cvref_t<std::ranges::range_reference_t<V>>>
 class codeunit_view
-    : public std::ranges::view_interface<codepoint_view<V>> {
+    : public std::ranges::view_interface<codeunit_view<V, CodeUnitType, implicit>> {
     V base_;
+
+    static constexpr bool __implicit = implicit;
 
 public:
     class iterator {
@@ -415,7 +417,7 @@ public:
 
         void advance() {
             pos++;
-            if((size == 0 || pos == size) && base_ != std::ranges::end(parent->base())) {
+            if((size == 0 || pos == size) && base_ != std::ranges::end(parent->base_)) {
                 base_++;
                 do_advance();
                 pos = 0;
@@ -439,7 +441,7 @@ public:
 
         constexpr iterator() requires std::default_initializable<BaseIt> = default;
         constexpr iterator(const codeunit_view* p, BaseIt it) noexcept : parent(p), base_(it) {
-            if(base_ != std::ranges::end(parent->base())) {
+            if(base_ != std::ranges::end(parent->base_)) {
                 do_advance();
             }
         }
@@ -461,11 +463,11 @@ public:
             return *this;
         }
 
-        constexpr void operator++(int) const requires std::ranges::input_range<V> {
+        constexpr void operator++(int) requires std::ranges::input_range<V> {
             advance();
         }
 
-        constexpr iterator operator++(int) const requires std::ranges::forward_range<V> {
+        constexpr iterator operator++(int) requires std::ranges::forward_range<V> {
             auto it = *this;
             advance();
             return it;
@@ -484,7 +486,7 @@ public:
 
 
     constexpr codeunit_view() requires std::default_initializable<V> = default;
-    constexpr codeunit_view(V&& v) : base_(std::forward<V>(v)) {}
+    constexpr codeunit_view(V v) : base_(std::move(v)) {}
     constexpr V base() const& requires std::copy_constructible<V> {
         return base_;
     }

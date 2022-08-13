@@ -4,6 +4,9 @@
 #include <cedilla/grapheme_cluster.hpp>
 #include <cedilla/word_break.hpp>
 #include <cedilla/utf.hpp>
+#include <cedilla/details/to.hpp>
+#include <string_view>
+#include <string>
 
 /*#include "cedilla/properties.hpp"
 #include "cedilla/casing.hpp"

@@ -40,6 +40,7 @@ add_test(NAME test-unicode
 add_executable(dump
     dump.cpp)
 target_link_libraries(dump cedilla fmt::fmt unicode-generator-common)
+target_compile_options(dump PRIVATE -fconcepts-diagnostics-depth=100)
 
 
 add_executable(skip_bench skip_bench.cpp)

@@ -1,5 +1,7 @@
 #pragma once
 #include <cedilla/details/generated_props.hpp>
+#include <cedilla/utf.hpp>
+#include <cedilla/word_break.hpp>
 #include <span>
 #include <ranges>
 
@@ -28,14 +30,15 @@ namespace details {
         {details::generated::casing_data_lc, details::generated::casing_starts_lc,
          details::generated::casing_max_len_lc},
         {details::generated::casing_data_tc, details::generated::casing_starts_tc,
-         details::generated::casing_max_len_tc},
+         std::max(details::generated::casing_max_len_tc, details::generated::casing_max_len_lc)},
         {details::generated::casing_data_cf, details::generated::casing_starts_cf,
          details::generated::casing_max_len_cf}};
 
-    template<case_transformation_kind CTK>
+    template<case_transformation_kind CTK, bool is_title = false>
     constexpr auto get_case_maping(char32_t c) {
         constexpr const casing_data& d = casing_datas[CTK];
-        std::array<char32_t, d.length> out;
+        constexpr std::size_t buffer_size = is_title? casing_datas[case_transformation_title].length : d.length;
+        std::array<char32_t, buffer_size> out;
         std::ranges::fill(out, mapping_sentinel);
         for(std::size_t i = 0; i < d.length; i++) {
             auto start = d.data.begin() + d.start_indexes[i];
@@ -71,23 +74,49 @@ namespace details {
         : public std::ranges::view_interface<casing_view<V, CTK>> {
         V base_;
 
+    static constexpr bool is_title = CTK == case_transformation_title;
+
     public:
         class iterator {
+            using BaseIt = std::ranges::iterator_t<V>;
+            struct empty_iterator {
+                empty_iterator(const BaseIt&){}
+                empty_iterator() = default;
+            };
+            using WordBoundary = std::conditional_t<is_title, BaseIt, empty_iterator>;
+
+
             static constexpr const casing_data& d = casing_datas[CTK];
             using buffer = std::array<char32_t, d.length>;
-            using BaseIt = std::ranges::iterator_t<V>;
             buffer b_;
             std::size_t pos = 0;
             const casing_view* parent;
+            [[no_unique_address]] WordBoundary word_start;
+            [[no_unique_address]] WordBoundary word_end;
             BaseIt base_;
+
 
             void advance() {
                 pos++;
                 if(pos >= b_.size() || b_[pos] == mapping_sentinel) {
                     base_++;
                     pos = 0;
-                    if(base_ != std::ranges::end(parent->base())) {
-                        b_ = get_case_maping<CTK>(*base_);
+                    if(base_ != std::ranges::end(parent->base_)) {
+                        if constexpr(is_title) {
+                            if(word_end == base_) {
+                                word_start = word_end;
+                                word_end   = find_word_end(word_start, std::ranges::end(parent->base_));
+                            }
+                            if(base_ == word_start) {
+                                b_ = get_case_maping<case_transformation_title>(*base_);
+                            }
+                            else {
+                                b_ = get_case_maping<case_transformation_lower, /*is title*/true>(*base_);
+                            }
+                        }
+                        else {
+                            b_ = get_case_maping<CTK>(*base_);
+                        }
                     }
                 }
             }
@@ -119,8 +148,13 @@ namespace details {
             }());
 
             constexpr iterator() requires std::default_initializable<BaseIt> = default;
-            constexpr iterator(const casing_view* p, BaseIt it) noexcept : parent(p), base_(it) {
-                if(base_ != std::ranges::end(parent->base())) {
+            constexpr iterator(const casing_view* p, BaseIt it) noexcept : parent(p),
+                word_start(it), word_end(it), base_(std::move(it)) {
+
+                if(base_ != std::ranges::end(parent->base_)) {
+                    if constexpr(is_title) {
+                        word_end = find_word_end(it, std::ranges::end(parent->base_));
+                    }
                     b_ = get_case_maping<CTK>(*base_);
                 }
             }
@@ -142,11 +176,11 @@ namespace details {
                 return *this;
             }
 
-            constexpr void operator++(int) const requires std::ranges::input_range<V> {
+            constexpr void operator++(int) requires std::ranges::input_range<V> {
                 advance();
             }
 
-            constexpr iterator operator++(int) const requires std::ranges::forward_range<V> {
+            constexpr iterator operator++(int) requires std::ranges::forward_range<V> {
                 auto it = *this;
                 advance();
                 return it;
@@ -157,7 +191,7 @@ namespace details {
                 return *this;
             }
 
-            constexpr iterator operator--(int) const requires std::ranges::bidirectional_range<V> {
+            constexpr iterator operator--(int) requires std::ranges::bidirectional_range<V> {
                 auto it = *this;
                 back();
                 return it;
@@ -176,8 +210,8 @@ namespace details {
 
 
         constexpr casing_view() requires std::default_initializable<V> = default;
-        constexpr casing_view(V&& v) : base_(std::forward<V>(v)) {}
-        constexpr V base() const& requires std::copy_constructible<V> {
+        constexpr casing_view(V v) : base_(std::move(v)) {}
+        constexpr V base() const& {
             return base_;
         }
         constexpr V base() && {
@@ -185,7 +219,7 @@ namespace details {
         }
 
         constexpr iterator begin() const {
-            return {this, std::ranges::begin(base_)};
+            return iterator(this, std::ranges::begin(base_));
         }
 
         constexpr std::default_sentinel_t end() const {
@@ -198,7 +232,62 @@ namespace details {
     };
     template<std::ranges::range R, case_transformation_kind CTK>
     casing_view(R &&) -> casing_view<std::views::all_t<R>, CTK>;
-}    // namespace details
+
+template <case_transformation_kind CTK>
+struct casing_view_fn {
+    template <std::ranges::input_range R>
+    requires std::is_same_v<std::remove_cvref_t<std::ranges::range_reference_t<R>>, char32_t>
+    constexpr auto operator()(R && r) const {
+        using T = std::views::all_t<R>;
+        return casing_view<T, CTK>{T(r)};
+    }
+
+    template <std::ranges::input_range R>
+    requires std::is_same_v<std::remove_cvref_t<std::ranges::range_reference_t<R>>, char32_t>
+    constexpr friend auto operator|(R &&r, const casing_view_fn &) {
+        using T = std::views::all_t<R>;
+        return casing_view<T, CTK>{T(r)};
+    }
+
+    template <std::ranges::input_range R, typename __CT = std::remove_cvref_t<std::ranges::range_reference_t<R>>>
+    requires std::is_same_v<__CT, char8_t> || std::is_same_v<__CT, char16_t>
+        constexpr auto operator()(R && r) const {
+        using T = std::views::all_t<R>;
+        auto cv = codepoint_view(T(r));
+        casing_view<decltype(cv), CTK> casing(cv);
+        return codeunit_view<decltype(casing), __CT, /*implicit*/true>(casing);
+    }
+
+    template <std::ranges::input_range R, typename __CT = std::remove_cvref_t<std::ranges::range_reference_t<R>>>
+    requires std::is_same_v<__CT, char8_t> || std::is_same_v<__CT, char16_t>
+    constexpr friend auto operator|(R && r, const casing_view_fn &) {
+        using T = std::views::all_t<R>;
+        codepoint_view<T> cv(std::views::all(r));
+        casing_view<decltype(cv), CTK> casing(std::move(cv));
+        return codeunit_view<decltype(casing), __CT, /*implicit*/true>(std::move(casing));
+    }
+
+    template <std::ranges::input_range R, details::utf_code_unit CodeUnitType>
+    constexpr auto operator()(cedilla::codeunit_view<R, CodeUnitType, /*implicit*/true> && r) const {
+        using T = std::views::all_t<R>;
+        return codeunit_view<casing_view<T, CTK>, CodeUnitType, /*implicit*/true>{casing_view<T, CTK>{T(std::move(r).base())}};
+    }
+
+    template <std::ranges::input_range R, details::utf_code_unit CodeUnitType>
+    constexpr friend auto operator|(cedilla::codeunit_view<R, CodeUnitType, /*implicit*/true> && r,
+                                        const casing_view_fn &) {
+        using T = std::views::all_t<R>;
+        return codeunit_view<casing_view<T, CTK>, CodeUnitType, /*implicit*/true>{casing_view<T, CTK>{T(std::move(r).base())}};
+    }
+};
+
+}
+
+
+constexpr inline details::casing_view_fn<details::case_transformation_upper> upper;
+constexpr inline details::casing_view_fn<details::case_transformation_lower> lower;
+constexpr inline details::casing_view_fn<details::case_transformation_fold>  case_fold;
+constexpr inline details::casing_view_fn<details::case_transformation_title> title;
 
 template<std::ranges::input_range V>
 using uppercase_default_view = details::casing_view<V, details::case_transformation_upper>;
@@ -208,5 +297,8 @@ using lowercase_default_view = details::casing_view<V, details::case_transformat
 
 template<std::ranges::input_range V>
 using casefold_default_view = details::casing_view<V, details::case_transformation_fold>;
+
+template<std::ranges::input_range V>
+using titlecase_default_view = details::casing_view<V, details::case_transformation_title>;
 
 }    // namespace cedilla

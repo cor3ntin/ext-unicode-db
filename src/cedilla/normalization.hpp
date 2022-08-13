@@ -4,6 +4,7 @@
 #include <ranges>
 #include <vector>
 #include <assert.h>
+#include <cedilla/utf.hpp>
 
 namespace cedilla {
 
@@ -316,7 +317,7 @@ public:
             decompose_next();
         };
 
-        constexpr const base_it& base() const & noexcept {
+        constexpr base_it base() const & noexcept {
             return base_;
         }
 
@@ -333,11 +334,11 @@ public:
             return *this;
         }
 
-        constexpr void operator++(int) const requires std::ranges::input_range<V>{
+        constexpr void operator++(int) requires std::ranges::input_range<V>{
             advance();
         }
 
-        constexpr iterator operator++(int) const requires std::ranges::forward_range<V> {
+        constexpr iterator operator++(int) requires std::ranges::forward_range<V> {
             auto it = *this;
             advance();
             return it;
@@ -348,7 +349,7 @@ public:
             return *this;
         }
 
-        constexpr iterator operator--(int) const requires std::ranges::bidirectional_range<V> {
+        constexpr iterator operator--(int) requires std::ranges::bidirectional_range<V> {
             auto it = *this;
             back();
             return it;
@@ -375,6 +376,57 @@ public:
 private:
     V base;
 };
+
+namespace details {
+template <normalization_form NF>
+struct normalization_view_fn {
+    template <std::ranges::input_range R>
+    requires std::is_same_v<std::remove_cvref_t<std::ranges::range_reference_t<R>>, char32_t>
+        constexpr auto operator()(R && r) const {
+        using T = std::views::all_t<R>;
+        return normalization_view<NF, T>{T(r)};
+    }
+
+    template <std::ranges::input_range R>
+    requires std::is_same_v<std::remove_cvref_t<std::ranges::range_reference_t<R>>, char32_t>
+        constexpr friend auto operator|(R &&r, const normalization_view_fn &) {
+        using T = std::views::all_t<R>;
+        return normalization_view<NF, T>{T(r)};
+    }
+
+    template <std::ranges::input_range R, typename __CT = std::remove_cvref_t<std::ranges::range_reference_t<R>>>
+    requires std::is_same_v<__CT, char8_t> || std::is_same_v<__CT, char16_t>
+    constexpr auto operator()(R && r) const {
+        using T = std::views::all_t<R>;
+        return codeunit_view<normalization_view<NF, codepoint_view<T>>, __CT, /*implicit*/true>{codepoint_view(T(r))};
+    }
+
+    template <std::ranges::input_range R, typename __CT = std::remove_cvref_t<std::ranges::range_reference_t<R>>>
+    requires std::is_same_v<__CT, char8_t> || std::is_same_v<__CT, char16_t>
+    constexpr friend auto operator|(R && r, const normalization_view_fn &) {
+        using T = std::views::all_t<R>;
+        return codeunit_view<normalization_view<NF, codepoint_view<T>>, __CT, /*implicit*/true>{codepoint_view(T(r))};
+    }
+
+    template <std::ranges::input_range R, details::utf_code_unit CodeUnitType>
+    constexpr auto operator()(cedilla::codeunit_view<R, CodeUnitType, /*implicit*/true> && r) const {
+        using T = std::views::all_t<R>;
+        return codeunit_view<normalization_view<NF, T>, CodeUnitType, /*implicit*/true>{normalization_view<NF, T>{T(r.base())}};
+    }
+
+    template <std::ranges::input_range R, details::utf_code_unit CodeUnitType>
+    constexpr friend auto operator|(cedilla::codeunit_view<R, CodeUnitType, /*implicit*/true> && r,
+                                    const normalization_view_fn &) {
+        using T = std::views::all_t<R>;
+        return codeunit_view<normalization_view<NF, T>, CodeUnitType, /*implicit*/true>{normalization_view<NF, T>{T(r.base())}};
+    }
+};
+
+}
+
+constexpr inline details::normalization_view_fn<normalization_form::nfc> nfc;
+constexpr inline details::normalization_view_fn<normalization_form::nfd> nfd;
+
 
 using x = normalization_view<normalization_form::nfd, std::u32string_view>;
 static_assert(std::input_iterator<typename x::iterator>);
