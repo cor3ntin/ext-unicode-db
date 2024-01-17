@@ -10,7 +10,7 @@ import copy
 from io import StringIO
 
 DIR_WITH_UCD = os.path.realpath(sys.argv[2])
-LAST_VERSION = "15.0"
+LAST_VERSION = "15.1"
 
 def cp_code(cp):
     try:
@@ -228,27 +228,34 @@ def is_wide(c):
 if __name__ == "__main__":
 
     all_characters, blocks = get_unicode_data()
-    characters = list(filter(lambda c : c != None and c.age and c.age < 13, all_characters))
+    characters = list(filter(lambda c : c != None, all_characters))
     names = {}
     for c in characters:
         names[c.cp] = c.name
-    ea = [c for c in characters if is_wide(c)]
-    missing_from_standard = [c for c in ea if not is_standard(c.cp)]
-    reserved = [c for c in characters if c.reserved and is_standard(c.cp) and not is_wide(c)]
-    only_in_standard = [c for c in characters if is_standard(c.cp) and not c.reserved and not is_wide(c)]
+    ea = [c.cp for c in characters if is_wide(c)]
+    #missing_from_standard = [c for c in ea if not is_standard(c.cp)]
+    #reserved = [c for c in characters if c.reserved and is_standard(c.cp) and not is_wide(c)]
+    #only_in_standard = [c for c in characters if is_standard(c.cp) and not c.reserved and not is_wide(c)]
 
     with open(sys.argv[1], "w") as f:
+        write_xid_start(f, characters)
+        write_xid_continue(f, characters)
+        write_is_printable(f, characters)
+        write_is_formatable(f, characters)
+        write_is_wide(f, characters)
+        write_is_non_spacing(f, characters)
+
         pass
         #write_list_of_codepoints(f, "Missing from standard", missing_from_standard, names)
         #write_text_ranges(f, "Reserved", reserved_but_specified, names)
         #write_text_ranges(f, "Only in standard", only_in_standard, names)
-        #write_list_of_codepoints(f, "EA", ea, names)
+        write_list_of_codepoints(f, "EA", ea, names)
 
-    print("U+XXXXX: |_|\n")
-    print("## Reserved:")
-    print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in reserved]))
-    print("## Assigned, wide in the standard only:")
-    print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in only_in_standard]))
-    print("## Assigned, wide in Unicode only:")
-    print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in missing_from_standard]))
+   # print("U+XXXXX: |_|\n")
+   # print("## Reserved:")
+   # print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in reserved]))
+   # print("## Assigned, wide in the standard only:")
+   # print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in only_in_standard]))
+   # print("## Assigned, wide in Unicode only:")
+   # print("\n".join(["{}: |_|{}|_|".format(to_hex_unotation(c.cp), chr(c.cp)) for c in missing_from_standard]))
 
